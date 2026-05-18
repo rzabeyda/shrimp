@@ -1,0 +1,600 @@
+import sqlite3
+import os
+from datetime import datetime, timedelta
+
+DB_PATH = os.getenv("DB_PATH", "shrimp.db")
+
+def get_conn():
+    conn = sqlite3.connect(DB_PATH, timeout=15)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=15000")
+    return conn
+
+
+def init_db():
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id      INTEGER PRIMARY KEY,
+            username     TEXT,
+            first_name   TEXT,
+            photo_url    TEXT,
+            ref_by       INTEGER,
+            games_played INTEGER DEFAULT 0,
+            kills        INTEGER DEFAULT 0,
+            wins         INTEGER DEFAULT 0,
+            chat_joined  INTEGER DEFAULT 0,
+            streak_days  INTEGER DEFAULT 0,
+            streak_last  TEXT DEFAULT NULL,
+            created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    for col, coldef in [
+        ("games_played","INTEGER DEFAULT 0"),("kills","INTEGER DEFAULT 0"),
+        ("wins","INTEGER DEFAULT 0"),("chat_joined","INTEGER DEFAULT 0"),("streak_days","INTEGER DEFAULT 0"),("streak_last","TEXT DEFAULT NULL"),("losses","INTEGER DEFAULT 0"),("clean_wins","INTEGER DEFAULT 0"),("first_joins","INTEGER DEFAULT 0"),("sent_anon","INTEGER DEFAULT 0"),("times_voted_against","INTEGER DEFAULT 0"),("killed_by_killer","INTEGER DEFAULT 0"),("premium_force","INTEGER DEFAULT 0"),("gender","TEXT DEFAULT NULL"),("message_count","INTEGER DEFAULT 0")
+    ]:
+        try: c.execute(f"ALTER TABLE users ADD COLUMN {col} {coldef}")
+        except: pass
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS games (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            number      INTEGER DEFAULT 1,
+            status      TEXT DEFAULT 'waiting',
+            max_players INTEGER DEFAULT 0,
+            current_day INTEGER DEFAULT 0,
+            prize_desc  TEXT,
+            prize_link  TEXT,
+            created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+            started_at  DATETIME,
+            voting_ends TEXT,
+            finished_at DATETIME,
+            winner_id   INTEGER
+        )
+    """)
+    for col, coldef in [
+        ("number","INTEGER DEFAULT 1"),("max_players","INTEGER DEFAULT 0"),
+        ("current_day","INTEGER DEFAULT 0"),("voting_ends","TEXT")
+    ]:
+        try: c.execute(f"ALTER TABLE games ADD COLUMN {col} {coldef}")
+        except: pass
+
+    # Убрать лимит в существующей игре
+    c.execute("UPDATE games SET max_players=0 WHERE max_players=10 AND status='waiting'")
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS players (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id   INTEGER,
+            user_id   INTEGER,
+            is_alive  INTEGER DEFAULT 1,
+            joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(game_id, user_id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS votes (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id    INTEGER,
+            day_number INTEGER,
+            voter_id   INTEGER,
+            target_id  INTEGER,
+            weight     INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(game_id, day_number, voter_id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS items (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id    INTEGER,
+            user_id    INTEGER,
+            item_type  TEXT,
+            status     TEXT DEFAULT 'active',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    try: c.execute("ALTER TABLE items ADD COLUMN status TEXT DEFAULT 'active'")
+    except: pass
+    try: c.execute("ALTER TABLE votes ADD COLUMN weight INTEGER DEFAULT 1")
+    except: pass
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS final_votes (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id   INTEGER,
+            voter_id  INTEGER,
+            target_id INTEGER,
+            UNIQUE(game_id, voter_id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS settings (
+            key   TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS kills_log (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id    INTEGER,
+            killer_id  INTEGER,
+            victim_id  INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS game_events (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id    INTEGER,
+            event_type TEXT,
+            text       TEXT,
+            icon       TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    c.execute("SELECT COUNT(*) as cnt FROM games")
+    if c.fetchone()["cnt"] == 0:
+        c.execute("""INSERT INTO games (number, status, max_players, prize_desc, prize_link)
+            VALUES (1, 'waiting', 0, 'NFT Giraffe Pool Float', 'https://t.me/nft/PoolFloat-148562')""")
+
+    c.execute("""CREATE TABLE IF NOT EXISTS clans (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        game_id INTEGER, leader_id INTEGER,
+        name TEXT DEFAULT 'Клан',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(game_id, leader_id))""")
+    c.execute("""CREATE TABLE IF NOT EXISTS clan_members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        clan_id INTEGER, user_id INTEGER,
+        joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(clan_id, user_id))""")
+    c.execute("""CREATE TABLE IF NOT EXISTS clan_invites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        clan_id INTEGER, from_id INTEGER, to_id INTEGER,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(clan_id, to_id))""")
+
+    conn.commit()
+    conn.close()
+
+
+def get_or_create_user(user_id, username, first_name, ref_by=None):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
+    user = c.fetchone()
+    if not user:
+        c.execute("INSERT INTO users (user_id, username, first_name, ref_by) VALUES (?,?,?,?)",
+                  (user_id, username, first_name, ref_by))
+        # Новым юзерам даём Чёрную метку бесплатно
+        c.execute("INSERT INTO items (user_id, item_type, game_id, status) VALUES (?,?,NULL,'active')",
+                  (user_id, "black_mark"))
+        conn.commit()
+    conn.close()
+
+
+def get_user(user_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
+    u = c.fetchone()
+    conn.close()
+    return u
+
+
+def update_user_photo(user_id, photo_url):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE users SET photo_url=? WHERE user_id=?", (photo_url, user_id))
+    conn.commit()
+    conn.close()
+
+
+def set_chat_joined(user_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE users SET chat_joined=1 WHERE user_id=?", (user_id,))
+    conn.commit()
+    conn.close()
+
+
+def get_referral_count(user_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) as cnt FROM users WHERE ref_by=?", (user_id,))
+    row = c.fetchone()
+    conn.close()
+    return row["cnt"] if row else 0
+
+
+
+def set_premium_force(user_id, value: bool):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE users SET premium_force=? WHERE user_id=?", (1 if value else 0, user_id))
+    conn.commit()
+    conn.close()
+    return c.rowcount > 0
+
+
+def set_gender(user_id, gender: str):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE users SET gender=? WHERE user_id=?", (gender, user_id))
+    conn.commit()
+    conn.close()
+
+def get_gender(user_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT gender FROM users WHERE user_id=?", (user_id,))
+    row = c.fetchone()
+    conn.close()
+    return row["gender"] if row else None
+
+
+def get_user_by_username(username: str):
+    conn = get_conn()
+    c = conn.cursor()
+    username = username.lstrip("@")
+    c.execute("SELECT * FROM users WHERE LOWER(username)=LOWER(?)", (username,))
+    row = c.fetchone()
+    conn.close()
+    return row
+
+
+def update_user_profile(user_id, username, first_name):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE users SET username=?, first_name=? WHERE user_id=?", (username, first_name, user_id))
+    conn.commit()
+    conn.close()
+
+def get_user_stats(user_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT games_played, kills, wins, chat_joined, streak_days, streak_last, used_spy, used_killer, bought_shield, used_double_vote, resurrected, first_purchase, went_anon, won_as_anon, losses, clean_wins, first_joins, sent_anon, times_voted_against, killed_by_killer, items_used, items_won, premium_force, COALESCE(created_clan,0) as created_clan FROM users WHERE user_id=?", (user_id,))
+    row = c.fetchone()
+    # Считаем покупки из таблицы purchases
+    purchases_bought = 0
+    distinct_bought = 0
+    premium_icon = None
+    try:
+        c.execute("SELECT COUNT(*) as cnt FROM purchases WHERE user_id=?", (user_id,))
+        r = c.fetchone(); purchases_bought = r["cnt"] if r else 0
+        c.execute("SELECT COUNT(DISTINCT item_type) as cnt FROM purchases WHERE user_id=?", (user_id,))
+        r = c.fetchone(); distinct_bought = r["cnt"] if r else 0
+        # Премиум иконка
+        c.execute("SELECT value FROM settings WHERE key=?", (f"premium_icon_{user_id}",))
+        r = c.fetchone(); premium_icon = r["value"] if r else None
+    except: pass
+    conn.close()
+    base = dict(row) if row else {"games_played":0,"kills":0,"wins":0,"chat_joined":0,"streak_days":0,"streak_last":None,"used_spy":0,"used_killer":0,"bought_shield":0,"used_double_vote":0,"resurrected":0,"first_purchase":0,"losses":0,"clean_wins":0,"first_joins":0,"sent_anon":0,"times_voted_against":0,"killed_by_killer":0,"items_used":0,"items_won":0}
+    base["items_bought"] = purchases_bought
+    # items_won берём из колонки users.items_won (инкрементируется при выигрыше в колесе)
+    base["items_won"] = (base.get("items_won") or 0)
+    base["distinct_bought"] = distinct_bought
+    ref_count = 0
+    try:
+        c2 = get_conn().cursor()
+        c2.execute("SELECT COUNT(*) as cnt FROM users WHERE ref_by=?", (user_id,))
+        r = c2.fetchone(); ref_count = r["cnt"] if r else 0
+    except: pass
+    base["ref_count"] = ref_count
+    base["is_premium"] = distinct_bought >= 5 or ref_count >= 5 or bool(base.get("premium_force"))
+    base["premium_icon"] = premium_icon
+    return base
+
+
+def get_active_game():
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT * FROM games WHERE status IN ('waiting','active') ORDER BY id DESC LIMIT 1")
+    g = c.fetchone()
+    conn.close()
+    return g
+
+
+def get_current_prize():
+    return get_active_game()
+
+
+def get_game_players(game_id, alive_only=False):
+    conn = get_conn()
+    c = conn.cursor()
+    q = """SELECT u.user_id, u.username, u.first_name, u.photo_url, u.gender, p.is_alive, p.joined_at,
+           CASE WHEN u.premium_force=1
+                     OR (SELECT COUNT(DISTINCT item_type) FROM items WHERE user_id=u.user_id AND status IN ('active','used')) >= 5
+                     OR (SELECT COUNT(*) FROM users r WHERE r.ref_by=u.user_id) >= 5
+                THEN 1 ELSE 0 END as is_premium
+           FROM players p JOIN users u ON p.user_id=u.user_id WHERE p.game_id=?"""
+    if alive_only:
+        q += " AND p.is_alive=1"
+    q += " ORDER BY p.joined_at ASC"
+    c.execute(q, (game_id,))
+    rows = c.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def register_player(game_id, user_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT id FROM players WHERE game_id=? AND user_id=?", (game_id, user_id))
+    if c.fetchone():
+        conn.close()
+        return False, 0, "Уже записан"
+    c.execute("INSERT INTO players (game_id, user_id) VALUES (?,?)", (game_id, user_id))
+    c.execute("SELECT COUNT(*) as cnt FROM players WHERE game_id=?", (game_id,))
+    cnt = c.fetchone()["cnt"]
+    conn.commit()
+    conn.close()
+    return True, cnt, "ok"
+
+
+def get_user_items(user_id, game_id=None):
+    conn = get_conn()
+    c = conn.cursor()
+    # Берём ВСЕ активные предметы юзера — абилка работает в любой игре
+    c.execute("SELECT * FROM items WHERE user_id=? AND status='active'", (user_id,))
+    rows = c.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def add_item(user_id, item_type, game_id=None):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("INSERT INTO items (user_id, item_type, game_id, status) VALUES (?,?,?,'active')",
+              (user_id, item_type, game_id))
+    conn.commit()
+    conn.close()
+
+
+def get_user_vote(game_id, day_number, voter_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT * FROM votes WHERE game_id=? AND day_number=? AND voter_id=?",
+              (game_id, day_number, voter_id))
+    row = c.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def has_bomzh_item(user_id, item_id):
+    """Проверяем есть ли у юзера предмет от Чушпана"""
+    try:
+        conn = get_conn(); c = conn.cursor()
+        c.execute("SELECT id FROM bomzh_items WHERE user_id=? AND item_id=? LIMIT 1", (user_id, item_id))
+        row = c.fetchone(); conn.close()
+        return row is not None
+    except:
+        return False
+
+
+def cast_vote(game_id, day_number, voter_id, target_id):
+    conn = get_conn()
+    c = conn.cursor()
+    # Базовый вес — учитываем предметы Чушпана
+    weight = 1
+    if has_bomzh_item(voter_id, 'pistol'):
+        weight += 1   # пистолет: +1 голос
+    if has_bomzh_item(voter_id, 'drugs'):
+        weight = max(0, weight - 1)  # таблетки: -1 голос (минимум 0)
+    try:
+        c.execute("INSERT INTO votes (game_id, day_number, voter_id, target_id, weight) VALUES (?,?,?,?,?)",
+                  (game_id, day_number, voter_id, target_id, weight))
+    except:
+        c.execute("UPDATE votes SET target_id=?, weight=? WHERE game_id=? AND day_number=? AND voter_id=?",
+                  (target_id, weight, game_id, day_number, voter_id))
+    conn.commit()
+    conn.close()
+    return weight
+
+
+def cast_double_vote(game_id, day_number, voter_id, target_id):
+    """Активировать двустволку — добавить +2 голоса за target_id (отдельно от основного голоса)"""
+    conn = get_conn()
+    c = conn.cursor()
+    # Проверяем что у игрока есть двустволка
+    c.execute("SELECT id FROM items WHERE user_id=? AND item_type='double_vote' AND status='active' LIMIT 1", (voter_id,))
+    dv = c.fetchone()
+    if not dv:
+        conn.close()
+        return False, "Нет предмета Двустволка"
+    # Списываем абилку
+    c.execute("UPDATE items SET status='used' WHERE id=?", (dv["id"],))
+    try:
+        c.execute("UPDATE users SET used_double_vote=used_double_vote+1, items_used=items_used+1 WHERE user_id=?", (voter_id,))
+    except: pass
+    # Добавляем отдельную запись с весом 2 за target_id
+    # Используем специальный voter_id = voter_id + 9000000000 чтобы не конфликтовать с основным голосом
+    fake_voter_id = voter_id + 9000000000
+    try:
+        c.execute("INSERT INTO votes (game_id, day_number, voter_id, target_id, weight) VALUES (?,?,?,?,?)",
+                  (game_id, day_number, fake_voter_id, target_id, 2))
+    except:
+        conn.close()
+        return False, "Ошибка записи голоса"
+    conn.commit()
+    conn.close()
+    return True, "OK"
+
+
+def kill_player_by_killer(game_id, killer_user_id, target_user_id):
+    conn = get_conn()
+    c = conn.cursor()
+    # Ищем предмет с game_id или без (купленный через Stars может не иметь game_id)
+    c.execute("SELECT id FROM items WHERE user_id=? AND game_id=? AND item_type='killer' AND status='active' LIMIT 1",
+              (killer_user_id, game_id))
+    item = c.fetchone()
+    if not item:
+        c.execute("SELECT id FROM items WHERE user_id=? AND item_type='killer' AND status='active' LIMIT 1",
+                  (killer_user_id,))
+        item = c.fetchone()
+    if not item:
+        conn.close()
+        return False, "Нет предмета Киллер"
+    c.execute("UPDATE items SET status='used' WHERE id=?", (item["id"],))
+    c.execute("UPDATE players SET is_alive=0 WHERE game_id=? AND user_id=?", (game_id, target_user_id))
+    c.execute("UPDATE users SET kills=kills+1 WHERE user_id=?", (killer_user_id,))
+    conn.commit()
+    conn.close()
+    return True, "ok"
+
+
+def get_vote_results(game_id, day_number):
+    """Подсчёт голосов за раунд. Учитываем только живых — убитые киллером не считаются.
+    При ничьей — выбывает тот за кого проголосовали раньше, или кто позже зарегистрировался."""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("""
+        SELECT v.target_id,
+               SUM(v.weight) as cnt,
+               MIN(v.created_at) as first_vote_at,
+               p.joined_at
+        FROM votes v
+        JOIN players p ON p.user_id=v.target_id AND p.game_id=v.game_id
+        WHERE v.game_id=? AND v.day_number=? AND p.is_alive=1
+        GROUP BY v.target_id
+        ORDER BY cnt DESC, first_vote_at ASC, p.joined_at DESC
+    """, (game_id, day_number))
+    rows = c.fetchall()
+    conn.close()
+    return [(r["target_id"], r["cnt"]) for r in rows]
+
+
+def eliminate_player(game_id, user_id):
+    """Выбить игрока из игры"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE players SET is_alive=0 WHERE game_id=? AND user_id=?", (game_id, user_id))
+    # Воскрешение: проверяем есть ли у игрока и 10+ живых
+    c.execute("SELECT COUNT(*) as cnt FROM players WHERE game_id=? AND is_alive=1", (game_id,))
+    _alive_for_rez = c.fetchone()["cnt"]
+    c.execute("SELECT id FROM items WHERE user_id=? AND item_type='resurrect' AND status='active' LIMIT 1",
+              (user_id,))
+    rez = c.fetchone()
+    if rez and _alive_for_rez >= 10:
+        # Воскрешаем и тратим предмет
+        c.execute("UPDATE players SET is_alive=1 WHERE game_id=? AND user_id=?", (game_id, user_id))
+        c.execute("UPDATE items SET status='used' WHERE id=?", (rez["id"],))
+        # Анонимус тоже сгорает при воскрешении — заново надо покупать
+        c.execute("UPDATE items SET status='used' WHERE user_id=? AND item_type='anon_player' AND status='active'", (user_id,))
+        conn.commit()
+        conn.close()
+        return "resurrected"
+    # Списываем анонимус если был
+    c.execute("UPDATE items SET status='used' WHERE user_id=? AND item_type='anon_player' AND status='active'",
+              (user_id,))
+    # Счётчик проигрышей
+    c.execute("UPDATE users SET losses=losses+1 WHERE user_id=?", (user_id,))
+    conn.commit()
+    conn.close()
+    return "eliminated"
+
+
+def start_tiebreaker(game_id, tied_user_ids, day_number):
+    """Сохранить список игроков для переголосования (в виде специального голосования)"""
+    conn = get_conn()
+    c = conn.cursor()
+    # Помечаем день как ничья — просто увеличиваем день
+    c.execute("UPDATE games SET current_day=current_day+1 WHERE id=?", (game_id,))
+    conn.commit()
+    conn.close()
+
+
+def get_alive_count(game_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) as cnt FROM players WHERE game_id=? AND is_alive=1", (game_id,))
+    row = c.fetchone()
+    conn.close()
+    return row["cnt"] if row else 0
+
+def update_streak(user_id):
+    """Обновить стрик при ежедневном входе. Возвращает (streak_days, is_new_day, item_reward)
+    День 7  = связь на выбор (уже есть в фронте)
+    День 14 = Постанова + Киллер
+    День 21 = 250 игровых кредитов в казик
+    День 30 = Премиум навсегда
+    После 30 — стрик сбрасывается на 1."""
+    from datetime import datetime, date
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT streak_days, streak_last FROM users WHERE user_id=?", (user_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return 0, False, None
+
+    today = date.today().isoformat()
+    streak_last = row["streak_last"]
+    streak_days = row["streak_days"] or 0
+
+    if streak_last == today:
+        conn.close()
+        return streak_days, False, None
+
+    yesterday = (date.today() - __import__('datetime').timedelta(days=1)).isoformat()
+    if streak_last == yesterday:
+        # Продолжаем стрик — после 30 начинаем заново
+        streak_days = 1 if streak_days >= 30 else streak_days + 1
+    else:
+        streak_days = 1
+
+    # Награды
+    item_reward = None
+    FAKE_IDS_SET = {9000001, 9000002, 9000003, 9000004}
+
+    c.execute("SELECT id FROM games WHERE status IN ('waiting','active') ORDER BY id DESC LIMIT 1")
+    g = c.fetchone()
+    game_id = g["id"] if g else None
+
+    if user_id not in FAKE_IDS_SET:
+        if streak_days == 3:
+            c.execute("INSERT INTO items (user_id, item_type, game_id, status) VALUES (?,?,?,'active')",
+                      (user_id, "anon_msg", game_id))
+            item_reward = "anon_msg"
+        elif streak_days == 5:
+            c.execute("INSERT INTO items (user_id, item_type, game_id, status) VALUES (?,?,?,'active')",
+                      (user_id, "spy", game_id))
+            item_reward = "spy"
+        elif streak_days == 7:
+            c.execute("INSERT INTO items (user_id, item_type, game_id, status) VALUES (?,?,?,'active')",
+                      (user_id, "black_mark", game_id))
+            item_reward = "black_mark"
+        elif streak_days == 14:
+            # Постанова + Киллер
+            for it in ["resurrect", "killer"]:
+                c.execute("INSERT INTO items (user_id, item_type, game_id, status) VALUES (?,?,?,'active')",
+                          (user_id, it, game_id))
+            item_reward = "resurrect+killer"
+        elif streak_days == 21:
+            # 250 игровых кредитов в казик
+            try:
+                c.execute("CREATE TABLE IF NOT EXISTS casino_credits (user_id INTEGER PRIMARY KEY, credits INTEGER DEFAULT 0, last_free_spin TEXT)")
+            except: pass
+            c.execute("INSERT INTO casino_credits (user_id, credits) VALUES (?,250) ON CONFLICT(user_id) DO UPDATE SET credits=credits+250",
+                      (user_id,))
+            item_reward = "casino_250"
+        elif streak_days == 30:
+            # Премиум навсегда
+            c.execute("UPDATE users SET premium_force=1 WHERE user_id=?", (user_id,))
+            item_reward = "premium"
+
+    c.execute("UPDATE users SET streak_days=?, streak_last=? WHERE user_id=?",
+              (streak_days, today, user_id))
+    conn.commit()
+    conn.close()
+    return streak_days, True, item_reward
