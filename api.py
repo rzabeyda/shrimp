@@ -12,7 +12,8 @@ from database import (
     get_referral_count, get_active_game, get_game_players,
     register_player, get_user_stats, get_user_items, add_item,
     get_user_vote, cast_vote, cast_double_vote, kill_player_by_killer, get_conn, has_bomzh_item,
-    set_premium_force, get_user_by_username, get_gender, set_gender
+    set_premium_force, get_user_by_username, get_gender, set_gender,
+    add_gems
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
@@ -611,7 +612,13 @@ async def auth(request: Request):
     _bcc.execute("SELECT COUNT(*) as cnt FROM bomzh_items WHERE user_id=?", (user_id,))
     bomzh_items_count = _bcc.fetchone()["cnt"]
     _bcc.execute("SELECT COUNT(*) as cnt FROM bomzh_donations WHERE user_id=?", (user_id,))
-    bomzh_donations_count = _bcc.fetchone()["cnt"]; _bc.close()
+    bomzh_donations_count = _bcc.fetchone()["cnt"]
+    try:
+        _bcc.execute("CREATE TABLE IF NOT EXISTS bomzh_attacks (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, username TEXT, victim TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+        _bcc.execute("SELECT COUNT(*) as cnt FROM bomzh_attacks WHERE user_id=?", (user_id,))
+        bomzh_attacks_count = _bcc.fetchone()["cnt"]
+    except: bomzh_attacks_count = 0
+    _bc.close()
     game = get_active_game()
 
     in_game = False
@@ -651,6 +658,15 @@ async def auth(request: Request):
             else:
                 voted_target_name = None
 
+    # Реальное кол-во игр из таблицы players
+    try:
+        _gc = get_conn(); _gcc = _gc.cursor()
+        _gcc.execute("SELECT COUNT(*) as cnt FROM players p JOIN games g ON p.game_id=g.id WHERE p.user_id=? AND g.status='finished' AND (SELECT COUNT(*) FROM players WHERE game_id=g.id) >= 6", (user_id,))
+        _gr = _gcc.fetchone()
+        db_games_played = _gr["cnt"] if _gr else 0
+        _gc.close()
+    except: db_games_played = stats["games_played"]
+
     return {
         "ok": True,
         "user": {
@@ -660,7 +676,8 @@ async def auth(request: Request):
             "photo_url": user["photo_url"],
             "gender": get_gender(user_id),  # None если не задан — фронт покажет выбор
             "ref_count": get_referral_count(user_id),
-            "games_played": stats["games_played"],
+            "games_played": db_games_played,
+            "games_played_raw": stats["games_played"],
             "kills": stats["kills"],
             "wins": stats["wins"],
             "votes_cast": stats.get("votes_cast", 0),
@@ -678,7 +695,7 @@ async def auth(request: Request):
             "sent_anon": stats.get("sent_anon", 0),
             "times_voted_against": stats.get("times_voted_against", 0),
             "killed_by_killer": stats.get("killed_by_killer", 0),
-            "total_purchases": 1 if stats.get("first_purchase") else 0,
+            "total_purchases": stats.get("items_bought", 0),
             "items_bought": stats.get("items_bought", 0),
             "items_won": stats.get("items_won", 0),
             "items_used": stats.get("items_used", 0),
@@ -698,9 +715,12 @@ async def auth(request: Request):
             "in_top10": _check_top10(user_id),
             "bomzh_items_count": bomzh_items_count,
             "bomzh_donations_count": bomzh_donations_count,
+            "bomzh_attacks_count": bomzh_attacks_count,
             "streak_days": streak_days,
             "streak_new_day": is_new_day,
             "streak_item": streak_item,
+            "gems_claimed": int(user["gems_claimed"]) if user["gems_claimed"] else 0,
+            "gems_max_purchase": int(user["gems_max_purchase"]) if user["gems_max_purchase"] else 0,
         },
         "game": {
             "game_id": game["id"] if game else None,
@@ -966,7 +986,18 @@ async def game_register(request: Request):
         conn_anr.commit(); conn_anr.close()
     except: pass
 
+    # Проверяем до регистрации — первый раз в любой игре?
+    is_first_ever = False
+    try:
+        conn_chk = get_conn(); c_chk = conn_chk.cursor()
+        c_chk.execute("SELECT COUNT(*) as cnt FROM players WHERE user_id=?", (user_id,))
+        row_chk = c_chk.fetchone()
+        is_first_ever = (row_chk["cnt"] == 0)
+        conn_chk.close()
+    except: pass
+
     ok, count, msg = register_player(game["id"], user_id)
+    welcome_gems = 0
     if ok:
         # Первый в игре — ачивка Первопроходец
         if count == 1:
@@ -975,7 +1006,11 @@ async def game_register(request: Request):
                 c_fj.execute("UPDATE users SET first_joins=first_joins+1 WHERE user_id=?", (user_id,))
                 conn_fj.commit(); conn_fj.close()
             except: pass
-    return {"ok": ok, "message": msg, "count": count}
+        # Бонус новичка — 25 гемов при первой регистрации в игру
+        if is_first_ever:
+            add_gems(user_id, 25)
+            welcome_gems = 25
+    return {"ok": ok, "message": msg, "count": count, "welcome_gems": welcome_gems}
 
 
 @app.post("/api/game/vote")
@@ -1026,7 +1061,6 @@ async def game_vote(request: Request):
     if shield_active:
         return {"ok": False, "error": "У этого игрока иммунитет в этом раунде"}
     day = game["current_day"] or 1
-    # Ключи от тачки: иммунитет первые 25 раундов
     if has_bomzh_item(target_id, 'car_key') and day <= 25:
         return {"ok": False, "error": "У этого игрока иммунитет — уехал на тачке 🚗"}
     weight = cast_vote(game["id"], day, voter_id, target_id)
@@ -1434,7 +1468,6 @@ async def shop_buy(request: Request):
             if _dts.utcnow() < sale_end:
                 final_stars = item["stars"] // 2
     except: pass
-    # Кредитка Чушпана: -50% на всё
     try:
         if has_bomzh_item(user_id, 'credit_card'):
             final_stars = max(1, final_stars // 2)
@@ -2604,9 +2637,7 @@ async def anon_message(request: Request):
             return {"ok": False, "error": "Ты выбыл из игры"}
     _conn_am_chk.close()
 
-    # Смартфон Чушпана: бесплатные анонимки — не нужен предмет
     _has_phone = has_bomzh_item(sender_id, 'phone')
-    # Проверяем наличие предмета (не списываем ещё)
     conn_am = get_conn(); c_am = conn_am.cursor()
     c_am.execute("SELECT id FROM items WHERE user_id=? AND item_type='anon_msg' AND status='active' LIMIT 1", (sender_id,))
     item_am = c_am.fetchone()
@@ -2631,7 +2662,7 @@ async def anon_message(request: Request):
                 tg_err = tg_data.get("description", "Telegram error")
                 return {"ok": False, "error": f"Получатель не начал диалог с ботом ({tg_err})"}
 
-            # Telegram принял — списываем предмет только если нет смартфона
+            # Telegram принял — теперь списываем предмет
             conn_use = get_conn(); c_use = conn_use.cursor()
             if item_am_id and not _has_phone:
                 c_use.execute("UPDATE items SET status='used' WHERE id=?", (item_am_id,))
@@ -2975,17 +3006,17 @@ async def use_item_from_inventory(request: Request):
 # КОЛЕСО ФОРТУНЫ
 # ══════════════════════════════════════════
 WHEEL_PRIZES = [
-    {"type": "nothing",    "name": "Ничего",        "icon": "/static/icons/rip.png",        "weight": 35},
-    {"type": "anon_msg",   "name": "Сговориться",   "icon": "/static/icons/paper_plane.png","weight": 18},
-    {"type": "spy",        "name": "Стукач",        "icon": "/static/icons/mouse.png",      "weight": 14},
-    {"type": "black_mark", "name": "Мусорнуться",   "icon": "/static/icons/police.png",     "weight": 10},
-    {"type": "anon_player","name": "Анонимус",       "icon": "/static/icons/anonymous.png",  "weight": 8},
-    {"type": "double_vote","name": "Двустволка",     "icon": "/static/icons/shotgun.png",    "weight": 6},
-    {"type": "tiebreaker", "name": "Решала",         "icon": "/static/icons/bit.png",        "weight": 4},
-    {"type": "shield",     "name": "Крышануться",    "icon": "/static/icons/mafia.png",      "weight": 2.5},
-    {"type": "hacker",     "name": "Ворюга",         "icon": "/static/icons/thief.png",     "weight": 1.5},
-    {"type": "resurrect",  "name": "Постанова",      "icon": "/static/icons/murder.png",     "weight": 0.7},
-    {"type": "killer",     "name": "Киллер",         "icon": "/static/icons/killer.png",     "weight": 0.3},
+    {"type": "nothing",    "name": "Ничего",        "icon": "/static/icons/rip.png",             "weight": 35},
+    {"type": "anon_msg",   "name": "Сговориться",   "icon": "/static/icons/conspire.png",        "weight": 18},
+    {"type": "spy",        "name": "Стукач",        "icon": "/static/icons/rat.png",             "weight": 14},
+    {"type": "black_mark", "name": "Мусорнуться",   "icon": "/static/icons/police.png",          "weight": 10},
+    {"type": "anon_player","name": "Анонимус",       "icon": "/static/icons/anonymous.png",       "weight": 8},
+    {"type": "double_vote","name": "Двустволка",     "icon": "/static/icons/double-barreled.png", "weight": 6},
+    {"type": "tiebreaker", "name": "Решала",         "icon": "/static/icons/fixer.png",           "weight": 4},
+    {"type": "shield",     "name": "Крышануться",    "icon": "/static/icons/criminal_roof.png",   "weight": 2.5},
+    {"type": "hacker",     "name": "Ворюга",         "icon": "/static/icons/thief.png",           "weight": 1.5},
+    {"type": "resurrect",  "name": "Постанова",      "icon": "/static/icons/fakeout.png",         "weight": 0.7},
+    {"type": "killer",     "name": "Киллер",         "icon": "/static/icons/killer.png",          "weight": 0.3},
 ]
 
 @app.get("/api/wheel/status")
@@ -3362,6 +3393,12 @@ async def get_top():
             return r["value"] if r else None
         except: return None
 
+    def get_gender(uid):
+        try:
+            r = c.execute("SELECT value FROM settings WHERE key=?", (f"gender_{uid}",)).fetchone()
+            return r["value"] if r else None
+        except: return None
+
     ph = ','.join('?'*len(last_games))
 
     # Топ по играм
@@ -3370,7 +3407,7 @@ async def get_top():
         WHERE p.game_id IN ({ph}) AND u.user_id != ?
         GROUP BY p.user_id ORDER BY val DESC LIMIT 10""", last_games + [EXCL])
     games = [{"user_id":r["user_id"],"first_name":r["first_name"],"username":r["username"],
-              "val":r["val"],"premium_icon":get_icon(r["user_id"])} for r in c.fetchall()]
+              "val":r["val"],"premium_icon":get_icon(r["user_id"]),"gender":get_gender(r["user_id"])} for r in c.fetchall()]
 
     # Топ по раундам — считаем уникальные раунды в которых игрок голосовал
     c.execute("""SELECT u.user_id, u.first_name, u.username,
@@ -3379,7 +3416,7 @@ async def get_top():
         WHERE u.user_id != ?
         ORDER BY val DESC LIMIT 10""", (EXCL,))
     kills = [{"user_id":r["user_id"],"first_name":r["first_name"],"username":r["username"],
-              "val":r["val"],"premium_icon":get_icon(r["user_id"])} for r in c.fetchall()]
+              "val":r["val"],"premium_icon":get_icon(r["user_id"]),"gender":get_gender(r["user_id"])} for r in c.fetchall()]
 
     # Топ по друзьям (всего рефералов)
     c.execute("""SELECT u.user_id, u.first_name, u.username, COUNT(*) as val
@@ -3387,7 +3424,7 @@ async def get_top():
         WHERE u.user_id != ?
         GROUP BY u.user_id ORDER BY val DESC LIMIT 10""", (EXCL,))
     friends = [{"user_id":r["user_id"],"first_name":r["first_name"],"username":r["username"],
-                "val":r["val"],"premium_icon":get_icon(r["user_id"])} for r in c.fetchall()]
+                "val":r["val"],"premium_icon":get_icon(r["user_id"]),"gender":get_gender(r["user_id"])} for r in c.fetchall()]
 
     # Топ по покупкам
     c.execute("""SELECT u.user_id, u.first_name, u.username, COUNT(*) as val
@@ -3395,7 +3432,7 @@ async def get_top():
         WHERE u.user_id != ?
         GROUP BY p.user_id ORDER BY val DESC LIMIT 10""", (EXCL,))
     purchases = [{"user_id":r["user_id"],"first_name":r["first_name"],"username":r["username"],
-                  "val":r["val"],"premium_icon":get_icon(r["user_id"])} for r in c.fetchall()]
+                  "val":r["val"],"premium_icon":get_icon(r["user_id"]),"gender":get_gender(r["user_id"])} for r in c.fetchall()]
 
     conn.close()
     return {"ok": True, "games": games, "friends": friends, "purchases": purchases, "rounds": kills}
@@ -4039,8 +4076,11 @@ def ensure_bomzh_tables():
         username TEXT,
         item_id TEXT,
         item_name TEXT,
+        permanent INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )""")
+    try: c.execute("ALTER TABLE bomzh_items ADD COLUMN permanent INTEGER DEFAULT 0")
+    except: pass
     conn.commit(); conn.close()
 
 ensure_bomzh_tables()
@@ -4111,6 +4151,14 @@ async def bomzh_item_found(request: Request):
     conn = get_conn(); c = conn.cursor()
     c.execute("INSERT INTO bomzh_items (user_id, username, item_id, item_name) VALUES (?,?,?,?)",
               (user_id, username, item_id, item_name))
+    # Смартфон — сразу выдаём бесконечную анонимку в связи
+    if item_id == 'phone':
+        game = get_active_game()
+        game_id = game["id"] if game else None
+        c.execute("SELECT id FROM items WHERE user_id=? AND item_type='anon_msg' AND status='active' LIMIT 1", (user_id,))
+        if not c.fetchone():
+            c.execute("INSERT INTO items (user_id, item_type, game_id, status) VALUES (?,?,?,'active')",
+                      (user_id, 'anon_msg', game_id))
     conn.commit(); conn.close()
 
     async with httpx.AsyncClient() as cl:
@@ -4125,7 +4173,7 @@ async def bomzh_my_items(request: Request):
     if not uid:
         return JSONResponse({"ok": False, "error": "no user_id"}, status_code=400)
     conn = get_conn(); c = conn.cursor()
-    c.execute("SELECT item_id, item_name FROM bomzh_items WHERE user_id=? ORDER BY created_at ASC", (int(uid),))
+    c.execute("SELECT item_id, item_name, COALESCE(permanent,0) as permanent FROM bomzh_items WHERE user_id=? ORDER BY created_at ASC", (int(uid),))
     rows = [dict(r) for r in c.fetchall()]
     conn.close()
     return {"ok": True, "items": rows}
@@ -4234,7 +4282,46 @@ async def bomzh_attack_send(request: Request):
         )
         await log_event(cl, f"🔪 <b>Атака Чушпана!</b>\n👤 {username} (ID:{user_id})\n🎯 Жертва: {victim}")
 
+    try:
+        conn_atk = get_conn(); c_atk = conn_atk.cursor()
+        c_atk.execute("CREATE TABLE IF NOT EXISTS bomzh_attacks (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, username TEXT, victim TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+        c_atk.execute("INSERT INTO bomzh_attacks (user_id, username, victim) VALUES (?,?,?)", (user_id, username, victim))
+        conn_atk.commit(); conn_atk.close()
+    except: pass
+
     return {"ok": True}
+
+@app.post("/api/bomzh/item_buy")
+async def bomzh_item_buy(request: Request):
+    body = await request.json()
+    user_id = body.get("user_id")
+    item_id = body.get("item_id")
+    if not user_id or not item_id:
+        return {"ok": False}
+    conn = get_conn(); c = conn.cursor()
+    c.execute("SELECT id FROM bomzh_items WHERE user_id=? AND item_id=? LIMIT 1", (user_id, item_id))
+    row = c.fetchone(); conn.close()
+    if not row:
+        return {"ok": False, "error": "Предмет не найден"}
+    if user_id == ADMIN_ID:
+        conn2 = get_conn(); c2 = conn2.cursor()
+        c2.execute("UPDATE bomzh_items SET permanent=1 WHERE user_id=? AND item_id=?", (user_id, item_id))
+        conn2.commit(); conn2.close()
+        return {"ok": True, "free": True}
+    item_names = {'phone':'Смартфон','pistol':'Пистолет','car_key':'Ключи от тачки','credit_card':'Кредитка','drugs':'Таблетки'}
+    name = item_names.get(item_id, 'Предмет Чушпана')
+    try:
+        async with httpx.AsyncClient() as cl:
+            r = await cl.post(f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink",
+                json={"title": f"Выкупить: {name}", "description": "Предмет останется навсегда и будет работать во всех играх",
+                      "payload": f"{user_id}:bomzh_keep_{item_id}", "currency": "XTR",
+                      "prices": [{"label": name, "amount": 999}]})
+            d = r.json()
+            if d.get("ok"): return {"ok": True, "invoice_url": d["result"]}
+            return {"ok": False, "error": d.get("description", "Ошибка")}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 
 @app.get("/api/bomzh/stats")
 async def bomzh_stats():
@@ -4248,3 +4335,32 @@ async def bomzh_stats():
     total = c.fetchone()["total"]
     conn.close()
     return {"ok": True, "total_stars": total, "donations": donations, "items": items}
+
+
+@app.post("/api/claim_gems")
+async def claim_gems(request: Request):
+    """Одноразовое получение 25 гемов"""
+    try:
+        data = await request.json()
+        user_id = int(data.get("user_id", 0))
+        if not user_id:
+            return {"ok": False, "error": "no user"}
+        conn = get_conn(); c = conn.cursor()
+        # Проверяем не получал ли уже
+        c.execute("SELECT COALESCE(gems_claimed,0) as gems_claimed, COALESCE(gems_max_purchase,0) as gems_max_purchase FROM users WHERE user_id=?", (user_id,))
+        row = c.fetchone()
+        if not row:
+            conn.close()
+            return {"ok": False, "error": "Пользователь не найден"}
+        if row["gems_claimed"]:
+            conn.close()
+            return {"ok": False, "error": "Уже получено"}
+        if row["gems_max_purchase"] < 100:
+            conn.close()
+            return {"ok": False, "error": "Нужно купить минимум 100 💎 за один раз"}
+        # Начисляем 25 гемов
+        c.execute("UPDATE users SET gems=COALESCE(gems,0)+25, gems_claimed=1 WHERE user_id=?", (user_id,))
+        conn.commit(); conn.close()
+        return {"ok": True, "gems": 25}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}

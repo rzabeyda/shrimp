@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -12,12 +12,12 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=Inter:wght@400;500;600&display=swap');
   :root{
-    --bg:#000;--bg2:#0d0d0d;--bg3:#111;--bg4:#1a1a1a;
-    --pink:#e8336d;--pink2:#ff6b9d;
-    --pink-soft:rgba(232,51,109,.1);--pink-border:rgba(232,51,109,.22);
-    --blue:#2563eb;--blue2:#3b82f6;
-    --text:#fff;--muted:#444;--muted2:#888;
-    --card:rgba(255,255,255,.04);--border:rgba(255,255,255,.07);
+    --bg:#000;--bg2:#0a0805;--bg3:#0e0b07;--bg4:#1a1410;
+    --pink:#b91c1c;--pink2:#ef4444;
+    --pink-soft:rgba(185,28,28,.12);--pink-border:rgba(185,28,28,.28);
+    --blue:#92400e;--blue2:#d97706;
+    --text:#fff;--muted:#3d3530;--muted2:#8a7e76;
+    --card:rgba(255,235,180,.03);--border:rgba(255,235,180,.08);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
@@ -98,7 +98,7 @@
   .action-row{display:flex;align-items:center;gap:8px}
   .btn-register{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 12px;border:none;border-radius:16px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;color:#fff;cursor:pointer;transition:transform .12s,filter .12s}
   .btn-register:hover{filter:brightness(1.1)} .btn-register:active{transform:scale(.97)}
-  .btn-register.join{background:linear-gradient(135deg,#16a34a,#15803d,#166534);box-shadow:0 4px 24px rgba(22,163,74,.5);position:relative;overflow:hidden}
+  .btn-register.join{background:linear-gradient(135deg,#b91c1c,#7f1d1d,#991b1b);box-shadow:0 4px 24px rgba(185,28,28,.5);position:relative;overflow:hidden}
   .btn-register.join::after,.btn-register.vote::after{content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:rgba(255,255,255,.18);transform:skewX(-20deg);animation:btn-shine 3s ease-in-out infinite}
   .btn-register.already{background:linear-gradient(135deg,#111,#1c1c1c,#111);border:1px solid rgba(255,255,255,.08);box-shadow:0 4px 16px rgba(0,0,0,.6);cursor:default}
   .btn-register.vote{background:linear-gradient(135deg,#16a34a,#15803d,#166534);box-shadow:0 4px 24px rgba(22,163,74,.5);position:relative;overflow:hidden}
@@ -110,26 +110,21 @@
   .shop-wrap{padding:20px 16px}
   .shop-title{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px}
   .shop-sub{font-size:12px;color:var(--muted2);margin-bottom:20px}
-  .shop-grid{display:flex;flex-direction:column;gap:10px}
-  .shop-item{display:flex;align-items:center;gap:12px;border-radius:18px;padding:14px 14px;min-height:78px;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
-  .shop-item::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
-  .shop-item:active{transform:scale(.98)}
-  .shop-item-icon{width:58px;height:58px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
-  .shop-item-icon img{width:46px;height:46px;object-fit:contain;position:relative;z-index:1}
-  .shop-item-info{flex:1;min-width:0}
-  .shop-item.s1{background:linear-gradient(135deg,rgba(96,165,250,.12) 0%,rgba(30,41,59,.95) 100%);border:1px solid rgba(96,165,250,.35);box-shadow:0 4px 20px rgba(96,165,250,.1)}
-  .shop-item.s1 .shop-item-icon{background:linear-gradient(135deg,rgba(96,165,250,.2),rgba(96,165,250,.05));border:1px solid rgba(96,165,250,.3)}
-  .shop-item.s2{background:linear-gradient(135deg,rgba(251,146,60,.12) 0%,rgba(30,41,59,.95) 100%);border:1px solid rgba(251,146,60,.35);box-shadow:0 4px 20px rgba(251,146,60,.1)}
-  .shop-item.s2 .shop-item-icon{background:linear-gradient(135deg,rgba(251,146,60,.2),rgba(251,146,60,.05));border:1px solid rgba(251,146,60,.3)}
-  .shop-item.s3{background:linear-gradient(135deg,rgba(239,68,68,.12) 0%,rgba(30,41,59,.95) 100%);border:1px solid rgba(239,68,68,.35);box-shadow:0 4px 20px rgba(239,68,68,.1)}
-  .shop-item.s3 .shop-item-icon{background:linear-gradient(135deg,rgba(239,68,68,.2),rgba(239,68,68,.05));border:1px solid rgba(239,68,68,.3)}
-  .shop-item.s4{background:linear-gradient(135deg,rgba(168,85,247,.12) 0%,rgba(30,41,59,.95) 100%);border:1px solid rgba(168,85,247,.35);box-shadow:0 4px 20px rgba(168,85,247,.1)}
-  .shop-item.s4 .shop-item-icon{background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(168,85,247,.05));border:1px solid rgba(168,85,247,.3)}
-  .shop-item.s5{background:linear-gradient(135deg,rgba(245,197,24,.15) 0%,rgba(30,41,59,.95) 100%);border:1px solid rgba(245,197,24,.5);box-shadow:0 4px 24px rgba(245,197,24,.15)}
-  .shop-item.s5 .shop-item-icon{background:linear-gradient(135deg,rgba(245,197,24,.25),rgba(245,197,24,.05));border:1px solid rgba(245,197,24,.4)}
-  .shop-item-name{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;margin-bottom:3px}
-  .shop-item-desc{font-size:10px;color:var(--muted2);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-  .btn-buy{display:flex;align-items:center;gap:4px;background:linear-gradient(135deg,var(--pink),#b5203f);border:none;border-radius:11px;padding:10px 14px;font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:transform .12s,filter .12s;box-shadow:0 3px 10px rgba(232,51,109,.35)}
+  .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .shop-item{display:flex;flex-direction:column;align-items:stretch;border-radius:18px;padding:0;overflow:hidden;transition:transform .15s,box-shadow .15s;position:relative;background:linear-gradient(160deg,rgba(35,25,8,.98) 0%,rgba(12,8,2,1) 100%);border:1.5px solid rgba(180,140,40,.55);box-shadow:0 4px 20px rgba(0,0,0,.5),inset 0 0 40px rgba(0,0,0,.4)}
+  .shop-item::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,197,24,.4),transparent);z-index:2}
+  .shop-item:active{transform:scale(.97)}
+  .shop-item-icon{width:100%;height:140px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;background:rgba(0,0,0,.3)}
+  .shop-item-icon img{width:100%;height:100%;object-fit:cover;position:relative;z-index:1}
+  .shop-item-info{flex:1;min-width:0;padding:8px 10px 4px}
+  .shop-item.s1{border-color:rgba(96,165,250,.5);box-shadow:0 4px 20px rgba(96,165,250,.12),inset 0 0 30px rgba(0,0,0,.5)}
+  .shop-item.s2{border-color:rgba(251,146,60,.5);box-shadow:0 4px 20px rgba(251,146,60,.12),inset 0 0 30px rgba(0,0,0,.5)}
+  .shop-item.s3{border-color:rgba(239,68,68,.5);box-shadow:0 4px 20px rgba(239,68,68,.12),inset 0 0 30px rgba(0,0,0,.5)}
+  .shop-item.s4{border-color:rgba(168,85,247,.5);box-shadow:0 4px 20px rgba(168,85,247,.12),inset 0 0 30px rgba(0,0,0,.5)}
+  .shop-item.s5{border-color:rgba(245,197,24,.65);box-shadow:0 4px 24px rgba(245,197,24,.18),inset 0 0 30px rgba(0,0,0,.4)}
+  .shop-item-name{font-family:'Unbounded',sans-serif;font-size:10px;font-weight:700;margin-bottom:3px}
+  .shop-item-desc{font-size:9px;color:var(--muted2);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .btn-buy{display:flex;align-items:center;justify-content:center;gap:4px;background:linear-gradient(135deg,var(--pink),#b5203f);border:none;border-radius:11px;padding:9px 10px;margin:6px 10px 10px;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap;transition:transform .12s,filter .12s;box-shadow:0 3px 10px rgba(232,51,109,.35)}
   .btn-buy:hover{filter:brightness(1.15);box-shadow:0 4px 16px rgba(232,51,109,.5)} .btn-buy:active{transform:scale(.91)}
   .btn-buy img{width:12px;height:12px;object-fit:contain}
   .price-old{text-decoration:line-through;opacity:.5;font-size:9px;margin-right:2px}
@@ -176,7 +171,7 @@
   .stat-block{background:var(--card);border:1.5px solid rgba(255,255,255,.5);border-radius:14px;padding:10px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:border-color .15s,background .15s,transform .12s;overflow:hidden;min-width:0}
   .stat-block:hover{border-color:var(--pink-border);background:var(--pink-soft)} .stat-block:active{transform:scale(.93)}
   .stat-block img{width:22px;height:22px;object-fit:contain;opacity:.75}
-  .stat-block-value{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:800;color:var(--pink);line-height:1}
+  .stat-block-value{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:800;color:#f5c518;line-height:1}
   .stat-block-label{font-size:7px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.2px;text-align:center;line-height:1.2;padding:0 2px}
 
   .section-title{font-family:'Unbounded',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
@@ -204,19 +199,19 @@
 
   /* INVENTORY — квадратные иконки с каунтером */
   .inventory-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
-  .inv-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;border-radius:16px;padding:12px 6px 10px;min-width:80px;min-height:130px;cursor:pointer;transition:border-color .15s,background .15s,transform .12s;overflow:hidden}
-  .inv-item:hover{border-color:rgba(245,197,24,.7);background:rgba(245,197,24,.06)} .inv-item:active{transform:scale(.94)}
-  .inv-item-glow{box-shadow:0 0 12px rgba(245,197,24,.15)}
+  .inv-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;border-radius:16px;padding:0 0 10px;min-width:80px;min-height:150px;cursor:pointer;transition:border-color .15s,background .15s,transform .12s;overflow:hidden;background:linear-gradient(160deg,rgba(35,25,8,.98) 0%,rgba(12,8,2,1) 100%);border:1.5px solid rgba(180,140,40,.5)}
+  .inv-item:hover{border-color:rgba(245,197,24,.7)} .inv-item:active{transform:scale(.94)}
+  .inv-item-glow{box-shadow:0 0 14px rgba(245,197,24,.18)}
   .inv-item-empty{background:var(--bg2)!important;border:1px dashed var(--border)!important;opacity:.5}
   .inv-item-empty:hover{opacity:.8!important}
-  .inv-item img{width:48px;height:48px;object-fit:contain}
-  .inv-item-name{font-family:'Unbounded',sans-serif;font-size:7.5px;font-weight:700;color:var(--text);text-align:center;line-height:1.3;max-width:78px;word-break:break-word;overflow-wrap:break-word}
+  .inv-item img{width:100%;height:90px;object-fit:cover;border-radius:14px 14px 0 0}
+  .inv-item-name{font-family:'Unbounded',sans-serif;font-size:6.5px;font-weight:700;color:var(--text);text-align:center;line-height:1.3;max-width:78px;word-break:break-word;overflow-wrap:break-word;padding:4px 4px 0}
   .inv-counter{position:absolute;top:4px;right:4px;background:#3b82f6;border-radius:8px;min-width:18px;height:18px;padding:0 4px;display:flex;align-items:center;justify-content:center;font-family:'Unbounded',sans-serif;font-size:9px;font-weight:800;color:#fff}
-  .inv-activate-hint{font-size:8px;font-weight:800;text-align:center;border-radius:8px;padding:5px 4px;margin-top:4px;width:100%;box-sizing:border-box;min-height:24px;display:flex;align-items:center;justify-content:center;letter-spacing:-.2px}
+  .inv-activate-hint{font-size:7.5px;font-weight:800;text-align:center;border-radius:8px;padding:4px 3px;margin:4px 6px 0;width:calc(100% - 12px);box-sizing:border-box;min-height:22px;display:flex;align-items:center;justify-content:center;letter-spacing:-.2px}
 
   /* ITEM MODAL */
   .item-modal-icon{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,rgba(232,51,109,.2),rgba(139,92,246,.15));border:1px solid rgba(232,51,109,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
-  .item-modal-icon img{width:42px;height:42px;object-fit:contain}
+  .item-modal-icon img{width:72px;height:72px;object-fit:cover;border-radius:20px}
   .item-modal-title{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:800;text-align:center;margin-bottom:6px}
   .item-modal-sub{font-size:13px;color:var(--muted2);text-align:center;margin-bottom:20px;line-height:1.5}
   .item-stat-row{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
@@ -397,7 +392,7 @@
     <div class="onboarding-steps">
       <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/hooligan.png" alt=""></div><div><div class="step-title">Встань за район</div><div class="step-desc">Группа игроков. Чем больше народу — тем жарче разборки.</div></div></div>
       <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/vote.png" alt=""></div><div><div class="step-title">Голосуй за вылет</div><div class="step-desc">Каждый раунд вылетают 2 игрока с наибольшим числом голосов. Ночью голосование не проводится.</div></div></div>
-      <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/mafia.png" alt=""></div><div><div class="step-title">Связи решают всё</div><div class="step-desc">Стукач, Киллер, Крышануться, Постанова — используй связи чтобы выжить.</div></div></div>
+      <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/criminal_roof.png" alt=""></div><div><div class="step-title">Связи решают всё</div><div class="step-desc">Стукач, Киллер, Крышануться, Постанова — используй связи чтобы выжить.</div></div></div>
       <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/gift.png" alt=""></div><div><div class="step-title">Последние выжившие забирают всё</div><div class="step-desc">Призы: NFT, подарки, звёзды</div></div></div>
       <div class="onboarding-step" style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(0,0,0,0));border-color:rgba(34,197,94,.4)"><div class="step-icon" style="background:rgba(34,197,94,.15)"><img src="/static/icons/fire.png" alt=""></div><div><div class="step-title" style="color:#22c55e">Заходи каждый день — получай призы</div><div class="step-desc">Ежедневный стрик даёт жирные бонусы:<br>🗡 День 3 — Сговориться<br>👁 День 5 — Стукач<br>🕵️ День 7 — Мусорнуться<br>💀 День 14 — Постанова + Киллер<br>🎰 День 21 — 250 кредитов в казино<br>👑 День 30 — Премиум навсегда</div></div></div>
     </div>
@@ -429,7 +424,7 @@
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/friends.png" alt=""></div><div><div class="rules-step-title">Вступление</div><div class="rules-step-text">Записываешься в стрелку и ждёшь старта. Участие бесплатное.</div></div></div>
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/vote.png" alt=""></div><div><div class="rules-step-title">Разборки каждые 15 минут</div><div class="rules-step-text">Каждый раунд длится 15 минут. Проголосуй за того кого хочешь убрать. Каждый раунд вылетают 2 игрока.</div></div></div>
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/skull.png" alt=""></div><div><div class="rules-step-title">Выбывание</div><div class="rules-step-text">Двое с наибольшим числом голосов вылетают каждый раунд. Ночью голосование не проводится.</div></div></div>
-      <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/mafia.png" alt=""></div><div><div class="rules-step-title">Связи</div><div class="rules-step-text">Крышануться, Двустволка, Постанова, Киллер, Стукач — каждая связь меняет ход игры.</div></div></div>
+      <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/criminal_roof.png" alt=""></div><div><div class="rules-step-title">Связи</div><div class="rules-step-text">Крышануться, Двустволка, Постанова, Киллер, Стукач — каждая связь меняет ход игры.</div></div></div>
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/gift.png" alt=""></div><div><div class="rules-step-title">Победа</div><div class="rules-step-text">Последние выжившие забирают NFT Telegram Gift.</div></div></div>
     </div>
     <a href="https://t.me/shrimpgames_chat" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,rgba(232,51,109,.15),rgba(139,92,246,.1));border:1.5px solid rgba(232,51,109,.4);border-radius:14px;padding:12px;text-decoration:none;color:var(--pink);font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700">
@@ -463,7 +458,7 @@
     <!-- Действия с игроком -->
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
       <button id="psActionAnon" onclick="psActionAnonMsg()" style="width:100%;padding:12px 16px;min-height:58px;border-radius:14px;border:none;font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(30,41,59,.95));border:1px solid rgba(96,165,250,.4)">
-        <img src="/static/icons/paper_plane.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/conspire.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
         <div style="text-align:left;flex:1">
           <div style="color:#60a5fa">Сговориться</div>
           <div id="psActionAnonSub" style="font-size:9px;font-weight:600;color:var(--muted2);margin-top:1px"></div>
@@ -479,7 +474,7 @@
         <div id="psActionRecruitPrice" style="font-size:10px;color:var(--muted2)">4 ⭐</div>
       </button>
       <button id="psActionDV" onclick="psActionDoubleVote()" style="width:100%;padding:12px 16px;min-height:58px;border-radius:14px;border:1px solid rgba(239,68,68,.4);font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(30,41,59,.95))">
-        <img src="/static/icons/shotgun.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/double-barreled.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
         <div style="text-align:left;flex:1">
           <div style="color:#ef4444">Двустволка</div>
           <div id="psActionDVSub" style="font-size:9px;font-weight:600;color:var(--muted2);margin-top:1px"></div>
@@ -727,7 +722,7 @@
     <div class="modal-title">📢 Подпишись на канал</div>
     <div class="modal-sub">Подпишись на наш канал — там выходят анонсы новых игр, результаты и новости.</div>
     <div class="reward-block">
-      <img src="/static/icons/mouse.png" alt="">
+      <img src="/static/icons/rat.png" alt="">
       <div><div class="reward-block-title">🐭 Стукач</div><div class="reward-block-sub">Узнать кто голосовал против тебя</div></div>
     </div>
     <button class="btn-modal-action blue" id="btnTaskJoinChannel"><img src="/static/icons/telegram.png" alt="">Подписаться на канал</button>
@@ -742,7 +737,7 @@
     <div class="modal-title">💬 Подпишись на чат</div>
     <div class="modal-sub">Тут результаты раундов, баталии и интриги игроков.</div>
     <div class="reward-block">
-      <img src="/static/icons/mouse.png" alt="">
+      <img src="/static/icons/rat.png" alt="">
       <div><div class="reward-block-title">🐭 Стукач</div><div class="reward-block-sub">Узнать кто голосовал против тебя</div></div>
     </div>
     <button class="btn-modal-action blue" id="btnTaskJoinChat"><img src="/static/icons/chats.png" alt="">Вступить в чат</button>
@@ -752,20 +747,20 @@
 <!-- MODAL: СТАТЫ -->
 <div class="modal-overlay hidden" id="modalPlayed">
   <div class="modal-sheet"><div class="modal-handle"></div><button class="modal-close" onclick="closeModal('modalPlayed')">✕</button>
-    <div class="modal-title"><img src="/static/icons/games.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"> Сыграл</div><div class="modal-sub">Сколько раз ты участвовал в играх.</div>
-    <div class="info-block"><div class="info-block-title">Как засчитывается</div><div class="info-block-text">+1 когда ты записался в игру и она завершилась.</div></div>
+    <div class="modal-title"><img src="/static/icons/games.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"> Игры</div><div class="modal-sub">Сколько игр ты сыграл.</div>
+    <div class="info-block"><div class="info-block-title">Как засчитывается</div><div class="info-block-text">+1 за каждую завершённую игру в которой ты участвовал.</div></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalKillsStat">
   <div class="modal-sheet"><div class="modal-handle"></div><button class="modal-close" onclick="closeModal('modalKillsStat')">✕</button>
-    <div class="modal-title"><img src="/static/icons/skull.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"> Убил</div><div class="modal-sub">Сколько игроков ты выбил за все игры.</div>
-    <div class="info-block"><div class="info-block-title">Как засчитывается</div><div class="info-block-text">+1 если ты проголосовал против игрока и он выбыл в этом раунде.<br><br>+1 если использовал <b>Киллера</b> и цель была выбита.</div></div>
+    <div class="modal-title"><img src="/static/icons/vote.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"> Раунды</div><div class="modal-sub">Сколько раз ты проголосовал за все игры.</div>
+    <div class="info-block"><div class="info-block-title">Как засчитывается</div><div class="info-block-text">+1 каждый раз когда ты отдаёшь голос в раунде. Чем активнее играешь — тем больше раундов.</div></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalWins">
   <div class="modal-sheet"><div class="modal-handle"></div><button class="modal-close" onclick="closeModal('modalWins')">✕</button>
-    <div class="modal-title"><img src="/static/icons/medal.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"> Выиграл</div><div class="modal-sub">Сколько раз ты стал последней выжившей креветкой.</div>
-    <div class="info-block"><div class="info-block-title">Как засчитывается</div><div class="info-block-text">+1 если ты остался единственным выжившим и забрал приз.</div></div>
+    <div class="modal-title"><img src="/static/icons/game_store.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"> Покупки</div><div class="modal-sub">Сколько покупок ты сделал за Stars.</div>
+    <div class="info-block"><div class="info-block-title">Как засчитывается</div><div class="info-block-text">+1 за каждую покупку за Stars в Шопике.</div></div>
   </div>
 </div>
 
@@ -994,14 +989,14 @@
     <div class="streak-days" id="modalStreakDays" style="margin-bottom:16px"></div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px">
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
-        <img src="/static/icons/paper_plane.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/conspire.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
         <div>
           <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;margin-bottom:2px">🔥 День 3 — Сговориться</div>
           <div style="font-size:10px;color:var(--muted2)">Анонимное сообщение любому игроку</div>
         </div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
-        <img src="/static/icons/mouse.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/rat.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
         <div>
           <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;margin-bottom:2px">🔥 День 5 — Стукач</div>
           <div style="font-size:10px;color:var(--muted2)">Узнай кто голосовал против тебя</div>
@@ -1016,7 +1011,7 @@
       </div>
       <div style="background:linear-gradient(135deg,rgba(251,146,60,.12),rgba(251,146,60,.05));border:1px solid rgba(251,146,60,.4);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
         <div style="display:flex;gap:4px;flex-shrink:0">
-          <img src="/static/icons/murder.png" style="width:28px;height:28px;object-fit:contain">
+          <img src="/static/icons/fakeout.png" style="width:28px;height:28px;object-fit:contain">
           <img src="/static/icons/killer.png" style="width:28px;height:28px;object-fit:contain">
         </div>
         <div>
@@ -1187,100 +1182,90 @@
 
         <!-- Сговориться 1⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon"><img src="/static/icons/paper_plane.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('anon_msg')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('anon_msg')" style="cursor:pointer"><img src="/static/icons/conspire.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('anon_msg')" style="cursor:pointer">
             <div class="shop-item-name">Сговориться</div>
-            <div class="shop-item-desc">Шепни кому надо. Анонимное сообщение любому игроку</div>
+            
           </div>
           <button class="btn-buy" id="buy-anon" onclick="buyItem('anon_msg',1)"><img src="/static/icons/star.png" alt=""><span id="anon_msg-price">1</span></button>
         </div>
 
         <!-- Крышануться 2⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon"><img src="/static/icons/mafia.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('shield')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('shield')" style="cursor:pointer"><img src="/static/icons/criminal_roof.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('shield')" style="cursor:pointer">
             <div class="shop-item-name">Крышануться</div>
-            <div class="shop-item-desc">Купил крышу. В следующем раунде тебя нет в списках. Только при 10+ игроках</div>
+            
           </div>
           <button class="btn-buy" id="buy-shield" onclick="buyItem('shield',2)"><img src="/static/icons/star.png" alt=""><span id="shield-old-price" style="display:none;" class="price-old">2</span><span id="shield-price">2</span></button>
         </div>
 
         <!-- Стукач 3⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon"><img src="/static/icons/mouse.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('spy')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('spy')" style="cursor:pointer"><img src="/static/icons/rat.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('spy')" style="cursor:pointer">
             <div class="shop-item-name">Стукач</div>
-            <div class="shop-item-desc">Внедрил своего человека. Узнаёшь кто и сколько раз голосовал против тебя</div>
+            
           </div>
           <button class="btn-buy" id="buy-spy" onclick="buyItem('spy',_saleActive?2:3)"><img src="/static/icons/star.png" alt=""><span id="spy-old-price" style="display:none" class="price-old">3</span><span id="spy-price">3</span></button>
         </div>
 
         <!-- Мусорнуться 5⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon"><img src="/static/icons/police.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('black_mark')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('black_mark')" style="cursor:pointer"><img src="/static/icons/police.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('black_mark')" style="cursor:pointer">
             <div class="shop-item-name">Мусорнуться</div>
-            <div class="shop-item-desc">Настучал в мусарню. Узнаёшь настоящий ник анонимуса — только ты</div>
+            
           </div>
           <button class="btn-buy" id="buy-black_mark" onclick="buyItem('black_mark',_saleActive?3:5)"><img src="/static/icons/star.png" alt=""><span id="black_mark-old-price" style="display:none" class="price-old">5</span><span id="black_mark-price">5</span></button>
         </div>
 
         <!-- Анонимус 10⭐ -->
         <div class="shop-item s4">
-          <div class="shop-item-icon"><img src="/static/icons/anonymous.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('anon_player')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('anon_player')" style="cursor:pointer"><img src="/static/icons/anonymous.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('anon_player')" style="cursor:pointer">
             <div class="shop-item-name">Анонимус</div>
-            <div class="shop-item-desc">Тебя не существует. Ник скрыт пока кто-то не настучит на тебя</div>
+            
           </div>
           <button class="btn-buy" id="buy-anon-player" onclick="buyItem('anon_player',_saleActive?5:10)"><img src="/static/icons/star.png" alt=""><span id="anon_player-old-price" style="display:none" class="price-old">10</span><span id="anon_player-price">10</span></button>
         </div>
 
         <!-- Двустволка 15⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon"><img src="/static/icons/shotgun.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('double_vote')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('double_vote')" style="cursor:pointer"><img src="/static/icons/double-barreled.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('double_vote')" style="cursor:pointer">
             <div class="shop-item-name">Двустволка</div>
-            <div class="shop-item-desc">Два ствола — два голоса. Жахни по любому прямо сейчас</div>
+            
           </div>
           <button class="btn-buy" id="buy-double_vote" onclick="buyItem('double_vote',_saleActive?8:15)"><img src="/static/icons/star.png" alt=""><span id="double_vote-old-price" style="display:none" class="price-old">15</span><span id="double_vote-price">15</span></button>
         </div>
 
         <!-- Ворюга 20⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon"><img src="/static/icons/thief.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('hacker')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('hacker')" style="cursor:pointer"><img src="/static/icons/thief.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('hacker')" style="cursor:pointer">
             <div class="shop-item-name">Ворюга</div>
-            <div class="shop-item-desc">Занёс вору. Все голоса против тебя в этом раунде исчезают</div>
+            
           </div>
           <button class="btn-buy" id="buy-hacker" onclick="buyItem('hacker',_saleActive?10:20)"><img src="/static/icons/star.png" alt=""><span id="hacker-old-price" style="display:none" class="price-old">20</span><span id="hacker-price">20</span></button>
         </div>
 
         <!-- Решала 25⭐ -->
         <div class="shop-item s2">
-          <div class="shop-item-icon"><img src="/static/icons/bit.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('tiebreaker')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('tiebreaker')" style="cursor:pointer"><img src="/static/icons/fixer.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('tiebreaker')" style="cursor:pointer">
             <div class="shop-item-name">Решала</div>
-            <div class="shop-item-desc">При ничье ты остаёшься. Базара нет</div>
+            
           </div>
           <button class="btn-buy" id="buy-tiebreaker" onclick="buyItem('tiebreaker',_saleActive?13:25)"><img src="/static/icons/star.png" alt=""><span id="tiebreaker-old-price" style="display:none" class="price-old">25</span><span id="tiebreaker-price">25</span></button>
         </div>
 
-        <!-- Заказать Киллера 35⭐ -->
+        <!-- Киллер 35⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon"><img src="/static/icons/killer.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('killer')" style="cursor:pointer">
-            <div class="shop-item-name">Заказать Киллера</div>
-            <div class="shop-item-desc">Устранить конкурента прямо сейчас. Без лишних слов</div>
+          <div class="shop-item-icon" onclick="openAbilkaModal('killer')" style="cursor:pointer"><img src="/static/icons/killer.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('killer')" style="cursor:pointer">
+            <div class="shop-item-name">Киллер</div>
+            
           </div>
           <button class="btn-buy" id="buy-killer" onclick="buyItem('killer',_saleActive?18:35)"><img src="/static/icons/star.png" alt=""><span id="killer-old-price" style="display:none" class="price-old">35</span><span id="killer-price">35</span></button>
         </div>
 
         <!-- Постанова 40⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon"><img src="/static/icons/murder.png" alt=""></div>
-          <div class="shop-item-info" onclick="openAbilkaModal('resurrect')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('resurrect')" style="cursor:pointer"><img src="/static/icons/fakeout.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('resurrect')" style="cursor:pointer">
             <div class="shop-item-name">Постанова</div>
-            <div class="shop-item-desc">Инсценировал смерть. Возвращаешься в игру, вылетает другой</div>
+            
           </div>
           <button class="btn-buy" id="buy-resurrect" onclick="buyItem('resurrect',_saleActive?20:40)"><img src="/static/icons/star.png" alt=""><span id="resurrect-old-price" style="display:none" class="price-old">40</span><span id="resurrect-price">40</span></button>
         </div>
@@ -1290,9 +1275,19 @@
           <div class="shop-item-icon"><img src="/static/icons/clan.png" alt="" id="shopClanIcon"></div>
           <div class="shop-item-info">
             <div class="shop-item-name" style="color:#f5c518" id="shopClanName">Создать клан</div>
-            <div class="shop-item-desc" id="shopClanDesc">Объединись с союзниками. До 5 человек. Не видите друг друга в голосовании</div>
+            
           </div>
           <button class="btn-buy" id="buy-clan" onclick="event.stopPropagation();shopBuyClan()"><img src="/static/icons/star.png" alt=""><span id="clan-price">99</span></button>
+        </div>
+
+        <!-- Олигарх 100⭐ -->
+        <div class="shop-item s5" id="buy-combo" onclick="openComboModal()" style="cursor:pointer">
+          <div class="shop-item-icon"><img src="/static/icons/oligarch.png" alt=""></div>
+          <div class="shop-item-info">
+            <div class="shop-item-name" style="color:#f5c518">Олигарх</div>
+            
+          </div>
+          <button class="btn-buy" onclick="event.stopPropagation();buyCombo()" style="background:linear-gradient(135deg,#f5c518,#b8860b)"><img src="/static/icons/star.png" alt=""><span>100</span></button>
         </div>
 
       </div>
@@ -1305,17 +1300,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_anon_msg')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/paper_plane.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
+      <img src="/static/icons/conspire.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#60a5fa">Сговориться</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Отправь любому игроку анонимное сообщение прямо в Telegram. Провоцируй, пугай, договаривайся — никто не узнает от кого. Активируй вручную, исчезает сразу после использования.</div>
-    <div id="modalAbilka_anon_msg_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_anon_msg');document.getElementById('buy-anon')?.click()" style="background:linear-gradient(135deg,#60a5fa,#60a5fa99)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_anon_msg_price">Купить за 1 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_anon_msg_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_spy">
@@ -1323,17 +1315,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_spy')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/mouse.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
+      <img src="/static/icons/rat.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#60a5fa">Стукач</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Внедрил своего человека в окружение врагов. Получаешь полный список — кто и сколько раз голосовал против тебя за всю игру. Активируй вручную, одноразовая.</div>
-    <div id="modalAbilka_spy_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_spy');document.getElementById('buy-spy')?.click()" style="background:linear-gradient(135deg,#60a5fa,#60a5fa99)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_spy_price">Купить за 3 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_spy_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_black_mark">
@@ -1341,17 +1330,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_black_mark')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/police.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
+      <img src="/static/icons/police.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#60a5fa">Мусорнуться</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Настучал на анонимуса в мусарню. Узнаёшь его настоящий ник — только ты один. Остальные игроки ничего не увидят. Активируй вручную, одноразовая.</div>
-    <div id="modalAbilka_black_mark_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_black_mark');document.getElementById('buy-black_mark')?.click()" style="background:linear-gradient(135deg,#60a5fa,#60a5fa99)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_black_mark_price">Купить за 5 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_black_mark_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_anon_player">
@@ -1359,17 +1345,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_anon_player')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/anonymous.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#a855f722,#a855f708);border:1.5px solid #a855f755">
+      <img src="/static/icons/anonymous.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#a855f722,#a855f708);border:1.5px solid #a855f755">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#a855f7">Анонимус</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Тебя не существует. Ник скрыт для всех игроков с начала игры. Пропадает если кто-то мусорнётся на тебя, после твоей смерти или по окончании игры. Активируется автоматически.</div>
-    <div id="modalAbilka_anon_player_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_anon_player');document.getElementById('buy-anon-player')?.click()" style="background:linear-gradient(135deg,#a855f7,#a855f799)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_anon_player_price">Купить за 10 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_anon_player_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_double_vote">
@@ -1377,17 +1360,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_double_vote')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/shotgun.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/icons/double-barreled.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Двустволка</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Жахни дуплетом. +2 дополнительных голоса против любого игрока прямо сейчас. Можешь в одиночку решить кто вылетает. Активируй вручную, одноразовая.</div>
-    <div id="modalAbilka_double_vote_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_double_vote');document.getElementById('buy-double_vote')?.click()" style="background:linear-gradient(135deg,#ef4444,#ef444499)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_double_vote_price">Купить за 15 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_double_vote_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_hacker">
@@ -1395,17 +1375,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_hacker')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/thief.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/icons/thief.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Ворюга</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Занёс вору — он сделает своё дело. Все голоса против тебя в этом раунде украдены и аннулированы. Никто не узнает что произошло. Активируй вручную, одноразовая.</div>
-    <div id="modalAbilka_hacker_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_hacker');document.getElementById('buy-hacker')?.click()" style="background:linear-gradient(135deg,#ef4444,#ef444499)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_hacker_price">Купить за 20 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_hacker_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_tiebreaker">
@@ -1413,17 +1390,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_tiebreaker')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/bit.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
+      <img src="/static/icons/fixer.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#fb923c">Решала</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">При ничье в голосовании — ты автоматически остаёшься в игре. Базара нет, спора нет. Противник вылетает вместо тебя. Срабатывает автоматически в нужный момент.</div>
-    <div id="modalAbilka_tiebreaker_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_tiebreaker');document.getElementById('buy-tiebreaker')?.click()" style="background:linear-gradient(135deg,#fb923c,#fb923c99)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_tiebreaker_price">Купить за 25 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_tiebreaker_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_shield">
@@ -1431,17 +1405,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_shield')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/mafia.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
+      <img src="/static/icons/criminal_roof.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#fb923c">Крышануться</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Купил крышу — теперь голосовать против тебя себе дороже. В следующем раунде твоего имени нет в списках голосования. Работает только если в игре 10+ человек.</div>
-    <div id="modalAbilka_shield_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_shield');document.getElementById('buy-shield')?.click()" style="background:linear-gradient(135deg,#fb923c,#fb923c99)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_shield_price">Купить за 2 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_shield_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_killer">
@@ -1449,17 +1420,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_killer')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/killer.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/icons/killer.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Заказать Киллера</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Устранить конкурента прямо сейчас — без голосований, без ожидания. Жертва вылетает мгновенно. Никто не знает кто нажал на курок. Работает только если в игре 10+ человек.</div>
-    <div id="modalAbilka_killer_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_killer');document.getElementById('buy-killer')?.click()" style="background:linear-gradient(135deg,#ef4444,#ef444499)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_killer_price">Купить за 35 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_killer_btnwrap"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modalAbilka_resurrect">
@@ -1467,17 +1435,14 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_resurrect')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/murder.png" style="width:52px;height:52px;object-fit:contain;border-radius:14px;padding:8px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/icons/fakeout.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Постанова</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Страховка от вылета. Если по итогам голосования большинство выбрало тебя — ты остаёшься, а вылетает тот кто набрал второе место по голосам. Срабатывает автоматически. Работает при 3+ живых игроках.</div>
-    <div id="modalAbilka_resurrect_btnwrap"><button class="btn-modal-action" onclick="closeModal('modalAbilka_resurrect');document.getElementById('buy-resurrect')?.click()" style="background:linear-gradient(135deg,#ef4444,#ef444499)">
-      <img src="/static/icons/star.png" style="width:16px;height:16px">
-      <span id="modalAbilka_resurrect_price">Купить за 40 ⭐</span>
-    </button></div>
+    <div id="modalAbilka_resurrect_btnwrap"></div>
   </div>
 </div>
 
@@ -1490,15 +1455,15 @@
     <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;margin-bottom:16px">⏱ Когда юзать связи</div>
     <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;line-height:1.6">
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-anon')?.scrollIntoView({behavior:'smooth',block:'center'});},300)" style="cursor:pointer">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><img src="/static/icons/paper_plane.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Сговориться</span></div><span style="font-size:10px;color:var(--muted2)">→</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><img src="/static/icons/conspire.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Сговориться</span></div><span style="font-size:10px;color:var(--muted2)">→</span></div>
         <div style="color:var(--muted2)">Юзай в любой момент. Договаривайся, пугай, провоцируй — никто не узнает от кого сообщение.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-spy')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/mafia.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Стукач</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/criminal_roof.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Стукач</span></div>
         <div style="color:var(--muted2)">Юзай когда подозреваешь кто против тебя. Узнаёшь кто и сколько раз голосовал за твой вылет.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-black_mark')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/mouse.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Мусорнуться</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/rat.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Мусорнуться</span></div>
         <div style="color:var(--muted2)">Юзай когда в игре есть Анонимус и хочешь узнать кто скрывается. Только ты видишь его ник.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-anon-player')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
@@ -1506,7 +1471,7 @@
         <div style="color:var(--muted2)">Покупай до старта игры — активируется автоматически. Твой ник скрыт пока кто-то не мусорнётся на тебя.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-double_vote')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/shotgun.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Двустволка</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/double-barreled.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Двустволка</span></div>
         <div style="color:var(--muted2)">Юзай во время голосования когда хочешь гарантированно выбить конкретного игрока. +2 голоса против него.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-hacker')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
@@ -1514,7 +1479,7 @@
         <div style="color:var(--muted2)">Юзай когда чувствуешь что тебя могут выбить в этом раунде. Все голоса против тебя исчезают бесследно.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-tiebreaker')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/bit.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#fb923c">Решала</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/fixer.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#fb923c">Решала</span></div>
         <div style="color:var(--muted2)">Держи про запас — срабатывает автоматически при ничье. Спасёт когда счёт равный и решается жребием.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-shield')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
@@ -1526,7 +1491,7 @@
         <div style="color:var(--muted2)">Юзай когда нужно убрать сильного конкурента прямо сейчас не дожидаясь голосования. Только при 3+ игроках.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-resurrect')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/murder.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Постанова</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/fakeout.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Постанова</span></div>
         <div style="color:var(--muted2)">Покупай заранее пока жив. Если тебя выбьют — автоматически возвращаешься, вылетает другой. Только при 3+ игроках.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-combo')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
@@ -1534,7 +1499,7 @@
         <div style="color:var(--muted2)">Объединись с союзниками — до 5 человек. Члены клана не видят друг друга в списке голосования, поэтому не смогут проголосовать друг против друга. Выйти можно в любой момент.</div>
       </div>
       <div style="background:linear-gradient(135deg,rgba(245,197,24,.1),rgba(245,197,24,.05));border:1px solid rgba(245,197,24,.3);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-combo')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/rich.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#f5c518">Олигарх</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/oligarch.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#f5c518">Олигарх</span></div>
         <div style="color:var(--muted2)">Подмазал всех разом. Получаешь все связи по одной штуке — полный арсенал в кармане.</div>
       </div>
     </div>
@@ -1559,14 +1524,17 @@
 
       <div class="stats-grid-4">
         <div class="stat-block" id="blockFriends" style="cursor:pointer" onclick="openFriendsModal()"><img src="/static/icons/friends.png" alt=""><div class="stat-block-value" id="friendsCount">0</div><div class="stat-block-label">Друзья</div></div>
-        <div class="stat-block" onclick="openModal('modalPlayed')"><img src="/static/icons/games.png" alt=""><div class="stat-block-value" id="gamesPlayed">0</div><div class="stat-block-label">Сыграл</div></div>
-        <div class="stat-block" onclick="openModal('modalKillsStat')"><img src="/static/icons/skull.png" alt=""><div class="stat-block-value" id="killsCount">0</div><div class="stat-block-label">Убил</div></div>
-        <div class="stat-block" onclick="openModal('modalWins')"><img src="/static/icons/medal.png" alt=""><div class="stat-block-value" id="winsCount">0</div><div class="stat-block-label">Выиграл</div></div>
+        <div class="stat-block" onclick="openModal('modalPlayed')"><img src="/static/icons/games.png" alt=""><div class="stat-block-value" id="gamesPlayed">0</div><div class="stat-block-label">Игры</div></div>
+        <div class="stat-block" onclick="openModal('modalKillsStat')"><img src="/static/icons/vote.png" alt=""><div class="stat-block-value" id="killsCount">0</div><div class="stat-block-label">Раунды</div></div>
+        <div class="stat-block" onclick="openModal('modalWins')"><img src="/static/icons/game_store.png" alt=""><div class="stat-block-value" id="winsCount">0</div><div class="stat-block-label">Покупки</div></div>
       </div>
 
       <div id="bomzhItemsSection" style="display:none">
-        <div class="section-title">🏚 Находки у Чушпана</div>
-        <div id="bomzhItemsWrap" style="border:1.5px solid rgba(255,150,50,0.4);border-radius:18px;padding:12px;margin-bottom:8px;box-shadow:0 0 12px rgba(255,150,50,0.08)"></div>
+        <div class="section-title" style="display:flex;align-items:center;gap:8px">
+          <img src="/static/icons/bomz_icon.png" style="width:18px;height:18px;object-fit:contain">
+          <span>Находки у Чушпана</span>
+        </div>
+        <div id="bomzhItemsWrap" class="inventory-row" style="border:1.5px solid rgba(255,150,50,0.6);border-radius:18px;padding:12px;box-shadow:0 0 12px rgba(255,150,50,0.12)"></div>
       </div>
       <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
         <span onclick="openAbilkiStats()" style="background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;cursor:pointer">🤝 Связи</span>
@@ -1634,7 +1602,7 @@
         <div class="task-icon"><img src="/static/icons/chats.png" alt=""></div>
         <div class="task-info" style="flex:1">
           <div class="task-name">Подпишись на чат</div>
-          <div class="task-reward" style="margin-top:4px"><img src="/static/icons/mouse.png" alt=""> Стукач за подписку</div>
+          <div class="task-reward" style="margin-top:4px"><img src="/static/icons/rat.png" alt=""> Стукач за подписку</div>
         </div>
         <button id="btnChatStatus" class="task-share-btn" style="background:rgba(99,102,241,.2);color:#818cf8;border-color:rgba(99,102,241,.3);flex-shrink:0">Получить</button>
       </div>
@@ -1642,9 +1610,20 @@
         <div class="task-icon"><img src="/static/icons/telegram.png" alt=""></div>
         <div class="task-info" style="flex:1">
           <div class="task-name">Подпишись на канал</div>
-          <div class="task-reward" style="margin-top:4px"><img src="/static/icons/mouse.png" alt=""> Стукач за подписку</div>
+          <div class="task-reward" style="margin-top:4px"><img src="/static/icons/rat.png" alt=""> Стукач за подписку</div>
         </div>
         <button id="btnChannelStatus" class="task-share-btn" style="background:rgba(99,102,241,.2);color:#818cf8;border-color:rgba(99,102,241,.3);flex-shrink:0">Получить</button>
+      </div>
+
+
+      <!-- ЗАДАНИЕ: Получи 25 гемов (только для купивших 100+ гемов за раз) -->
+      <div class="task-item" id="taskGems" onclick="claimGemBonus()" style="display:none">
+        <div class="task-icon"><img src="/static/icons/diamond.png" alt=""></div>
+        <div class="task-info" style="flex:1">
+          <div class="task-name">Получи 25 Гемов</div>
+          <div class="task-reward" style="margin-top:4px">Бонус за покупку 100 Гемов</div>
+        </div>
+        <button id="btnGemsStatus" class="task-share-btn" style="background:rgba(99,102,241,.2);color:#818cf8;flex-shrink:0">Забрать</button>
       </div>
 
       <!-- ПРЕМИУМ и ТОП -->
@@ -1892,6 +1871,26 @@ function bomzhClick() {
   // Счётчик
   bomzhClickCount++;
 
+  // Намёки на секрет
+  const hintPhrases = {
+    10: '...чо пристал, а',
+    20: 'слышь, ну хватит уже...',
+    30: 'ты серьёзно? ещё давай...',
+    40: 'ладно, ладно... ещё чуть-чуть...',
+    45: 'почти... не останавливайся...',
+    49: 'ну давай, последний раз...'
+  };
+  if (hintPhrases[bomzhClickCount]) {
+    bubble.textContent = hintPhrases[bomzhClickCount];
+    bubble.style.transition = 'none';
+    bubble.style.opacity = '1';
+    if (bomzhBubbleTimeout) clearTimeout(bomzhBubbleTimeout);
+    bomzhBubbleTimeout = setTimeout(() => {
+      bubble.style.transition = 'opacity 0.5s';
+      bubble.style.opacity = '0';
+    }, 3000);
+  }
+
   // Секрет: на 50-м клике выпадает предмет (один раз за сессию)
   if (bomzhClickCount === 50 && !bomzhItemAwarded) {
     bomzhItemAwarded = true;
@@ -2116,9 +2115,9 @@ function openPrizeLink(){
 let _bannerSlide = 0;
 const _bannerTotal = 3;
 const ITEM_NAMES = {
-  anon_msg:'Сговориться', spy:'Стукач', black_mark:'Мусорнуться',
+  anon_msg:'Сговориться', spy:'Стукач', black_mark:'Мусорнуть',
   anon_player:'Анонимус', double_vote:'Двустволка', hacker:'Ворюга',
-  tiebreaker:'Решала', shield:'Крышануться', killer:'Заказать Киллера',
+  tiebreaker:'Решала', shield:'Крыша', killer:'Киллер',
   resurrect:'Постанова', combo:'Олигарх', premium:'Премиум'
 };
 
@@ -2128,8 +2127,8 @@ async function loadLastBuyer(){
     const d = await r.json();
     if(d.ok && d.buyer){
       const b = d.buyer;
-      const _itemNames = {anon_msg:'Сговориться',spy:'Стукач',black_mark:'Мусорнуться',anon_player:'Анонимус',double_vote:'Двустволка',hacker:'Ворюга',tiebreaker:'Решала',shield:'Крышануться',killer:'Заказать Киллера',resurrect:'Постанова',combo:'Олигарх'};
-      const _itemIconFiles = {anon_msg:'paper_plane.png',spy:'mouse.png',black_mark:'police.png',anon_player:'anonymous.png',double_vote:'shotgun.png',hacker:'thief.png',tiebreaker:'bit.png',shield:'mafia.png',killer:'killer.png',resurrect:'murder.png',combo:'rich.png'};
+      const _itemNames = {anon_msg:'Сговориться',spy:'Стукач',black_mark:'Мусорнуть',anon_player:'Анонимус',double_vote:'Двустволка',hacker:'Ворюга',tiebreaker:'Решала',shield:'Крыша',killer:'Киллер',resurrect:'Постанова',combo:'Олигарх'};
+      const _itemIconFiles = {anon_msg:'conspire.png',spy:'rat.png',black_mark:'police.png',anon_player:'anonymous.png',double_vote:'double-barreled.png',hacker:'thief.png',tiebreaker:'fixer.png',shield:'criminal_roof.png',killer:'killer.png',resurrect:'fakeout.png',combo:'oligarch.png'};
       document.getElementById('lastBuyerName').textContent = b.first_name || b.username || 'Игрок';
       const _itemEl = document.getElementById('lastBuyerItem');
       if(_itemEl && b.item_type){
@@ -2171,7 +2170,7 @@ function showMyVoteInfo(){
 }
 
 // ITEM_NAMES объявлен выше
-const ITEM_ICONS = { anon_msg:'paper_plane.png', spy:'mouse.png', black_mark:'police.png', anon_player:'anonymous.png', double_vote:'shotgun.png', hacker:'thief.png', tiebreaker:'bit.png', shield:'mafia.png', killer:'killer.png', resurrect:'murder.png', combo:'rich.png' };
+const ITEM_ICONS = { anon_msg:'conspire.png', spy:'rat.png', black_mark:'police.png', anon_player:'anonymous.png', double_vote:'double-barreled.png', hacker:'thief.png', tiebreaker:'fixer.png', shield:'criminal_roof.png', killer:'killer.png', resurrect:'fakeout.png', combo:'oligarch.png' };
 const ITEM_ACTIVATE = { killer: true }; // предметы с активацией
 
 const ACHIEVEMENTS = [
@@ -2181,16 +2180,16 @@ const ACHIEVEMENTS = [
   { id:'killer1',          name:'Первая кровь',     desc:'Выбил первого игрока',                  icon:'bone.png',         cond: u => u.kills>=1 },
   { id:'killer5',          name:'Наёмник',          desc:'Выбил 5 игроков',                       icon:'killer.png',       cond: u => u.kills>=5 },
   { id:'killer10',         name:'Безжалостный',     desc:'Выбил 10 игроков',                      icon:'sword.png',        cond: u => u.kills>=10 },
-  { id:'veteran',          name:'Ветеран',           desc:'Сыграл 5 игр',                          icon:'bit.png',          cond: u => u.games_played>=5 },
+  { id:'veteran',          name:'Ветеран',           desc:'Сыграл 5 игр',                          icon:'fixer.png',          cond: u => u.games_played>=5 },
   { id:'social',           name:'Популярный',       desc:'Пригласил 5 друзей',                    icon:'friends.png',      cond: u => u.ref_count>=5 },
   { id:'ultra_social',     name:'Легенда',          desc:'Пригласил 20 друзей',                   icon:'diamond.png',      cond: u => u.ref_count>=20 },
   { id:'subscriber',       name:'В теме',           desc:'Подписался на чат',                     icon:'telegram.png',     cond: u => u.chat_joined },
   { id:'shopper',          name:'Первая покупка',   desc:'Купил предмет за Stars',                icon:'game_store.png',   cond: u => u.total_purchases>=1 },
-  { id:'spy_buyer',        name:'Параноик',         desc:'Использовал Стукача',                   icon:'mouse.png',        cond: u => u.used_spy>=1 },
-  { id:'shielder',         name:'Крыша',            desc:'Купил Крышануться',                     icon:'mafia.png',        cond: u => u.bought_shield>=1 },
-  { id:'resurrector',      name:'Феникс',           desc:'Воскрес через Постанову',               icon:'murder.png',       cond: u => u.resurrected>=1 },
+  { id:'spy_buyer',        name:'Параноик',         desc:'Использовал Стукача',                   icon:'rat.png',        cond: u => u.used_spy>=1 },
+  { id:'shielder',         name:'Крыша',            desc:'Купил Крышануться',                     icon:'criminal_roof.png',        cond: u => u.bought_shield>=1 },
+  { id:'resurrector',      name:'Феникс',           desc:'Воскрес через Постанову',               icon:'fakeout.png',       cond: u => u.resurrected>=1 },
   { id:'hitman',           name:'Контракт',         desc:'Использовал Киллера',                   icon:'killer.png',       cond: u => u.used_killer>=1 },
-  { id:'double',           name:'Двустволка',       desc:'Использовал Двустволку',                icon:'shotgun.png',      cond: u => u.used_double_vote>=1 },
+  { id:'double',           name:'Двустволка',       desc:'Использовал Двустволку',                icon:'double-barreled.png',      cond: u => u.used_double_vote>=1 },
   { id:'veteran10',        name:'Ветеран-10',       desc:'Сыграл 10 игр',                         icon:'trophy.png',       cond: u => u.games_played>=10 },
   { id:'gifted',           name:'Щедрый',           desc:'Пригласил 10 друзей',                   icon:'ok.png',           cond: u => u.ref_count>=10 },
   { id:'no_surrender',     name:'Не сдаюсь',        desc:'Проиграл 3 раза — и снова в бой',       icon:'skull.png',        cond: u => (u.losses||0)>=3 },
@@ -2200,15 +2199,17 @@ const ACHIEVEMENTS = [
   { id:'clean_win',        name:'Неприкасаемый',    desc:'Победил не получив ни одного голоса',   icon:'trophy.png',       cond: u => u.clean_wins>=1 },
   { id:'went_anon',        name:'Инкогнито',        desc:'Стал Анонимусом в игре',                icon:'anonymous.png',    cond: u => u.went_anon>=1 },
   { id:'first_join',       name:'Первопроходец',    desc:'Первым вступил в новую игру',           icon:'star.png',         cond: u => u.first_joins>=1 },
-  { id:'sent_anon',        name:'Кукловод',         desc:'Отправил анонимное письмо',             icon:'paper_plane.png',  cond: u => u.sent_anon>=1 },
+  { id:'sent_anon',        name:'Кукловод',         desc:'Отправил анонимное письмо',             icon:'conspire.png',  cond: u => u.sent_anon>=1 },
   { id:'premium',          name:'Премиум',          desc:'Получил статус Премиум игрока',         icon:'vip.png',          cond: u => u.is_premium },
   { id:'top10',            name:'Топ 10',           desc:'Попал в топ-10 рейтинга',               icon:'pyramid.png',      cond: u => u.in_top10 },
   { id:'level5',           name:'Опытный',          desc:'Достиг 5 уровня',                       icon:'lightning.png',    cond: u => calcLevel(u).lvl>=5 },
   { id:'clan_founder',     name:'Основатель',       desc:'Создал клан',                           icon:'clan.png',         cond: u => (u.created_clan||0)>=1 },
   { id:'clan_member',      name:'Свой человек',     desc:'Вступил в клан',                        icon:'friends.png',      cond: u => (u.joined_clan||0)>=1 },
   { id:'first_out',        name:'Первый вылет',     desc:'Вылетел первым из игры',                icon:'coffin.png',       cond: u => (u.first_eliminated||0)>=1 },
-  { id:'bomzh_finder',     name:'Старьёвщик',       desc:'Нашёл предмет у бомжа',                 icon:'phone.png',        cond: u => (u.bomzh_items_count||0)>=1 },
+  { id:'bomzh_finder',     name:'Старьёвщик',       desc:'Нашёл предмет у бомжа',                 icon:'bomz_icon.png',     cond: u => (u.bomzh_items_count||0)>=1 },
   { id:'bomzh_donor',      name:'Благодетель',      desc:'Задонатил Чушпану',                     icon:'heart.png',        cond: u => (u.bomzh_donations_count||0)>=1 },
+  { id:'gem_buyer',       name:'Инвестор',         desc:'Купил Гемы за Stars',                   icon:'diamond.png',      cond: u => (u.gems_purchased||0)>=1 },
+  { id:'bomzh_hitman',     name:'Заказчик',         desc:'Натравил Чушпана на игрока',            icon:'bomz_icon.png',     cond: u => (u.bomzh_attacks_count||0)>=1 },
 ];
 
 // Видео fallback
@@ -2247,7 +2248,20 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     if(_tb) _tb.style.display = (tab==='game'||tab==='rayon') ? 'none' : '';
     document.querySelector('.content').style.paddingTop = (tab==='game'||tab==='rayon') ? '0' : '56px';
     window.scrollTo(0, 0);
-    if(tab==='rayon') document.querySelector('.content').scrollTop = 0;
+    if(tab==='rayon') {
+      document.querySelector('.content').scrollTop = 0;
+      if (!bomzhItemAwarded) {
+        const bubble = document.getElementById('bomzhBubble');
+        bubble.textContent = 'у меня припрятано кое-что... для своих';
+        bubble.style.transition = 'none';
+        bubble.style.opacity = '1';
+        if (bomzhBubbleTimeout) clearTimeout(bomzhBubbleTimeout);
+        bomzhBubbleTimeout = setTimeout(() => {
+          bubble.style.transition = 'opacity 0.5s';
+          bubble.style.opacity = '0';
+        }, 4000);
+      }
+    }
   });
 });
 
@@ -2500,7 +2514,7 @@ function _updateActionBtnReal(){
           btn.className='btn-register join';
           btn.style.background='linear-gradient(135deg,#dc2626,#991b1b)';
           if(_hasResurrect){
-            setHTML(btn, '<img src="/static/icons/murder.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Активировать Постанову');
+            setHTML(btn, '<img src="/static/icons/fakeout.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Активировать Постанову');
             btn.onclick=()=>{
               tg.showConfirm('🎭 Активировать Постанову?\n\nТы инсценируешь свою смерть и вернёшься в игру прямо сейчас!', async ok=>{
                 if(!ok) return;
@@ -2513,7 +2527,7 @@ function _updateActionBtnReal(){
               });
             };
           } else {
-            setHTML(btn, '<img src="/static/icons/murder.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Купить Постанову — вернуться в игру');
+            setHTML(btn, '<img src="/static/icons/fakeout.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Купить Постанову — вернуться в игру');
             btn.onclick=()=>{ document.getElementById('buy-resurrect')?.click(); };
           }
         } else {
@@ -2572,8 +2586,8 @@ async function renderProfile(user){
   // Партнёры
   const PARTNERS = [
     { name: "Life | Кирилл", url: "https://t.me/life_kiriqwx1" },
-    { name: "Smertos", url: "https://t.me/smertos0" },
     { name: "Luntik Gifts", url: "https://t.me/luntik_gifts" },
+    { name: "Без Скандала", url: "https://t.me/bezscandala" },
   ];
   const pb = document.getElementById('partnersBlock');
   const pl = document.getElementById('modalPartnersList');
@@ -2638,13 +2652,19 @@ async function renderProfile(user){
   const cnt = user.ref_count||0;
   document.getElementById('friendsCount').textContent = cnt;
   document.getElementById('gamesPlayed').textContent = user.games_played||0;
-  document.getElementById('killsCount').textContent = user.kills||0;
-  document.getElementById('winsCount').textContent = user.wins||0;
+  document.getElementById('killsCount').textContent = user.votes_cast||0;
+  document.getElementById('winsCount').textContent = user.items_bought||0;
 
   // Задание друзья — только reward, кнопка share отдельно
   const prog = Math.min(cnt,5);
   document.getElementById('taskFriendsDesc').textContent = cnt>=5?'Выполнено! ✅':`${prog} / 5 приглашено`;
   if(cnt>=5) document.getElementById('taskFriends').classList.add('done');
+  const tg=document.getElementById('taskGems');
+  if(tg) tg.style.display='flex';
+  if(user.gems_claimed){
+    if(tg) tg.classList.add('done');
+    const bg=document.getElementById('btnGemsStatus'); if(bg){ bg.textContent='Получено'; bg.style.opacity='0.5'; }
+  }
   if(user.chat_joined){
     const tc=document.getElementById('taskChat'); if(tc) tc.classList.add('done');
     const bc=document.getElementById('btnChatStatus'); if(bc){ bc.textContent='✅ Выполнено'; bc.style.background='rgba(34,197,94,.2)'; bc.style.color='#22c55e'; }
@@ -2659,28 +2679,55 @@ async function renderProfile(user){
   invWrap.innerHTML = ''; // очищаем перед рендером
   invWrap.className='inventory-row';
 
-  // Предметы от бомжа — отдельный блок со своим заголовком
-  const bomzhSection = document.getElementById('bomzhItemsSection');
-  const bomzhWrap = document.getElementById('bomzhItemsWrap');
-  if (bomzhWrap) bomzhWrap.innerHTML = '';
-  if (bomzhSection) bomzhSection.style.display = 'none';
+  // Предметы от бомжа — отдельный блок
+  const _bomzhSection = document.getElementById('bomzhItemsSection');
+  const _bomzhWrap = document.getElementById('bomzhItemsWrap');
+  if (_bomzhSection) _bomzhSection.style.display = '';
+  if (_bomzhWrap) _bomzhWrap.innerHTML = '';
   fetch(`/api/bomzh/my_items?user_id=${user.user_id}`)
     .then(r => r.json())
     .then(bd => {
-      if (!bd.ok || !bd.items.length) return;
-      if (!bomzhWrap || !bomzhSection) return;
-      bomzhSection.style.display = '';
-      const slots = bd.items.map(i => `<div class="inv-item inv-item-glow" style="border:1.5px solid rgba(255,150,50,0.8);background:linear-gradient(160deg,rgba(255,150,50,0.18) 0%,rgba(20,10,0,0.95) 60%,rgba(255,150,50,0.08) 100%);box-shadow:0 0 14px rgba(255,150,50,0.2),inset 0 1px 0 rgba(255,255,255,.08);position:relative;overflow:hidden" onclick="openBomzhFoundItem('${i.item_id}','${i.item_name}')">
-        <img src="/static/icons/${i.item_id}.png" alt="">
-        <div class="inv-item-name">${i.item_name}</div>
-        <div class="inv-activate-hint" style="background:rgba(34,197,94,.2);color:#22c55e;border:1px solid rgba(34,197,94,.4)">Активировано</div>
-      </div>`).join('');
-      const totalSlots = Math.max(3, bd.items.length);
-      let extra = '';
-      for (let x = bd.items.length; x < totalSlots; x++) extra += `<div class="inv-item inv-item-empty"><div style="font-size:28px;opacity:.3">🏚</div><div class="inv-item-name" style="color:var(--muted2)">Пусто</div></div>`;
-      bomzhWrap.className = 'inventory-row';
-      bomzhWrap.style = '';
-      bomzhWrap.innerHTML = slots + extra;
+      if (!_bomzhSection || !_bomzhWrap) return;
+      if (!bd.ok || !bd.items.length) {
+        _bomzhWrap.innerHTML = `<div style="color:rgba(255,150,50,0.4);font-size:11px;text-align:center;width:100%;padding:8px 0">Пока пусто — загляни к Чушпану на районе</div>`;
+        return;
+      }
+      const BOMZH_DEADLINE = new Date('2026-05-25T15:00:00Z');
+      const BUYOUT_DEADLINE = new Date(BOMZH_DEADLINE.getTime() + 24*60*60*1000);
+      const now = new Date();
+      const eventActive = now < BOMZH_DEADLINE;
+      const buyoutActive = !eventActive && now < BUYOUT_DEADLINE;
+      _bomzhWrap.innerHTML = bd.items.map(i => {
+        const isPerm = i.permanent === 1;
+        let statusHtml = '';
+        if (isPerm) {
+          statusHtml = `<div class="inv-activate-hint" style="background:rgba(245,197,24,.2);color:#f5c518;border:1px solid rgba(245,197,24,.4)">⭐ Навсегда</div>`;
+        } else if (eventActive) {
+          statusHtml = `<div class="inv-activate-hint" style="background:rgba(34,197,94,.2);color:#22c55e;border:1px solid rgba(34,197,94,.4)">✅ Активно</div>`;
+        } else if (buyoutActive) {
+          statusHtml = `<div class="inv-activate-hint bomzh-buy-btn" data-item="${i.item_id}" data-name="${i.item_name}" style="background:rgba(239,68,68,.25);color:#ef4444;border:1px solid rgba(239,68,68,.5);cursor:pointer;font-size:7px">💰 Выкупить</div><div class="bomzh-timer" data-deadline="${BUYOUT_DEADLINE.getTime()}" style="font-size:7px;color:#ef4444;font-family:'Unbounded',sans-serif;margin-top:2px">--:--:--</div>`;
+        } else {
+          statusHtml = `<div class="inv-activate-hint" style="background:rgba(100,100,100,.2);color:#666;border:1px solid rgba(100,100,100,.3)">⛔ Истёк</div>`;
+        }
+        return `<div class="inv-item inv-item-glow" style="border:1.5px solid rgba(255,150,50,0.8);background:linear-gradient(160deg,rgba(255,150,50,0.18) 0%,rgba(20,10,0,0.95) 60%,rgba(255,150,50,0.08) 100%);box-shadow:0 0 14px rgba(255,150,50,0.2)" onclick="openBomzhFoundItem('${i.item_id}','${i.item_name}',${isPerm},${eventActive})">
+          <img src="/static/icons/${i.item_id}.png" alt="">
+          <div class="inv-item-name">${i.item_name}</div>
+          ${statusHtml}
+        </div>`;
+      }).join('');
+      _bomzhWrap.querySelectorAll('.bomzh-buy-btn').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation(); doBomzhItemBuy(btn.dataset.item, btn.dataset.name); });
+      });
+      function tickBomzhTimers() {
+        document.querySelectorAll('.bomzh-timer').forEach(el => {
+          const left = parseInt(el.dataset.deadline) - Date.now();
+          if (left <= 0) { el.textContent = '00:00:00'; return; }
+          const h = Math.floor(left/3600000), m = Math.floor((left%3600000)/60000), s = Math.floor((left%60000)/1000);
+          el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        });
+      }
+      tickBomzhTimers();
+      if (buyoutActive) setInterval(tickBomzhTimers, 1000);
     }).catch(()=>{});
 
   // Инвентарь — квадратные иконки с каунтером
@@ -2800,7 +2847,8 @@ function renderTopList(){
   if(!list.length){ el.innerHTML = `<div style="text-align:center;color:var(--muted2);font-size:12px;padding:20px">Пока пусто</div>`; return; }
   el.innerHTML = list.map((p, i) => {
     const isMe = currentUser && p.user_id === currentUser.user_id;
-    const icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : '🗡';
+    const genderFallback = p.gender === 'female' ? `<img src="/static/icons/woman2.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : `<img src="/static/icons/gangster.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">`;
+    const icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : genderFallback;
     const num = i < 3 ? medals[i] : `<span style="color:rgba(255,255,255,.25)">${i+1}</span>`;
     return `<div class="top-row${isMe?' top-row-me':''}">
       <div class="top-num">${num}</div>
@@ -3338,33 +3386,7 @@ function openAbilkaModal(itemId){
 
   const AUTO_ITEMS = ['shield', 'resurrect', 'tiebreaker', 'anon_player'];
   const owned = (_userItemCounts[itemId] || 0) > 0;
-  const btnWrap = document.getElementById('modalAbilka_'+itemId+'_btnwrap');
-  if(btnWrap){
-    if(owned && AUTO_ITEMS.includes(itemId)){
-      // Автоматические — просто статус, без кнопки
-      btnWrap.innerHTML = `<div style="background:linear-gradient(135deg,rgba(22,163,74,.15),rgba(0,0,0,0));border:1px solid rgba(22,163,74,.4);border-radius:14px;padding:14px;text-align:center;font-family:'Unbounded',sans-serif;font-size:12px;font-weight:800;color:#22c55e">✅ Активно — сработает автоматически</div>`;
-    } else if(owned){
-      const ACTION_MAP = {
-        anon_msg:    `closeModal('modalAbilka_anon_msg');openAnonModal()`,
-        spy:         `closeModal('modalAbilka_spy');invItemClick('spy')`,
-        black_mark:  `closeModal('modalAbilka_black_mark');invItemClick('black_mark')`,
-        anon_player: `closeModal('modalAbilka_anon_player');invItemClick('anon_player')`,
-        double_vote: `closeModal('modalAbilka_double_vote');invItemClick('double_vote')`,
-        hacker:      `closeModal('modalAbilka_hacker');invItemClick('hacker')`,
-        tiebreaker:  `closeModal('modalAbilka_tiebreaker');invItemClick('tiebreaker')`,
-        shield:      `closeModal('modalAbilka_shield');invItemClick('shield')`,
-        killer:      `closeModal('modalAbilka_killer');openKillerModal()`,
-        resurrect:   `closeModal('modalAbilka_resurrect');invItemClick('resurrect')`,
-      };
-      const act = ACTION_MAP[itemId] || `closeModal('modalAbilka_${itemId}')`;
-      btnWrap.innerHTML = `<button class="btn-modal-action" onclick="${act}" style="background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 4px 16px rgba(22,163,74,.35)">✅ Применить бесплатно</button>`;
-    } else {
-      const price = _saleActive ? SALE[itemId] : FULL[itemId];
-      // Восстанавливаем оригинальную кнопку покупки
-      const origOnclick = `closeModal('modalAbilka_${itemId}');document.getElementById('buy-${itemId.replace('_','-').replace('anon-msg','anon')}')?.click()`;
-      btnWrap.innerHTML = `<button class="btn-modal-action" onclick="${origOnclick}" style=""><img src="/static/icons/star.png" style="width:16px;height:16px"><span>Купить за ${price} ⭐</span></button>`;
-    }
-  }
+
 
   document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.add('hidden'));
   const el = document.getElementById('modalAbilka_'+itemId);
@@ -3866,7 +3888,18 @@ async function checkAndRegister(){
     const res = await fetch('/api/game/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id})});
     const data = await res.json();
     if(data.ok){
-      if(tg) tg.showAlert('✅ Ты записан в игру!\n\nИгра начнётся когда наберётся достаточно участников. Бот уведомит тебя о старте, а в чате выйдет объявление.');
+      if(tg && data.welcome_gems){
+        tg.showPopup({
+          title: '✅ Ты записан в игру!',
+          message: `💎 +${data.welcome_gems} Гемов — подарок новичку! Проверь баланс командой /bank в чате.\n\nИгра начнётся когда наберётся достаточно участников. Бот уведомит тебя о старте.`,
+          buttons: [
+            {id:'chat', type:'default', text:'💬 Войти в чат'},
+            {id:'ok', type:'ok', text:'OK'}
+          ]
+        }, (btn_id) => { if(btn_id==='chat') tg.openTelegramLink('https://t.me/shrimpgames_chat'); });
+      } else if(tg){
+        tg.showAlert('✅ Ты записан в игру!\n\nИгра начнётся когда наберётся достаточно участников. Бот уведомит тебя о старте, а в чате выйдет объявление.');
+      }
       currentUser.in_game=true; updateActionBtn(); updatePlayerCount(data.count); openPlayersModal();
     } else if(data.error==='not_subscribed'){
       openModal('modalSubscribe');
@@ -4103,33 +4136,8 @@ function openComboModal(){
   openModal('modalCombo');
 }
 
-// Фиксированная кнопка комбо в шопике
+// Фиксированная кнопка комбо — убрана, теперь в гриде шопа
 (function(){
-  const shopTab = document.getElementById('tab-shop');
-  if(!shopTab) return;
-  const fixed = document.createElement('div');
-  fixed.id = 'comboFixed';
-  fixed.style.cssText = 'position:fixed;bottom:70px;left:0;right:0;z-index:50;padding:0 16px;display:none';
-  fixed.innerHTML = `<div class="shop-item" onclick="openComboModal()" style="border:1.5px solid rgba(245,197,24,.6);background:rgba(10,10,10,.95);backdrop-filter:blur(10px);cursor:pointer">
-    <div class="shop-item-icon"><img src="/static/icons/rich.png" alt=""></div>
-    <div class="shop-item-info">
-      <div class="shop-item-name" style="color:#f5c518">Олигарх</div>
-      <div class="shop-item-desc">Подмазал всех. Получаешь все связи по одной штуке</div>
-    </div>
-    <button class="btn-buy" onclick="event.stopPropagation();buyCombo()" style="background:linear-gradient(135deg,#f5c518,#b8860b)">
-      <img src="/static/icons/star.png" alt=""><span>100</span>
-    </button>
-  </div>`;
-  document.body.appendChild(fixed);
-
-  // Показываем только когда активна вкладка шопик
-  document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.dataset.tab;
-      const el = document.getElementById('comboFixed');
-      if(el) el.style.display = tab === 'shop' ? 'block' : 'none';
-    });
-  });
 })();
 
 async function buyCombo(){
@@ -4229,7 +4237,7 @@ const itemActiveState = {};
 
 const ITEM_DATA = {
   anon_msg: {
-    icon: 'paper_plane.png',
+    icon: 'conspire.png',
     title: 'Сговориться',
     sub: 'Шепни кому надо. Анонимное сообщение любому игроку — никто не узнает от кого',
     stats: [
@@ -4240,7 +4248,7 @@ const ITEM_DATA = {
     type: 'anon',
   },
   spy: {
-    icon: 'mouse.png',
+    icon: 'rat.png',
     title: 'Стукач',
     sub: 'Внедрил своего человека. Узнаёшь кто и сколько раз голосовал против тебя',
     stats: [
@@ -4275,7 +4283,7 @@ const ITEM_DATA = {
     type: 'auto',
   },
   double_vote: {
-    icon: 'shotgun.png',
+    icon: 'double-barreled.png',
     title: 'Двустволка',
     sub: 'Жахни дуплетом — +2 голоса против любого игрока прямо сейчас',
     stats: [
@@ -4299,7 +4307,7 @@ const ITEM_DATA = {
     type: 'use',
   },
   tiebreaker: {
-    icon: 'bit.png',
+    icon: 'fixer.png',
     title: 'Решала',
     sub: 'При ничье ты остаёшься. Базара нет — противник вылетает',
     stats: [
@@ -4310,7 +4318,7 @@ const ITEM_DATA = {
     type: 'auto',
   },
   shield: {
-    icon: 'mafia.png',
+    icon: 'criminal_roof.png',
     title: 'Крышануться',
     sub: 'Купил крышу — в следующем раунде тебя нет в списках. Только при 10+ игроках',
     stats: [
@@ -4334,7 +4342,7 @@ const ITEM_DATA = {
     type: 'use',
   },
   resurrect: {
-    icon: 'murder.png',
+    icon: 'fakeout.png',
     title: 'Постанова',
     sub: 'Страховка от вылета. Если большинство проголосовало против тебя — ты остаёшься, а вылетает тот кто на втором месте по голосам.',
     stats: [
@@ -4953,9 +4961,9 @@ function openLevelModal(){
   openModal('modalLevel');
 }
 function calcLevel(user){
-  const score=(user.games_played||0)*10+(user.wins||0)*50+(user.kills||0)*20+(user.votes_cast||0)*5+(user.items_used||0)*15;
+  const score=(user.wins||0)*50+(user.kills||0)*20+(user.votes_cast||0)*5+(user.items_used||0)*15+(user.games_played||0)*10;
   let lvl=1;
-  while(Math.round(100*Math.pow(lvl,1.6)) <= score) lvl++;
+  while(Math.round(200*Math.pow(lvl,1.75)) <= score) lvl++;
   lvl = Math.min(lvl, 15);
   const isFemale = (typeof currentUser !== 'undefined' && currentUser?.gender === 'female');
   return {lvl, score, rank: (isFemale ? RANK_NAMES_FEMALE : RANK_NAMES)[lvl-1]};
@@ -4972,10 +4980,10 @@ let _wSpin=false,_wCan=true,_wCdInt=null;
 function runSlotAnimation(prizeIcon, onDone){
   const reel = document.getElementById('slotReel1');
   const allIcons = [
-    '/static/icons/paper_plane.png','/static/icons/mouse.png',
-    '/static/icons/police.png','/static/icons/anonymous.png','/static/icons/shotgun.png',
-    '/static/icons/thief.png','/static/icons/bit.png','/static/icons/mafia.png',
-    '/static/icons/murder.png','/static/icons/killer.png','/static/icons/rich.png',
+    '/static/icons/conspire.png','/static/icons/rat.png',
+    '/static/icons/police.png','/static/icons/anonymous.png','/static/icons/double-barreled.png',
+    '/static/icons/thief.png','/static/icons/fixer.png','/static/icons/criminal_roof.png',
+    '/static/icons/fakeout.png','/static/icons/killer.png','/static/icons/oligarch.png',
     '/static/icons/gangster.png','/static/icons/game_store.png','/static/icons/knife.png'
   ];
   let ticks = 0;
@@ -5143,7 +5151,7 @@ async function pollEvents(){
 setInterval(pollEvents, 15000);
 
 // КАЗИК
-const CASINO_ICONS2 = {anon_msg:'/static/icons/paper_plane.png',spy:'/static/icons/mouse.png',black_mark:'/static/icons/police.png',anon_player:'/static/icons/anonymous.png',double_vote:'/static/icons/shotgun.png',hacker:'/static/icons/thief.png',tiebreaker:'/static/icons/bit.png',shield:'/static/icons/mafia.png',killer:'/static/icons/killer.png',resurrect:'/static/icons/murder.png',credits:'/static/icons/star.png',premium:'/static/icons/crown.png',nft_bull:'/static/icons/nft_bull.jpg',nft_bear:'/static/icons/nft_bear.jpg'};
+const CASINO_ICONS2 = {anon_msg:'/static/icons/conspire.png',spy:'/static/icons/rat.png',black_mark:'/static/icons/police.png',anon_player:'/static/icons/anonymous.png',double_vote:'/static/icons/double-barreled.png',hacker:'/static/icons/thief.png',tiebreaker:'/static/icons/fixer.png',shield:'/static/icons/criminal_roof.png',killer:'/static/icons/killer.png',resurrect:'/static/icons/fakeout.png',credits:'/static/icons/star.png',premium:'/static/icons/crown.png',nft_bull:'/static/icons/nft_bull.jpg',nft_bear:'/static/icons/nft_bear.jpg'};
 async function loadCasinoBalance(){if(!currentUser)return;try{const r=await fetch('/api/casino/balance?user_id='+currentUser.user_id);const d=await r.json();if(d.ok){const c=d.credits;const e1=document.getElementById('casinoCredits');const e2=document.getElementById('casinoCreditsModal');if(e1)e1.textContent=c;if(e2)e2.textContent=c;window._casinoFreeAvailable=d.free_available;}}catch(e){}}
 async function casinoTopup(){if(!currentUser||!tg)return;const input=document.getElementById('casinoTopupAmount');const amount=parseInt(input&&input.value);if(!amount||amount<5){if(tg)tg.showAlert('Минимум 5 звёзд');return;}try{const r=await fetch('/api/casino/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id,amount})});const d=await r.json();if(d.ok&&d.invoice_url){tg.openInvoice(d.invoice_url,async function(status){if(status==='paid'){await loadCasinoBalance();tg.showAlert('✅ Пополнено '+amount+' кредитов!');if(input)input.value='';}})}else{if(tg)tg.showAlert(d.error||'Ошибка');}}catch(e){if(tg)tg.showAlert('Ошибка');}}
 async function openCasinoModal(){await loadCasinoBalance();openModal('modalCasino');}
@@ -5235,19 +5243,51 @@ function showCasinoTopupChoice(){
 }
 
 
-function openBomzhFoundItem(item_id, item_name) {
+async function doBomzhItemBuy(item_id, item_name) {
+  if (!currentUser) return;
+  try {
+    const r = await fetch('/api/bomzh/item_buy', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id,item_id})});
+    const d = await r.json();
+    if (d.ok && d.free) { showToast('✅ Выкуплено!'); renderProfile(currentUser); return; }
+    if (d.ok && d.invoice_url) {
+      tg.openInvoice(d.invoice_url, status => { if (status==='paid') { showToast('⭐ '+item_name+' — твой навсегда!'); renderProfile(currentUser); } });
+    } else { showToast(d.error||'Ошибка'); }
+  } catch(e) { showToast('Ошибка'); }
+}
+
+function openBomzhFoundItem(item_id, item_name, isPerm, eventActive) {
   const BOMZH_ITEM_DESC = {
-    'phone':       { bonus: '📱 Бесплатные анонимки', desc: 'Все анонимные сообщения в игре бесплатны пока действует событие Чушпана.' },
-    'pistol':      { bonus: '🔫 +1 голос каждый раунд', desc: 'Твой голос весит на 1 больше в каждом раунде. Автоматически, не нужно ничего делать.' },
-    'car_key':     { bonus: '🚗 Иммунитет первые 25 раундов', desc: 'Тебя нет в списке для голосования первые 25 раундов. Сел в тачку и уехал.' },
+    'phone':       { bonus: '📱 Бесконечные анонимки', desc: 'В твоих связях появляется анонимка — она не исчезает после использования. Пиши сколько угодно все 7 дней события.' },
+    'pistol':      { bonus: '🔫 +1 голос каждый раунд', desc: 'Твой голос весит на 1 больше в каждом раунде. Автоматически.' },
+    'car_key':     { bonus: '🚗 Иммунитет первые 25 раундов', desc: 'Тебя нет в списке голосования первые 25 раундов. Уехал на тачке.' },
     'credit_card': { bonus: '💳 -50% в магазине', desc: 'Все предметы в шопике вдвое дешевле пока действует событие Чушпана.' },
-    'drugs':       { bonus: '💊 -1 голос каждый раунд', desc: 'Твой голос весит на 1 меньше в каждом раунде. Таблетки делают своё дело.' },
+    'drugs':       { bonus: '💊 -1 голос против тебя каждый раунд', desc: 'Каждый раунд с тебя снимается 1 голос. Если против тебя проголосовали 3 раза — засчитается 2. Сложнее выбить.' },
   };
-  const info = BOMZH_ITEM_DESC[item_id] || { bonus: '🏚 Находка Чушпана', desc: 'Редкий предмет с района. Храни — пригодится.' };
-  document.getElementById('bomzhFoundImg').src = '/static/icons/' + item_id + '.png';
+  const info = BOMZH_ITEM_DESC[item_id] || { bonus: '🏚 Находка Чушпана', desc: 'Редкий предмет с района.' };
+  const imgEl = document.getElementById('bomzhFoundImg');
+  imgEl.src = '/static/icons/' + item_id + '.png';
+  imgEl.dataset.itemId = item_id;
   document.getElementById('bomzhFoundName').textContent = item_name;
   document.getElementById('bomzhFoundBonus').textContent = info.bonus;
   document.getElementById('bomzhFoundDesc').textContent = info.desc;
+  const BOMZH_DEADLINE = new Date('2026-05-25T15:00:00Z');
+  const BUYOUT_DEADLINE = new Date(BOMZH_DEADLINE.getTime() + 24*60*60*1000);
+  const now = new Date();
+  const statusEl = document.getElementById('bomzhFoundStatus');
+  const buyBtn = document.getElementById('bomzhFoundBuyBtn');
+  if (isPerm === true || isPerm === 'true') {
+    statusEl.textContent = '⭐ Предмет твой навсегда'; statusEl.style.cssText='font-size:11px;font-weight:700;font-family:Unbounded,sans-serif;background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.3);border-radius:10px;padding:8px 12px;margin-bottom:14px;color:#f5c518';
+    if(buyBtn) buyBtn.style.display='none';
+  } else if (now < BOMZH_DEADLINE) {
+    statusEl.textContent = '✅ Предмет активирован'; statusEl.style.cssText='font-size:11px;font-weight:700;font-family:Unbounded,sans-serif;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:8px 12px;margin-bottom:14px;color:rgba(34,197,94,0.8)';
+    if(buyBtn) buyBtn.style.display='none';
+  } else if (now < BUYOUT_DEADLINE) {
+    statusEl.textContent = '⚠️ Событие закончилось — выкупи чтобы сохранить'; statusEl.style.cssText='font-size:11px;font-weight:700;font-family:Unbounded,sans-serif;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:8px 12px;margin-bottom:14px;color:#ef4444';
+    if(buyBtn) buyBtn.style.display='block';
+  } else {
+    statusEl.textContent = '⛔ Предмет истёк'; statusEl.style.cssText='font-size:11px;font-weight:700;font-family:Unbounded,sans-serif;background:rgba(100,100,100,0.1);border:1px solid rgba(100,100,100,0.2);border-radius:10px;padding:8px 12px;margin-bottom:14px;color:#666';
+    if(buyBtn) buyBtn.style.display='none';
+  }
   document.getElementById('modalBomzhFound').classList.remove('hidden');
 }
 
@@ -5298,6 +5338,31 @@ async function doBomzhAttackSend() {
   } catch(e) { showToast('Ошибка соединения'); }
 }
 
+
+  async function claimGemBonus() {
+    const btn = document.getElementById('btnGemsStatus');
+    const task = document.getElementById('taskGems');
+    if (task && task.classList.contains('done')) return;
+    const uid = currentUser ? currentUser.user_id : (tgUser ? tgUser.id : null);
+    if (!uid) { showToast('Ошибка авторизации'); return; }
+    try {
+      const r = await fetch('/api/claim_gems', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({user_id: uid, init_data: Telegram.WebApp.initData})
+      });
+      const d = await r.json();
+      if (d.ok) {
+        if (task) task.classList.add('done');
+        if (btn) { btn.textContent = 'Получено'; btn.style.opacity = '0.5'; }
+        showToast('💎 +25 Гемов зачислено!');
+      } else {
+        showToast(d.error || 'Уже получено');
+      }
+    } catch(e) {
+      showToast('Ошибка');
+    }
+  }
 </script>
 
 <!-- МОДАЛКА СОБЫТИЯ -->
@@ -5375,7 +5440,7 @@ async function doBomzhAttackSend() {
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">100 кредитов</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">⭐ Редкий</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/bit.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/fixer.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Решала</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
@@ -5383,7 +5448,7 @@ async function doBomzhAttackSend() {
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Ворюга</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/shotgun.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/double-barreled.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Двустволка</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
@@ -5395,11 +5460,11 @@ async function doBomzhAttackSend() {
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Мусорнуться</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/mouse.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/rat.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Стукач</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/paper_plane.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/icons/conspire.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Сговориться</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
     </div>
@@ -5464,10 +5529,11 @@ async function doBomzhAttackSend() {
   <div class="modal-sheet" style="text-align:center">
     <img id="bomzhFoundImg" src="" style="width:90px;height:90px;object-fit:contain;margin-bottom:14px">
     <div style="font-family:'Unbounded',sans-serif;font-size:10px;color:rgba(255,150,50,0.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">🏚 Найдено у Чушпана</div>
-    <div style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:10px" id="bomzhFoundName"></div>
-    <div style="font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;color:#22c55e;margin-bottom:10px" id="bomzhFoundBonus"></div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:16px;line-height:1.7;background:rgba(255,150,50,0.06);border:1px solid rgba(255,150,50,0.2);border-radius:12px;padding:12px 14px" id="bomzhFoundDesc"></div>
-    <div style="font-size:11px;color:rgba(34,197,94,0.8);font-family:'Unbounded',sans-serif;font-weight:700;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:8px 12px;margin-bottom:16px">✅ Предмет активирован</div>
+    <div style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:8px" id="bomzhFoundName"></div>
+    <div style="font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;color:#22c55e;margin-bottom:8px" id="bomzhFoundBonus"></div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.7;background:rgba(255,150,50,0.06);border:1px solid rgba(255,150,50,0.2);border-radius:12px;padding:12px 14px" id="bomzhFoundDesc"></div>
+    <div id="bomzhFoundStatus" style="font-size:11px;font-weight:700;font-family:'Unbounded',sans-serif;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:8px 12px;margin-bottom:14px;color:rgba(34,197,94,0.8)">✅ Предмет активирован</div>
+    <button id="bomzhFoundBuyBtn" style="display:none;width:100%;padding:14px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:14px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:8px" onclick="doBomzhItemBuy(document.getElementById('bomzhFoundImg').dataset.itemId,document.getElementById('bomzhFoundName').textContent);document.getElementById('modalBomzhFound').classList.add('hidden')">💰 Выкупить за 999 ⭐</button>
     <button onclick="document.getElementById('modalBomzhFound').classList.add('hidden')" style="width:100%;padding:14px;background:rgba(255,150,50,0.15);border:1.5px solid rgba(255,150,50,0.4);border-radius:14px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:rgba(255,150,50,0.9);cursor:pointer">Ясно</button>
   </div>
 </div>
@@ -5499,3 +5565,14 @@ async function doBomzhAttackSend() {
 </div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+

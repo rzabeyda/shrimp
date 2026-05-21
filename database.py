@@ -34,7 +34,7 @@ def init_db():
     """)
     for col, coldef in [
         ("games_played","INTEGER DEFAULT 0"),("kills","INTEGER DEFAULT 0"),
-        ("wins","INTEGER DEFAULT 0"),("chat_joined","INTEGER DEFAULT 0"),("streak_days","INTEGER DEFAULT 0"),("streak_last","TEXT DEFAULT NULL"),("losses","INTEGER DEFAULT 0"),("clean_wins","INTEGER DEFAULT 0"),("first_joins","INTEGER DEFAULT 0"),("sent_anon","INTEGER DEFAULT 0"),("times_voted_against","INTEGER DEFAULT 0"),("killed_by_killer","INTEGER DEFAULT 0"),("premium_force","INTEGER DEFAULT 0"),("gender","TEXT DEFAULT NULL"),("message_count","INTEGER DEFAULT 0")
+        ("wins","INTEGER DEFAULT 0"),("chat_joined","INTEGER DEFAULT 0"),("streak_days","INTEGER DEFAULT 0"),("streak_last","TEXT DEFAULT NULL"),("losses","INTEGER DEFAULT 0"),("clean_wins","INTEGER DEFAULT 0"),("first_joins","INTEGER DEFAULT 0"),("sent_anon","INTEGER DEFAULT 0"),("times_voted_against","INTEGER DEFAULT 0"),("killed_by_killer","INTEGER DEFAULT 0"),("premium_force","INTEGER DEFAULT 0"),("gender","TEXT DEFAULT NULL"),("message_count","INTEGER DEFAULT 0"),("is_banned","INTEGER DEFAULT 0"),("quiz_correct","INTEGER DEFAULT 0"),("gems","INTEGER DEFAULT 0"),("gems_claimed","INTEGER DEFAULT 0"),("gems_purchased","INTEGER DEFAULT 0"),("gems_bought_total","INTEGER DEFAULT 0")
     ]:
         try: c.execute(f"ALTER TABLE users ADD COLUMN {col} {coldef}")
         except: pass
@@ -263,7 +263,7 @@ def update_user_profile(user_id, username, first_name):
 def get_user_stats(user_id):
     conn = get_conn()
     c = conn.cursor()
-    c.execute("SELECT games_played, kills, wins, chat_joined, streak_days, streak_last, used_spy, used_killer, bought_shield, used_double_vote, resurrected, first_purchase, went_anon, won_as_anon, losses, clean_wins, first_joins, sent_anon, times_voted_against, killed_by_killer, items_used, items_won, premium_force, COALESCE(created_clan,0) as created_clan FROM users WHERE user_id=?", (user_id,))
+    c.execute("SELECT games_played, kills, wins, chat_joined, streak_days, streak_last, used_spy, used_killer, bought_shield, used_double_vote, resurrected, first_purchase, went_anon, won_as_anon, losses, clean_wins, first_joins, sent_anon, times_voted_against, killed_by_killer, items_used, items_won, premium_force, COALESCE(created_clan,0) as created_clan, COALESCE(votes_cast,0) as votes_cast FROM users WHERE user_id=?", (user_id,))
     row = c.fetchone()
     # Считаем покупки из таблицы purchases
     purchases_bought = 0
@@ -372,7 +372,6 @@ def get_user_vote(game_id, day_number, voter_id):
 
 
 def has_bomzh_item(user_id, item_id):
-    """Проверяем есть ли у юзера предмет от Чушпана"""
     try:
         conn = get_conn(); c = conn.cursor()
         c.execute("SELECT id FROM bomzh_items WHERE user_id=? AND item_id=? LIMIT 1", (user_id, item_id))
@@ -385,12 +384,11 @@ def has_bomzh_item(user_id, item_id):
 def cast_vote(game_id, day_number, voter_id, target_id):
     conn = get_conn()
     c = conn.cursor()
-    # Базовый вес — учитываем предметы Чушпана
     weight = 1
     if has_bomzh_item(voter_id, 'pistol'):
-        weight += 1   # пистолет: +1 голос
-    if has_bomzh_item(voter_id, 'drugs'):
-        weight = max(0, weight - 1)  # таблетки: -1 голос (минимум 0)
+        weight += 1
+    if has_bomzh_item(target_id, 'drugs'):
+        weight = max(0, weight - 1)
     try:
         c.execute("INSERT INTO votes (game_id, day_number, voter_id, target_id, weight) VALUES (?,?,?,?,?)",
                   (game_id, day_number, voter_id, target_id, weight))
@@ -598,3 +596,251 @@ def update_streak(user_id):
     conn.commit()
     conn.close()
     return streak_days, True, item_reward
+
+
+def ban_user(username: str) -> bool:
+    """Бан по username. Возвращает True если юзер найден."""
+    username = username.lstrip("@")
+    conn = get_conn(); c = conn.cursor()
+    c.execute("UPDATE users SET is_banned=1 WHERE LOWER(username)=LOWER(?)", (username,))
+    affected = c.rowcount
+    conn.commit(); conn.close()
+    return affected > 0
+
+def unban_user(username: str) -> bool:
+    username = username.lstrip("@")
+    conn = get_conn(); c = conn.cursor()
+    c.execute("UPDATE users SET is_banned=0 WHERE LOWER(username)=LOWER(?)", (username,))
+    affected = c.rowcount
+    conn.commit(); conn.close()
+    return affected > 0
+
+def is_user_banned(user_id: int) -> bool:
+    conn = get_conn(); c = conn.cursor()
+    c.execute("SELECT is_banned FROM users WHERE user_id=?", (user_id,))
+    row = c.fetchone(); conn.close()
+    return bool(row and row["is_banned"])
+
+
+def init_auction_table():
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS auction_donations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            username TEXT,
+            first_name TEXT,
+            amount INTEGER,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    conn.commit(); conn.close()
+
+def add_auction_donation(user_id, username, first_name, amount):
+    conn = get_conn(); c = conn.cursor()
+    c.execute("INSERT INTO auction_donations (user_id, username, first_name, amount) VALUES (?,?,?,?)",
+              (user_id, username, first_name, amount))
+    conn.commit(); conn.close()
+
+def get_auction_top():
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        SELECT user_id, username, first_name, SUM(amount) as total
+        FROM auction_donations
+        GROUP BY user_id
+        ORDER BY total DESC
+        LIMIT 3
+    """)
+    rows = c.fetchall(); conn.close()
+    return rows
+
+def clear_auction():
+    conn = get_conn(); c = conn.cursor()
+    c.execute("DELETE FROM auction_donations")
+    conn.commit(); conn.close()
+
+
+def get_auction_state():
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS auction_state (
+            id INTEGER PRIMARY KEY DEFAULT 1,
+            active INTEGER DEFAULT 0,
+            title TEXT DEFAULT '',
+            link TEXT DEFAULT ''
+        )
+    """)
+    conn.commit()
+    c.execute("SELECT active, title, link FROM auction_state WHERE id=1")
+    row = c.fetchone(); conn.close()
+    if not row:
+        return {"active": False, "title": "", "link": ""}
+    return {"active": bool(row["active"]), "title": row["title"] or "", "link": row["link"] or ""}
+
+def set_auction_state(active, title="", link=""):
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS auction_state (
+            id INTEGER PRIMARY KEY DEFAULT 1,
+            active INTEGER DEFAULT 0,
+            title TEXT DEFAULT '',
+            link TEXT DEFAULT ''
+        )
+    """)
+    c.execute("INSERT OR REPLACE INTO auction_state (id, active, title, link) VALUES (1,?,?,?)",
+              (1 if active else 0, title, link))
+    conn.commit(); conn.close()
+
+
+# ─── ГЕМЫ ───────────────────────────────────────────────────────────────
+
+def get_gems(user_id: int) -> int:
+    conn = get_conn(); c = conn.cursor()
+    c.execute("SELECT COALESCE(gems,0) as gems FROM users WHERE user_id=?", (user_id,))
+    row = c.fetchone(); conn.close()
+    return row["gems"] if row else 0
+
+def add_gems(user_id: int, amount: int):
+    conn = get_conn(); c = conn.cursor()
+    c.execute("UPDATE users SET gems=COALESCE(gems,0)+? WHERE user_id=?", (amount, user_id))
+    conn.commit(); conn.close()
+
+def spend_gems(user_id: int, amount: int) -> bool:
+    """Снимает гемы. Возвращает True если успешно, False если не хватает."""
+    conn = get_conn(); c = conn.cursor()
+    c.execute("SELECT COALESCE(gems,0) as gems FROM users WHERE user_id=?", (user_id,))
+    row = c.fetchone()
+    if not row or row["gems"] < amount:
+        conn.close(); return False
+    c.execute("UPDATE users SET gems=gems-? WHERE user_id=?", (amount, user_id))
+    conn.commit(); conn.close()
+    return True
+
+def create_withdraw_request(user_id: int, username: str, first_name: str, gems: int) -> int:
+    """Создаёт запрос на вывод. Возвращает id запроса."""
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS gem_withdrawals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            username TEXT,
+            first_name TEXT,
+            gems INTEGER,
+            stars INTEGER,
+            status TEXT DEFAULT 'pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    stars = int(gems * 0.95)
+    c.execute(
+        "INSERT INTO gem_withdrawals (user_id, username, first_name, gems, stars) VALUES (?,?,?,?,?)",
+        (user_id, username, first_name, gems, stars)
+    )
+    wid = c.lastrowid
+    conn.commit(); conn.close()
+    return wid
+
+def get_withdraw_request(wid: int):
+    conn = get_conn(); c = conn.cursor()
+    c.execute("SELECT * FROM gem_withdrawals WHERE id=?", (wid,))
+    row = c.fetchone(); conn.close()
+    return dict(row) if row else None
+
+def set_withdraw_status(wid: int, status: str):
+    conn = get_conn(); c = conn.cursor()
+    c.execute("UPDATE gem_withdrawals SET status=? WHERE id=?", (status, wid))
+    conn.commit(); conn.close()
+
+
+# ─── ЛОГИ ИГР ───────────────────────────────────────────
+
+def log_game(user_id: int, game_type: str, bet: int, result: str, payout: int):
+    """
+    game_type: 'redblack', 'crash', 'dice_solo', 'dice_pvp'
+    result: 'win', 'lose', 'zero', 'draw'
+    payout: сколько гемов вернули игроку
+    profit = bet - payout (казино заработало)
+    """
+    try:
+        conn = get_conn(); c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS game_log (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    INTEGER,
+                game_type  TEXT,
+                bet        INTEGER,
+                result     TEXT,
+                payout     INTEGER,
+                profit     INTEGER,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        profit = bet - payout
+        c.execute(
+            "INSERT INTO game_log (user_id, game_type, bet, result, payout, profit) VALUES (?,?,?,?,?,?)",
+            (user_id, game_type, bet, result, payout, profit)
+        )
+        conn.commit(); conn.close()
+    except: pass
+
+
+# ─── ДУЭЛИ ──────────────────────────────────────────────
+
+def init_duels_table():
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS duels (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            challenger_id INTEGER,
+            challenger_name TEXT,
+            opponent_id INTEGER,
+            opponent_name TEXT,
+            bet INTEGER,
+            status TEXT DEFAULT 'pending',
+            score_challenger INTEGER DEFAULT 0,
+            score_opponent INTEGER DEFAULT 0,
+            current_turn INTEGER,
+            current_question TEXT,
+            current_answer TEXT,
+            current_options TEXT,
+            chat_id TEXT,
+            message_id INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit(); conn.close()
+
+def create_duel(challenger_id, challenger_name, opponent_id, opponent_name, bet, chat_id):
+    init_duels_table()
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        INSERT INTO duels (challenger_id, challenger_name, opponent_id, opponent_name, bet, current_turn, chat_id)
+        VALUES (?,?,?,?,?,?,?)
+    """, (challenger_id, challenger_name, opponent_id, opponent_name, bet, challenger_id, str(chat_id)))
+    did = c.lastrowid
+    conn.commit(); conn.close()
+    return did
+
+def get_duel(duel_id):
+    conn = get_conn(); c = conn.cursor()
+    c.execute("SELECT * FROM duels WHERE id=?", (duel_id,))
+    row = c.fetchone(); conn.close()
+    return dict(row) if row else None
+
+def update_duel(duel_id, **kwargs):
+    conn = get_conn(); c = conn.cursor()
+    sets = ", ".join(f"{k}=?" for k in kwargs)
+    vals = list(kwargs.values()) + [duel_id]
+    c.execute(f"UPDATE duels SET {sets} WHERE id=?", vals)
+    conn.commit(); conn.close()
+
+def get_active_duel_for_user(user_id):
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        SELECT * FROM duels 
+        WHERE (challenger_id=? OR opponent_id=?) 
+        AND status IN ('pending','active')
+        ORDER BY id DESC LIMIT 1
+    """, (user_id, user_id))
+    row = c.fetchone(); conn.close()
+    return dict(row) if row else None
