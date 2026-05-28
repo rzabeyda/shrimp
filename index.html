@@ -35,11 +35,15 @@
 
   /* GAME TAB */
   .game-hero{padding:4px 16px 140px;text-align:center}
-  .game-number-label{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);text-transform:uppercase;margin-bottom:4px}
-  .last-winner-block{background:linear-gradient(135deg,rgba(245,197,24,.08),rgba(245,197,24,.03));border:1px solid rgba(245,197,24,.2);border-radius:14px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;text-align:left}
-  .players-live-block{background:var(--bg2);border:1.5px solid rgba(255,255,255,.7);box-shadow:0 0 16px rgba(255,255,255,.08);border-radius:18px;padding:14px;margin-top:14px}
+  #tab-game{background:radial-gradient(ellipse at 50% -10%,rgba(120,5,5,.18) 0%,#000 55%)}
+  #tab-game .player-item{border-bottom:1px solid rgba(185,28,28,.12)}
+  #tab-game .player-item:hover{background:rgba(185,28,28,.05)}
+  #noGameMsg div:first-child{color:rgba(255,255,255,.95);text-shadow:0 0 20px rgba(185,28,28,.4)}
+  .game-number-label{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(185,28,28,.85);text-transform:uppercase;margin-bottom:4px;text-shadow:0 0 12px rgba(185,28,28,.4)}
+  .last-winner-block{background:linear-gradient(135deg,rgba(185,28,28,.1),rgba(80,5,5,.06));border:1px solid rgba(185,28,28,.4);border-radius:14px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;text-align:left;box-shadow:0 0 16px rgba(185,28,28,.1)}
+  .players-live-block{background:rgba(6,2,2,.98);border:1.5px solid rgba(185,28,28,.5);box-shadow:0 0 28px rgba(185,28,28,.14),0 0 1px rgba(185,28,28,.35),inset 0 1px 0 rgba(255,255,255,.03);border-radius:18px;padding:14px;margin-top:14px}
   .players-live-block.hidden{display:none}
-  .players-live-title{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .players-live-title{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:rgba(185,28,28,.75);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
   .players-live-list{display:flex;flex-direction:column;gap:5px}
   .player-live-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.01) 100%);border-radius:12px;border:1px solid rgba(255,255,255,.08);transition:border-color .15s;gap:8px}
   .player-live-num{font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,.2);width:16px;flex-shrink:0;text-align:center}
@@ -71,17 +75,17 @@
   .prize-link-btn:hover{filter:brightness(1.12)} .prize-link-btn:active{transform:scale(.95)}
 
   /* BOTTOM BAR */
-  .bottom-bar{position:fixed;bottom:64px;left:0;right:0;z-index:101;padding:6px 16px 8px;background:linear-gradient(to top,#000 85%,transparent);will-change:transform;transform:translateZ(0);backface-visibility:hidden}
+  .bottom-bar{position:fixed;bottom:64px;left:0;right:0;z-index:101;padding:6px 16px 8px;background:linear-gradient(to top,#000 70%,rgba(8,2,2,.95) 88%,transparent);will-change:transform;transform:translateZ(0);backface-visibility:hidden}
   /* TIMER */
   .game-timer-wrap{margin-bottom:10px;margin-top:14px;padding-top:0;text-align:center}
   .game-timer-label{font-size:10px;color:var(--muted2);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
-  .game-timer-active-label{font-size:18px;color:#ffffff;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:0;text-shadow:0 0 10px rgba(255,255,255,.3);animation:blink-vote 1.2s ease-in-out infinite}
+  .game-timer-active-label{font-size:18px;color:#ffffff;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:0;text-shadow:0 0 10px rgba(255,255,255,.3)}
   @keyframes blink-vote{0%,100%{opacity:1}50%{opacity:.4}}
   @keyframes card-shine{0%{left:-60%}100%{left:120%}}
   .game-timer-display{display:flex;align-items:center;justify-content:center;gap:6px}
-  .timer-block{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 10px;min-width:48px;text-align:center}
-  .timer-num{font-family:'Unbounded',sans-serif;font-size:20px;font-weight:900;line-height:1;color:var(--text)}
-  .timer-sep{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:900;color:var(--muted2);margin-bottom:2px;animation:blink 1s step-end infinite}
+  .timer-block{background:rgba(6,2,2,1);border:1px solid rgba(185,28,28,.35);border-radius:10px;padding:8px 10px;min-width:48px;text-align:center;box-shadow:0 0 14px rgba(185,28,28,.1),inset 0 1px 0 rgba(255,255,255,.02)}
+  .timer-num{font-family:'Unbounded',sans-serif;font-size:20px;font-weight:900;line-height:1;color:var(--text);text-shadow:0 0 14px rgba(255,60,60,.2)}
+  .timer-sep{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:900;color:rgba(185,28,28,.7);margin-bottom:2px}
   .timer-unit{font-size:8px;color:var(--muted2);font-weight:600;text-transform:uppercase;margin-top:2px;letter-spacing:.5px}
   .timer-block.urgent{border-color:rgba(220,38,38,.4);background:rgba(220,38,38,.08)}
   .timer-block.urgent .timer-num{color:#ef4444}
@@ -98,7 +102,7 @@
   .action-row{display:flex;align-items:center;gap:8px}
   .btn-register{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 12px;border:none;border-radius:16px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;color:#fff;cursor:pointer;transition:transform .12s,filter .12s}
   .btn-register:hover{filter:brightness(1.1)} .btn-register:active{transform:scale(.97)}
-  .btn-register.join{background:linear-gradient(135deg,#b91c1c,#7f1d1d,#991b1b);box-shadow:0 4px 24px rgba(185,28,28,.5);position:relative;overflow:hidden}
+  .btn-register.join{background:linear-gradient(135deg,#b91c1c,#7f1d1d,#991b1b);box-shadow:0 4px 32px rgba(185,28,28,.7),0 0 60px rgba(185,28,28,.2),inset 0 1px 0 rgba(255,100,100,.15);position:relative;overflow:hidden}
   .btn-register.join::after,.btn-register.vote::after{content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:rgba(255,255,255,.18);transform:skewX(-20deg);animation:btn-shine 3s ease-in-out infinite}
   .btn-register.already{background:linear-gradient(135deg,#111,#1c1c1c,#111);border:1px solid rgba(255,255,255,.08);box-shadow:0 4px 16px rgba(0,0,0,.6);cursor:default}
   .btn-register.vote{background:linear-gradient(135deg,#16a34a,#15803d,#166534);box-shadow:0 4px 24px rgba(22,163,74,.5);position:relative;overflow:hidden}
@@ -348,6 +352,9 @@
   @keyframes nav-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
   .nav-item.game-active img{filter:none!important;opacity:1!important}
   .nav-item.game-active .nav-label{color:var(--pink);font-weight:700}
+  .nav-vote-dot{position:absolute;top:2px;right:calc(50% - 18px);width:8px;height:8px;border-radius:50%;background:#22c55e;display:none;box-shadow:0 0 6px #22c55e}
+  @keyframes vote-dot-blink{0%,100%{opacity:1;box-shadow:0 0 6px #22c55e}50%{opacity:.3;box-shadow:0 0 2px #22c55e}}
+  .nav-vote-dot.visible{display:block;animation:vote-dot-blink 1s ease-in-out infinite}
   .nav-item img{width:24px;height:24px;object-fit:contain;opacity:.35;filter:grayscale(1);transition:opacity .15s,filter .15s}
   .nav-item.active img{opacity:1;filter:none}
   .nav-label{font-family:'Unbounded',sans-serif;font-size:8px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;line-height:1}
@@ -392,7 +399,7 @@
     <div class="onboarding-steps">
       <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/hooligan.png" alt=""></div><div><div class="step-title">Встань за район</div><div class="step-desc">Группа игроков. Чем больше народу — тем жарче разборки.</div></div></div>
       <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/vote.png" alt=""></div><div><div class="step-title">Голосуй за вылет</div><div class="step-desc">Каждый раунд вылетают 2 игрока с наибольшим числом голосов. Ночью голосование не проводится.</div></div></div>
-      <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/criminal_roof.png" alt=""></div><div><div class="step-title">Связи решают всё</div><div class="step-desc">Стукач, Киллер, Крышануться, Постанова — используй связи чтобы выжить.</div></div></div>
+      <div class="onboarding-step"><div class="step-icon"><img src="/static/pics/criminal_roof.png" alt=""></div><div><div class="step-title">Связи решают всё</div><div class="step-desc">Стукач, Киллер, Крышануться, Постанова — используй связи чтобы выжить.</div></div></div>
       <div class="onboarding-step"><div class="step-icon"><img src="/static/icons/gift.png" alt=""></div><div><div class="step-title">Последние выжившие забирают всё</div><div class="step-desc">Призы: NFT, подарки, звёзды</div></div></div>
       <div class="onboarding-step" style="background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(0,0,0,0));border-color:rgba(34,197,94,.4)"><div class="step-icon" style="background:rgba(34,197,94,.15)"><img src="/static/icons/fire.png" alt=""></div><div><div class="step-title" style="color:#22c55e">Заходи каждый день — получай призы</div><div class="step-desc">Ежедневный стрик даёт жирные бонусы:<br>🗡 День 3 — Сговориться<br>👁 День 5 — Стукач<br>🕵️ День 7 — Мусорнуться<br>💀 День 14 — Постанова + Киллер<br>🎰 День 21 — 250 кредитов в казино<br>👑 День 30 — Премиум навсегда</div></div></div>
     </div>
@@ -424,7 +431,7 @@
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/friends.png" alt=""></div><div><div class="rules-step-title">Вступление</div><div class="rules-step-text">Записываешься в стрелку и ждёшь старта. Участие бесплатное.</div></div></div>
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/vote.png" alt=""></div><div><div class="rules-step-title">Разборки каждые 15 минут</div><div class="rules-step-text">Каждый раунд длится 15 минут. Проголосуй за того кого хочешь убрать. Каждый раунд вылетают 2 игрока.</div></div></div>
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/skull.png" alt=""></div><div><div class="rules-step-title">Выбывание</div><div class="rules-step-text">Двое с наибольшим числом голосов вылетают каждый раунд. Ночью голосование не проводится.</div></div></div>
-      <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/criminal_roof.png" alt=""></div><div><div class="rules-step-title">Связи</div><div class="rules-step-text">Крышануться, Двустволка, Постанова, Киллер, Стукач — каждая связь меняет ход игры.</div></div></div>
+      <div class="rules-step"><div class="rules-step-icon"><img src="/static/pics/criminal_roof.png" alt=""></div><div><div class="rules-step-title">Связи</div><div class="rules-step-text">Крышануться, Двустволка, Постанова, Киллер, Стукач — каждая связь меняет ход игры.</div></div></div>
       <div class="rules-step"><div class="rules-step-icon"><img src="/static/icons/gift.png" alt=""></div><div><div class="rules-step-title">Победа</div><div class="rules-step-text">Последние выжившие забирают NFT Telegram Gift.</div></div></div>
     </div>
     <a href="https://t.me/shrimpgames_chat" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,rgba(232,51,109,.15),rgba(139,92,246,.1));border:1.5px solid rgba(232,51,109,.4);border-radius:14px;padding:12px;text-decoration:none;color:var(--pink);font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700">
@@ -450,15 +457,22 @@
       </div>
     </div>
 
+    <!-- Блок: игрок уехал на тачке -->
+    <div id="psCarKeyBlock" style="display:none;text-align:center;padding:24px 8px 8px">
+      <div style="font-size:48px;margin-bottom:12px">🚗💨</div>
+      <div id="psCarKeyName" style="font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:8px"></div>
+      <div style="font-size:11px;color:var(--muted2);line-height:1.6">укатил на тачке и недосягаем.<br>Голосовать против него — бесполезно.</div>
+    </div>
+
     <!-- Блок раскрытия Анонимуса -->
     <div id="psAnonReveal" style="display:none;margin-bottom:10px">
-      <button id="psAnonRevealBtn" onclick="psRevealAnon()" style="width:100%;padding:12px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:14px;font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><img src="/static/icons/police.png" style="width:16px;height:16px;object-fit:contain"><span id="psAnonRevealText"></span></button>
+      <button id="psAnonRevealBtn" onclick="psRevealAnon()" style="width:100%;padding:12px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:14px;font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><img src="/static/pics/police.png" style="width:16px;height:16px;object-fit:contain"><span id="psAnonRevealText"></span></button>
     </div>
 
     <!-- Действия с игроком -->
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+    <div id="psActionsBlock" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
       <button id="psActionAnon" onclick="psActionAnonMsg()" style="width:100%;padding:12px 16px;min-height:58px;border-radius:14px;border:none;font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(96,165,250,.15),rgba(30,41,59,.95));border:1px solid rgba(96,165,250,.4)">
-        <img src="/static/icons/conspire.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/conspire.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
         <div style="text-align:left;flex:1">
           <div style="color:#60a5fa">Сговориться</div>
           <div id="psActionAnonSub" style="font-size:9px;font-weight:600;color:var(--muted2);margin-top:1px"></div>
@@ -474,7 +488,7 @@
         <div id="psActionRecruitPrice" style="font-size:10px;color:var(--muted2)">4 ⭐</div>
       </button>
       <button id="psActionDV" onclick="psActionDoubleVote()" style="width:100%;padding:12px 16px;min-height:58px;border-radius:14px;border:1px solid rgba(239,68,68,.4);font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(30,41,59,.95))">
-        <img src="/static/icons/double-barreled.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/double-barreled.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
         <div style="text-align:left;flex:1">
           <div style="color:#ef4444">Двустволка</div>
           <div id="psActionDVSub" style="font-size:9px;font-weight:600;color:var(--muted2);margin-top:1px"></div>
@@ -482,7 +496,7 @@
         <div id="psActionDVPrice" style="font-size:10px;color:var(--muted2)"></div>
       </button>
       <button id="psActionKiller" onclick="psActionKill()" style="width:100%;padding:12px 16px;min-height:58px;border-radius:14px;border:1px solid rgba(168,85,247,.4);font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(30,41,59,.95))">
-        <img src="/static/icons/killer.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/killer.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
         <div style="text-align:left;flex:1">
           <div style="color:#a855f7">Ликвидировать</div>
           <div id="psActionKillerSub" style="font-size:9px;font-weight:600;color:var(--muted2);margin-top:1px"></div>
@@ -491,7 +505,7 @@
       </button>
       <!-- Кнопка: нет клана = Создать клан / есть клан = Предложить союз -->
       <button id="psActionAlliance" onclick="psActionAlliance()" style="width:100%;padding:12px 16px;min-height:58px;border-radius:14px;border:1px solid rgba(245,197,24,.4);font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(245,197,24,.12),rgba(30,41,59,.95))">
-        <img src="/static/icons/clan.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/clan.png" style="width:20px;height:20px;object-fit:contain;flex-shrink:0">
         <div style="text-align:left;flex:1">
           <div style="color:#f5c518" id="psAllianceBtnTitle">Создать клан</div>
           <div id="psActionAllianceSub" style="font-size:9px;font-weight:600;color:var(--muted2);margin-top:1px">Союзники не видят друг друга в голосовании</div>
@@ -686,7 +700,7 @@
       <button onclick="switchTopTab('purchases')" id="topTabPurchases" class="top-tab"><img src="/static/icons/gift.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px">Покупки</button>
       <button onclick="switchTopTab('kills')" id="topTabKills" class="top-tab"><img src="/static/icons/games.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px">Разборки</button>
     </div>
-    <div id="refRaceBanner" style="display:none;background:linear-gradient(135deg,rgba(232,51,109,.12),rgba(139,92,246,.08));border:1.5px solid rgba(232,51,109,.4);border-radius:14px;padding:10px 14px;margin-bottom:10px;cursor:pointer;align-items:center;gap:10px" onclick="window.open('https://t.me/shrimpgames_channel/28','_blank')">
+    <div id="refRaceBanner" style="display:none;background:linear-gradient(135deg,rgba(232,51,109,.12),rgba(139,92,246,.08));border:1.5px solid rgba(232,51,109,.4);border-radius:14px;padding:10px 14px;margin-bottom:10px;cursor:pointer;align-items:center;gap:10px" onclick="window.open('https://t.me/shrimpgames_channel/35','_blank')">
       <img src="/static/icons/ref_race.png" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0">
       <div style="flex:1;min-width:0">
         <div style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:var(--pink);margin-bottom:2px">🏁 Реферальная гонка</div>
@@ -722,7 +736,7 @@
     <div class="modal-title">📢 Подпишись на канал</div>
     <div class="modal-sub">Подпишись на наш канал — там выходят анонсы новых игр, результаты и новости.</div>
     <div class="reward-block">
-      <img src="/static/icons/rat.png" alt="">
+      <img src="/static/pics/rat.png" alt="">
       <div><div class="reward-block-title">🐭 Стукач</div><div class="reward-block-sub">Узнать кто голосовал против тебя</div></div>
     </div>
     <button class="btn-modal-action blue" id="btnTaskJoinChannel"><img src="/static/icons/telegram.png" alt="">Подписаться на канал</button>
@@ -737,7 +751,7 @@
     <div class="modal-title">💬 Подпишись на чат</div>
     <div class="modal-sub">Тут результаты раундов, баталии и интриги игроков.</div>
     <div class="reward-block">
-      <img src="/static/icons/rat.png" alt="">
+      <img src="/static/pics/rat.png" alt="">
       <div><div class="reward-block-title">🐭 Стукач</div><div class="reward-block-sub">Узнать кто голосовал против тебя</div></div>
     </div>
     <button class="btn-modal-action blue" id="btnTaskJoinChat"><img src="/static/icons/chats.png" alt="">Вступить в чат</button>
@@ -989,21 +1003,21 @@
     <div class="streak-days" id="modalStreakDays" style="margin-bottom:16px"></div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px">
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
-        <img src="/static/icons/conspire.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/conspire.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
         <div>
           <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;margin-bottom:2px">🔥 День 3 — Сговориться</div>
           <div style="font-size:10px;color:var(--muted2)">Анонимное сообщение любому игроку</div>
         </div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
-        <img src="/static/icons/rat.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/rat.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
         <div>
           <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;margin-bottom:2px">🔥 День 5 — Стукач</div>
           <div style="font-size:10px;color:var(--muted2)">Узнай кто голосовал против тебя</div>
         </div>
       </div>
       <div style="background:linear-gradient(135deg,rgba(245,197,24,.12),rgba(245,197,24,.05));border:1px solid rgba(245,197,24,.4);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
-        <img src="/static/icons/police.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/police.png" style="width:32px;height:32px;object-fit:contain;flex-shrink:0">
         <div>
           <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:#f5c518;margin-bottom:2px">🔥 День 7 — Мусорнуться</div>
           <div style="font-size:10px;color:var(--muted2)">Раскрой анонимуса — вскрой предателя</div>
@@ -1011,8 +1025,8 @@
       </div>
       <div style="background:linear-gradient(135deg,rgba(251,146,60,.12),rgba(251,146,60,.05));border:1px solid rgba(251,146,60,.4);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
         <div style="display:flex;gap:4px;flex-shrink:0">
-          <img src="/static/icons/fakeout.png" style="width:28px;height:28px;object-fit:contain">
-          <img src="/static/icons/killer.png" style="width:28px;height:28px;object-fit:contain">
+          <img src="/static/pics/fakeout.png" style="width:28px;height:28px;object-fit:contain">
+          <img src="/static/pics/killer.png" style="width:28px;height:28px;object-fit:contain">
         </div>
         <div>
           <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:#fb923c;margin-bottom:2px">⚡ День 14 — Постанова + Киллер</div>
@@ -1051,6 +1065,96 @@
   </div>
 </div>
 
+<!-- CLAN INFO MODAL -->
+<div class="modal-overlay hidden" id="modalClanInfo">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modalClanInfo')">✕</button>
+    <div style="text-align:center;margin-bottom:14px">
+      <img src="/static/pics/clan.png" style="width:80px;height:80px;object-fit:cover;border-radius:20px;border:2px solid rgba(245,197,24,.4)">
+    </div>
+    <div class="modal-title" style="text-align:center;color:#f5c518">⚔️ Клан</div>
+    <div class="modal-sub" style="text-align:center">Объединись с союзниками и выживите вместе</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px">
+        <span style="font-size:22px;flex-shrink:0">🛡</span>
+        <div>
+          <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;margin-bottom:3px">Защита в голосовании</div>
+          <div style="font-size:11px;color:var(--muted2);line-height:1.4">Союзников нельзя видеть в голосовании — вы не голосуете друг против друга</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px">
+        <span style="font-size:22px;flex-shrink:0">👥</span>
+        <div>
+          <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;margin-bottom:3px">До 5 участников</div>
+          <div style="font-size:11px;color:var(--muted2);line-height:1.4">Собери команду до пяти человек и действуйте единым фронтом</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px">
+        <span style="font-size:22px;flex-shrink:0">🗡</span>
+        <div>
+          <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;margin-bottom:3px">Клан виден всем</div>
+          <div style="font-size:11px;color:var(--muted2);line-height:1.4">Твой клан отображается в профиле — все знают с кем ты</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px">
+        <span style="font-size:22px;flex-shrink:0">🎮</span>
+        <div>
+          <div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;margin-bottom:3px">На каждую игру</div>
+          <div style="font-size:11px;color:var(--muted2);line-height:1.4">Клан действует в текущей игре. В следующей создаёшь заново</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-modal-action" style="background:linear-gradient(135deg,#b8860b,#f5c518)" onclick="clanBuyNow()">
+      <img src="/static/icons/star.png" style="width:18px;height:18px;object-fit:contain"> Создать клан — 25 ⭐
+    </button>
+  </div>
+</div>
+
+<!-- CLAN NAME MODAL -->
+<div class="modal-overlay hidden" id="modalClanName">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modalClanName')">✕</button>
+    <div class="modal-title">⚔️ Название клана</div>
+    <div class="modal-sub">Придумай название своему клану (до 20 символов)</div>
+    <input id="clanNameInput" type="text" maxlength="20" placeholder="Название клана..."
+      style="width:100%;padding:14px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:14px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);outline:none;margin-bottom:16px"
+      oninput="this.style.borderColor=this.value.trim()?'rgba(245,197,24,.5)':'var(--border)'"
+      onkeydown="if(event.key==='Enter')clanSubmitName()">
+    <button class="btn-modal-action" style="background:linear-gradient(135deg,#b8860b,#f5c518)" onclick="clanSubmitName()">
+      Создать клан
+    </button>
+  </div>
+</div>
+
+<!-- CLAN MANAGE MODAL -->
+<div class="modal-overlay hidden" id="modalClanManage">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modalClanManage')">✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <img src="/static/pics/clan.png" style="width:44px;height:44px;object-fit:cover;border-radius:12px;border:1.5px solid rgba(245,197,24,.4);flex-shrink:0">
+      <div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:14px;font-weight:800;color:#f5c518" id="clanManageName">Клан</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:2px" id="clanManageRole">Лидер</div>
+      </div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:14px">
+      <div style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Участники</div>
+      <div id="clanManageMembers" style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;color:var(--muted2)">Загрузка...</div>
+      </div>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(245,197,24,.08),rgba(245,158,11,.05));border:1px solid rgba(245,197,24,.25);border-radius:14px;padding:12px;margin-bottom:14px">
+      <div style="font-size:12px;color:var(--muted2);line-height:1.5">💡 Чтобы пригласить игрока — открой его профиль и нажми <b style="color:#f5c518">Предложить союз</b></div>
+    </div>
+    <button class="btn-modal-action dark" style="border-color:rgba(239,68,68,.3);color:#ef4444" onclick="clanDoLeave()">
+      Распустить клан
+    </button>
+  </div>
+</div>
+
 <!-- TOPBAR -->
 <div class="topbar" id="topbar">
   <a class="btn-top btn-stars-top" href="https://split.tg/?ref=UQDngkmwbJxausCBgrbXcS_LmQYtGLG0-qfsaCYijyczQVap" target="_blank">
@@ -1086,13 +1190,13 @@
 
         <!-- Реферальная гонка слайд -->
         <div id="bannerSlide1" class="banner-slide" style="display:none;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(232,51,109,.15) 0%,rgba(139,92,246,.12) 50%,rgba(15,23,42,.85) 100%);border:2px solid rgba(232,51,109,.45);border-radius:16px;padding:10px 14px;box-shadow:0 0 24px rgba(232,51,109,.15),inset 0 1px 0 rgba(255,255,255,.08)">
-          <img src="/static/icons/game6.png" onclick="window.open('https://t.me/shrimpgames_channel','_blank')" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0;cursor:pointer">
-          <div onclick="window.open('https://t.me/nft/PoolFloat-122125','_blank')" style="flex:1;min-width:0;cursor:pointer">
-            <div style="font-size:9px;color:var(--pink);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Стрелка #6</div>
+          <img src="/static/icons/game8.png" onclick="window.open('https://t.me/shrimpgames_chat/11916','_blank')" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0;cursor:pointer">
+          <div onclick="window.open('https://t.me/nft/ChillFlame-244385','_blank')" style="flex:1;min-width:0;cursor:pointer">
+            <div style="font-size:9px;color:var(--pink);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Стрелка #8</div>
             <div style="font-size:14px;font-weight:900;color:var(--text);font-family:'Unbounded',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Разыгрываем призы 🔥</div>
-            <div style="font-size:10px;color:var(--muted2);margin-top:2px">1 место — NFT Уточка · 2 место — 100 ⭐ · 3 место — 50 ⭐</div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:2px">1 место — NFT Бык · 2 место — 150 💎 · 5 место — NFT Бык</div>
           </div>
-          <div onclick="window.open('https://t.me/nft/PoolFloat-122125','_blank')" style="font-size:18px;opacity:0.4;cursor:pointer">›</div>
+          <div onclick="window.open('https://t.me/nft/ChillFlame-244385','_blank')" style="font-size:18px;opacity:0.4;cursor:pointer">›</div>
         </div>
 
         <!-- Реф гонка слайд -->
@@ -1168,11 +1272,20 @@
 <!-- МАГАЗИН -->
   <div class="tab-page" id="tab-shop" style="padding-bottom:80px">
     <div class="shop-wrap">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div style="display:flex;align-items:center;gap:10px"><img src="/static/icons/game_store.png" style="width:24px;height:24px;object-fit:contain"><div class="shop-title" style="margin-bottom:0">Связи</div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px"><img src="/static/icons/game_store.png" style="width:24px;height:24px;object-fit:contain"><div class="shop-title" style="margin-bottom:0">Магазин</div></div>
         <button onclick="openShopPremiumInfo()" style="display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(245,197,24,.15),rgba(139,92,246,.1));border:1px solid rgba(245,197,24,.5);border-radius:10px;padding:6px 12px;font-family:'Unbounded',sans-serif;font-size:9px;font-weight:800;color:#f5c518;cursor:pointer"><img src="/static/icons/premium_dark.png" style="width:14px;height:14px;object-fit:contain">Premium</button>
       </div>
-      <div class="shop-sub">Нужные люди — нужные связи. Купи и используй в нужный момент</div>
+
+      <!-- Переключатель вкладок шопика -->
+      <div id="shopTabBar" style="display:flex;gap:8px;margin-bottom:16px">
+        <button id="shopTabLinks" onclick="switchShopTab('links')" style="flex:1;padding:10px;border-radius:12px;border:none;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,rgba(232,51,109,.25),rgba(139,92,246,.15));border:1.5px solid rgba(232,51,109,.6);color:#fff"><img src="/static/icons/mafia.png" style="width:16px;height:16px;object-fit:contain"> Связи</button>
+        <button id="shopTabArtifacts" onclick="switchShopTab('artifacts')" style="flex:1;padding:10px;border-radius:12px;border:none;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,rgba(245,197,24,.25),rgba(245,158,11,.15));border:1.5px solid rgba(245,197,24,.6);color:#fff"><img src="/static/icons/premium_dark.png" style="width:16px;height:16px;object-fit:contain"> Артефакты</button>
+      </div>
+
+      <!-- Вкладка: Связи -->
+      <div id="shopContentLinks">
+      <div class="shop-sub" style="margin-top:-8px">Нужные люди — нужные связи. Купи и используй в текущей игре либо в следующих</div>
       <div class="sale-banner" id="saleBanner" style="display:none!important">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">🔥 СКИДКА 50% НА ВСЁ</div><div class="sale-label">Все связи дешевле — только сейчас!</div></div>
         <div class="sale-timer" id="saleTimer">--:--:--</div>
@@ -1182,107 +1295,107 @@
 
         <!-- Сговориться 1⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon" onclick="openAbilkaModal('anon_msg')" style="cursor:pointer"><img src="/static/icons/conspire.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('anon_msg')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('anon_msg')" style="cursor:pointer"><img src="/static/pics/conspire.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('anon_msg')" style="cursor:pointer">
             <div class="shop-item-name">Сговориться</div>
             
           </div>
-          <button class="btn-buy" id="buy-anon" onclick="buyItem('anon_msg',1)"><img src="/static/icons/star.png" alt=""><span id="anon_msg-price">1</span></button>
+          <button class="btn-buy" id="buy-anon" onclick="event.stopPropagation();buyItem('anon_msg',1)"><img src="/static/icons/star.png" alt=""><span id="anon_msg-price">1</span></button>
         </div>
 
         <!-- Крышануться 2⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon" onclick="openAbilkaModal('shield')" style="cursor:pointer"><img src="/static/icons/criminal_roof.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('shield')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('shield')" style="cursor:pointer"><img src="/static/pics/criminal_roof.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('shield')" style="cursor:pointer">
             <div class="shop-item-name">Крышануться</div>
             
           </div>
-          <button class="btn-buy" id="buy-shield" onclick="buyItem('shield',2)"><img src="/static/icons/star.png" alt=""><span id="shield-old-price" style="display:none;" class="price-old">2</span><span id="shield-price">2</span></button>
+          <button class="btn-buy" id="buy-shield" onclick="event.stopPropagation();buyItem('shield',2)"><img src="/static/icons/star.png" alt=""><span id="shield-old-price" style="display:none;" class="price-old">2</span><span id="shield-price">2</span></button>
         </div>
 
         <!-- Стукач 3⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon" onclick="openAbilkaModal('spy')" style="cursor:pointer"><img src="/static/icons/rat.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('spy')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('spy')" style="cursor:pointer"><img src="/static/pics/rat.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('spy')" style="cursor:pointer">
             <div class="shop-item-name">Стукач</div>
             
           </div>
-          <button class="btn-buy" id="buy-spy" onclick="buyItem('spy',_saleActive?2:3)"><img src="/static/icons/star.png" alt=""><span id="spy-old-price" style="display:none" class="price-old">3</span><span id="spy-price">3</span></button>
+          <button class="btn-buy" id="buy-spy" onclick="event.stopPropagation();buyItem('spy',_saleActive?2:3)"><img src="/static/icons/star.png" alt=""><span id="spy-old-price" style="display:none" class="price-old">3</span><span id="spy-price">3</span></button>
         </div>
 
         <!-- Мусорнуться 5⭐ -->
         <div class="shop-item s1">
-          <div class="shop-item-icon" onclick="openAbilkaModal('black_mark')" style="cursor:pointer"><img src="/static/icons/police.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('black_mark')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('black_mark')" style="cursor:pointer"><img src="/static/pics/police.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('black_mark')" style="cursor:pointer">
             <div class="shop-item-name">Мусорнуться</div>
             
           </div>
-          <button class="btn-buy" id="buy-black_mark" onclick="buyItem('black_mark',_saleActive?3:5)"><img src="/static/icons/star.png" alt=""><span id="black_mark-old-price" style="display:none" class="price-old">5</span><span id="black_mark-price">5</span></button>
+          <button class="btn-buy" id="buy-black_mark" onclick="event.stopPropagation();buyItem('black_mark',_saleActive?3:5)"><img src="/static/icons/star.png" alt=""><span id="black_mark-old-price" style="display:none" class="price-old">5</span><span id="black_mark-price">5</span></button>
         </div>
 
         <!-- Анонимус 10⭐ -->
         <div class="shop-item s4">
-          <div class="shop-item-icon" onclick="openAbilkaModal('anon_player')" style="cursor:pointer"><img src="/static/icons/anonymous.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('anon_player')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('anon_player')" style="cursor:pointer"><img src="/static/pics/anonymous.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('anon_player')" style="cursor:pointer">
             <div class="shop-item-name">Анонимус</div>
             
           </div>
-          <button class="btn-buy" id="buy-anon-player" onclick="buyItem('anon_player',_saleActive?5:10)"><img src="/static/icons/star.png" alt=""><span id="anon_player-old-price" style="display:none" class="price-old">10</span><span id="anon_player-price">10</span></button>
+          <button class="btn-buy" id="buy-anon-player" onclick="event.stopPropagation();buyItem('anon_player',_saleActive?5:10)"><img src="/static/icons/star.png" alt=""><span id="anon_player-old-price" style="display:none" class="price-old">10</span><span id="anon_player-price">10</span></button>
         </div>
 
         <!-- Двустволка 15⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon" onclick="openAbilkaModal('double_vote')" style="cursor:pointer"><img src="/static/icons/double-barreled.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('double_vote')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('double_vote')" style="cursor:pointer"><img src="/static/pics/double-barreled.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('double_vote')" style="cursor:pointer">
             <div class="shop-item-name">Двустволка</div>
             
           </div>
-          <button class="btn-buy" id="buy-double_vote" onclick="buyItem('double_vote',_saleActive?8:15)"><img src="/static/icons/star.png" alt=""><span id="double_vote-old-price" style="display:none" class="price-old">15</span><span id="double_vote-price">15</span></button>
+          <button class="btn-buy" id="buy-double_vote" onclick="event.stopPropagation();buyItem('double_vote',_saleActive?8:15)"><img src="/static/icons/star.png" alt=""><span id="double_vote-old-price" style="display:none" class="price-old">15</span><span id="double_vote-price">15</span></button>
         </div>
 
         <!-- Ворюга 20⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon" onclick="openAbilkaModal('hacker')" style="cursor:pointer"><img src="/static/icons/thief.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('hacker')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('hacker')" style="cursor:pointer"><img src="/static/pics/thief.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('hacker')" style="cursor:pointer">
             <div class="shop-item-name">Ворюга</div>
             
           </div>
-          <button class="btn-buy" id="buy-hacker" onclick="buyItem('hacker',_saleActive?10:20)"><img src="/static/icons/star.png" alt=""><span id="hacker-old-price" style="display:none" class="price-old">20</span><span id="hacker-price">20</span></button>
+          <button class="btn-buy" id="buy-hacker" onclick="event.stopPropagation();buyItem('hacker',_saleActive?10:20)"><img src="/static/icons/star.png" alt=""><span id="hacker-old-price" style="display:none" class="price-old">20</span><span id="hacker-price">20</span></button>
         </div>
 
         <!-- Решала 25⭐ -->
         <div class="shop-item s2">
-          <div class="shop-item-icon" onclick="openAbilkaModal('tiebreaker')" style="cursor:pointer"><img src="/static/icons/fixer.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('tiebreaker')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('tiebreaker')" style="cursor:pointer"><img src="/static/pics/fixer.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('tiebreaker')" style="cursor:pointer">
             <div class="shop-item-name">Решала</div>
             
           </div>
-          <button class="btn-buy" id="buy-tiebreaker" onclick="buyItem('tiebreaker',_saleActive?13:25)"><img src="/static/icons/star.png" alt=""><span id="tiebreaker-old-price" style="display:none" class="price-old">25</span><span id="tiebreaker-price">25</span></button>
+          <button class="btn-buy" id="buy-tiebreaker" onclick="event.stopPropagation();buyItem('tiebreaker',_saleActive?13:25)"><img src="/static/icons/star.png" alt=""><span id="tiebreaker-old-price" style="display:none" class="price-old">25</span><span id="tiebreaker-price">25</span></button>
         </div>
 
         <!-- Киллер 35⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon" onclick="openAbilkaModal('killer')" style="cursor:pointer"><img src="/static/icons/killer.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('killer')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('killer')" style="cursor:pointer"><img src="/static/pics/killer.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('killer')" style="cursor:pointer">
             <div class="shop-item-name">Киллер</div>
             
           </div>
-          <button class="btn-buy" id="buy-killer" onclick="buyItem('killer',_saleActive?18:35)"><img src="/static/icons/star.png" alt=""><span id="killer-old-price" style="display:none" class="price-old">35</span><span id="killer-price">35</span></button>
+          <button class="btn-buy" id="buy-killer" onclick="event.stopPropagation();buyItem('killer',_saleActive?18:35)"><img src="/static/icons/star.png" alt=""><span id="killer-old-price" style="display:none" class="price-old">35</span><span id="killer-price">35</span></button>
         </div>
 
         <!-- Постанова 40⭐ -->
         <div class="shop-item s3">
-          <div class="shop-item-icon" onclick="openAbilkaModal('resurrect')" style="cursor:pointer"><img src="/static/icons/fakeout.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('resurrect')" style="cursor:pointer">
+          <div class="shop-item-icon" onclick="openAbilkaModal('resurrect')" style="cursor:pointer"><img src="/static/pics/fakeout.png" alt=""></div><div class="shop-item-info" onclick="openAbilkaModal('resurrect')" style="cursor:pointer">
             <div class="shop-item-name">Постанова</div>
             
           </div>
-          <button class="btn-buy" id="buy-resurrect" onclick="buyItem('resurrect',_saleActive?20:40)"><img src="/static/icons/star.png" alt=""><span id="resurrect-old-price" style="display:none" class="price-old">40</span><span id="resurrect-price">40</span></button>
+          <button class="btn-buy" id="buy-resurrect" onclick="event.stopPropagation();buyItem('resurrect',_saleActive?20:40)"><img src="/static/icons/star.png" alt=""><span id="resurrect-old-price" style="display:none" class="price-old">40</span><span id="resurrect-price">40</span></button>
         </div>
 
         <!-- КЛАН -->
         <div class="shop-item s5" id="shopClanBlock" style="cursor:pointer" onclick="shopBuyClan()">
-          <div class="shop-item-icon"><img src="/static/icons/clan.png" alt="" id="shopClanIcon"></div>
+          <div class="shop-item-icon"><img src="/static/pics/clan.png" alt="" id="shopClanIcon"></div>
           <div class="shop-item-info">
             <div class="shop-item-name" style="color:#f5c518" id="shopClanName">Создать клан</div>
             
           </div>
-          <button class="btn-buy" id="buy-clan" onclick="event.stopPropagation();shopBuyClan()"><img src="/static/icons/star.png" alt=""><span id="clan-price">99</span></button>
+          <button class="btn-buy" id="buy-clan" onclick="event.stopPropagation();shopBuyClan()"><img src="/static/icons/star.png" alt=""><span id="clan-price">25</span></button>
         </div>
 
         <!-- Олигарх 100⭐ -->
         <div class="shop-item s5" id="buy-combo" onclick="openComboModal()" style="cursor:pointer">
-          <div class="shop-item-icon"><img src="/static/icons/oligarch.png" alt=""></div>
+          <div class="shop-item-icon"><img src="/static/pics/oligarch.png" alt=""></div>
           <div class="shop-item-info">
             <div class="shop-item-name" style="color:#f5c518">Олигарх</div>
             
@@ -1291,6 +1404,61 @@
         </div>
 
       </div>
+      </div><!-- /shopContentLinks -->
+
+      <!-- Вкладка: Артефакты (скрыта до открытия) -->
+      <div id="shopContentArtifacts" style="display:none">
+        <div class="shop-sub" style="margin-top:-8px">Пассивные способности на всю игру. Работают автоматически каждый раунд</div>
+        <div class="shop-grid">
+
+          <div class="shop-item s1">
+            <div class="shop-item-icon" onclick="openArtifactModal('phone')" style="cursor:pointer"><img src="/static/pics/nokia.png" alt=""></div>
+            <div class="shop-item-info" onclick="openArtifactModal('phone')" style="cursor:pointer">
+              <div class="shop-item-name">Мобилка</div>
+              <div class="shop-item-desc">Бесконечные анонимки — не тратятся после использования</div>
+            </div>
+            <button class="btn-buy" onclick="buyArtifact('phone',100)"><img src="/static/icons/star.png" alt=""><span>100</span></button>
+          </div>
+
+          <div class="shop-item s2">
+            <div class="shop-item-icon" onclick="openArtifactModal('pistol')" style="cursor:pointer"><img src="/static/pics/gun.png" alt=""></div>
+            <div class="shop-item-info" onclick="openArtifactModal('pistol')" style="cursor:pointer">
+              <div class="shop-item-name">Пистолет</div>
+              <div class="shop-item-desc">+1 голос каждый раунд — твой голос весит больше</div>
+            </div>
+            <button class="btn-buy" onclick="buyArtifact('pistol',250)"><img src="/static/icons/star.png" alt=""><span>250</span></button>
+          </div>
+
+          <div class="shop-item s3">
+            <div class="shop-item-icon" onclick="openArtifactModal('drugs')" style="cursor:pointer"><img src="/static/pics/drugs.png" alt=""></div>
+            <div class="shop-item-info" onclick="openArtifactModal('drugs')" style="cursor:pointer">
+              <div class="shop-item-name">Таблетки</div>
+              <div class="shop-item-desc">-1 голос против тебя каждый раунд — сложнее выбить</div>
+            </div>
+            <button class="btn-buy" onclick="buyArtifact('drugs',500)"><img src="/static/icons/star.png" alt=""><span>500</span></button>
+          </div>
+
+          <div class="shop-item s4">
+            <div class="shop-item-icon" onclick="openArtifactModal('car_key')" style="cursor:pointer"><img src="/static/pics/car_keys.png" alt=""></div>
+            <div class="shop-item-info" onclick="openArtifactModal('car_key')" style="cursor:pointer">
+              <div class="shop-item-name">Ключи от тачки</div>
+              <div class="shop-item-desc">Иммунитет пока в игре больше 15 человек — тебя нет в списке голосования</div>
+            </div>
+            <button class="btn-buy" onclick="buyArtifact('car_key',800)"><img src="/static/icons/star.png" alt=""><span>800</span></button>
+          </div>
+
+          <div class="shop-item s5">
+            <div class="shop-item-icon" onclick="openArtifactModal('credit_card')" style="cursor:pointer"><img src="/static/pics/credit_card.png" alt=""></div>
+            <div class="shop-item-info" onclick="openArtifactModal('credit_card')" style="cursor:pointer">
+              <div class="shop-item-name">Кредитка</div>
+              <div class="shop-item-desc">-50% на все Связи в Магазине пока активна</div>
+            </div>
+            <button class="btn-buy" onclick="buyArtifact('credit_card',1000)"><img src="/static/icons/star.png" alt=""><span>1000</span></button>
+          </div>
+
+        </div>
+      </div><!-- /shopContentArtifacts -->
+
     </div>
   </div>
 
@@ -1300,7 +1468,7 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_anon_msg')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/conspire.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
+      <img src="/static/pics/conspire.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#60a5fa">Сговориться</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
@@ -1315,7 +1483,7 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_spy')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/rat.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
+      <img src="/static/pics/rat.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#60a5fa">Стукач</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
@@ -1330,7 +1498,7 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_black_mark')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/police.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
+      <img src="/static/pics/police.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#60a5fa22,#60a5fa08);border:1.5px solid #60a5fa55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#60a5fa">Мусорнуться</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
@@ -1345,7 +1513,7 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_anon_player')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/anonymous.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#a855f722,#a855f708);border:1.5px solid #a855f755">
+      <img src="/static/pics/anonymous.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#a855f722,#a855f708);border:1.5px solid #a855f755">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#a855f7">Анонимус</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
@@ -1360,7 +1528,7 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_double_vote')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/double-barreled.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/pics/double-barreled.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Двустволка</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
@@ -1375,7 +1543,7 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_hacker')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/thief.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/pics/thief.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Ворюга</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
@@ -1390,7 +1558,7 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_tiebreaker')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/fixer.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
+      <img src="/static/pics/fixer.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#fb923c">Решала</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
@@ -1405,13 +1573,13 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_shield')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/criminal_roof.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
+      <img src="/static/pics/criminal_roof.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#fb923c22,#fb923c08);border:1.5px solid #fb923c55">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#fb923c">Крышануться</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Купил крышу — теперь голосовать против тебя себе дороже. В следующем раунде твоего имени нет в списках голосования. Работает только если в игре 10+ человек.</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Купил крышу — теперь голосовать против тебя себе дороже. В следующем раунде твоего имени нет в списках голосования. Работает только если в игре 5+ человек.</div>
     <div id="modalAbilka_shield_btnwrap"></div>
   </div>
 </div>
@@ -1420,13 +1588,13 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_killer')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/killer.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/pics/killer.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Заказать Киллера</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Устранить конкурента прямо сейчас — без голосований, без ожидания. Жертва вылетает мгновенно. Никто не знает кто нажал на курок. Работает только если в игре 10+ человек.</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Устранить конкурента прямо сейчас — без голосований, без ожидания. Жертва вылетает мгновенно. Бот объявит в чат кто заказал устранение. Работает только если в игре 5+ человека.</div>
     <div id="modalAbilka_killer_btnwrap"></div>
   </div>
 </div>
@@ -1435,13 +1603,13 @@
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modalAbilka_resurrect')">✕</button>
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <img src="/static/icons/fakeout.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
+      <img src="/static/pics/fakeout.png" style="width:64px;height:64px;object-fit:cover;border-radius:14px;flex-shrink:0;background:linear-gradient(135deg,#ef444422,#ef444408);border:1.5px solid #ef444455">
       <div>
         <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#ef4444">Постанова</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:3px">Связь — одноразовая</div>
       </div>
     </div>
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Страховка от вылета. Если по итогам голосования большинство выбрало тебя — ты остаёшься, а вылетает тот кто набрал второе место по голосам. Срабатывает автоматически. Работает при 3+ живых игроках.</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px">Страховка от вылета. Если по итогам голосования большинство выбрало тебя — ты остаёшься, а вылетает тот кто набрал второе место по голосам. Срабатывает автоматически. Работает при 5+ живых игроках.</div>
     <div id="modalAbilka_resurrect_btnwrap"></div>
   </div>
 </div>
@@ -1455,51 +1623,51 @@
     <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;margin-bottom:16px">⏱ Когда юзать связи</div>
     <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;line-height:1.6">
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-anon')?.scrollIntoView({behavior:'smooth',block:'center'});},300)" style="cursor:pointer">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><img src="/static/icons/conspire.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Сговориться</span></div><span style="font-size:10px;color:var(--muted2)">→</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px"><div style="display:flex;align-items:center;gap:8px"><img src="/static/pics/conspire.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Сговориться</span></div><span style="font-size:10px;color:var(--muted2)">→</span></div>
         <div style="color:var(--muted2)">Юзай в любой момент. Договаривайся, пугай, провоцируй — никто не узнает от кого сообщение.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-spy')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/criminal_roof.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Стукач</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/criminal_roof.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Стукач</span></div>
         <div style="color:var(--muted2)">Юзай когда подозреваешь кто против тебя. Узнаёшь кто и сколько раз голосовал за твой вылет.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-black_mark')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/rat.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Мусорнуться</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/rat.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#60a5fa">Мусорнуться</span></div>
         <div style="color:var(--muted2)">Юзай когда в игре есть Анонимус и хочешь узнать кто скрывается. Только ты видишь его ник.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-anon-player')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/anonymous.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#a855f7">Анонимус</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/anonymous.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#a855f7">Анонимус</span></div>
         <div style="color:var(--muted2)">Покупай до старта игры — активируется автоматически. Твой ник скрыт пока кто-то не мусорнётся на тебя.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-double_vote')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/double-barreled.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Двустволка</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/double-barreled.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Двустволка</span></div>
         <div style="color:var(--muted2)">Юзай во время голосования когда хочешь гарантированно выбить конкретного игрока. +2 голоса против него.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-hacker')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/thief.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Ворюга</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/thief.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Ворюга</span></div>
         <div style="color:var(--muted2)">Юзай когда чувствуешь что тебя могут выбить в этом раунде. Все голоса против тебя исчезают бесследно.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-tiebreaker')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/fixer.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#fb923c">Решала</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/fixer.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#fb923c">Решала</span></div>
         <div style="color:var(--muted2)">Держи про запас — срабатывает автоматически при ничье. Спасёт когда счёт равный и решается жребием.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-shield')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/police.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#fb923c">Крышануться</span></div>
-        <div style="color:var(--muted2)">Активируй когда чувствуешь угрозу. В следующем раунде твоего ника нет в списке голосования. Только при 3+ игроках.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/police.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#fb923c">Крышануться</span></div>
+        <div style="color:var(--muted2)">Активируй когда чувствуешь угрозу. В следующем раунде твоего ника нет в списке голосования. Только при 5+ игроках.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-killer')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/killer.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Заказать Киллера</span></div>
-        <div style="color:var(--muted2)">Юзай когда нужно убрать сильного конкурента прямо сейчас не дожидаясь голосования. Только при 3+ игроках.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/killer.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Заказать Киллера</span></div>
+        <div style="color:var(--muted2)">Юзай когда нужно убрать сильного конкурента прямо сейчас не дожидаясь голосования. Только при 5+ игроках.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-resurrect')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/fakeout.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Постанова</span></div>
-        <div style="color:var(--muted2)">Покупай заранее пока жив. Если тебя выбьют — автоматически возвращаешься, вылетает другой. Только при 3+ игроках.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/fakeout.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#ef4444">Постанова</span></div>
+        <div style="color:var(--muted2)">Покупай заранее пока жив. Если тебя выбьют — автоматически возвращаешься, вылетает другой. Только при 5+ игроках.</div>
       </div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-combo')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/clan.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#f5c518">Создать клан</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/clan.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#f5c518">Создать клан</span></div>
         <div style="color:var(--muted2)">Объединись с союзниками — до 5 человек. Члены клана не видят друг друга в списке голосования, поэтому не смогут проголосовать друг против друга. Выйти можно в любой момент.</div>
       </div>
       <div style="background:linear-gradient(135deg,rgba(245,197,24,.1),rgba(245,197,24,.05));border:1px solid rgba(245,197,24,.3);border-radius:12px;padding:12px" onclick="closeModal('modalHowToUse');document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>{document.getElementById('buy-combo')?.scrollIntoView({behavior:'smooth',block:'center'});},300)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/icons/oligarch.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#f5c518">Олигарх</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><img src="/static/pics/oligarch.png" style="width:24px;height:24px"><span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#f5c518">Олигарх</span></div>
         <div style="color:var(--muted2)">Подмазал всех разом. Получаешь все связи по одной штуке — полный арсенал в кармане.</div>
       </div>
     </div>
@@ -1529,18 +1697,19 @@
         <div class="stat-block" onclick="openModal('modalWins')"><img src="/static/icons/game_store.png" alt=""><div class="stat-block-value" id="winsCount">0</div><div class="stat-block-label">Покупки</div></div>
       </div>
 
-      <div id="bomzhItemsSection" style="display:none">
-        <div class="section-title" style="display:flex;align-items:center;gap:8px">
-          <img src="/static/icons/bomz_icon.png" style="width:18px;height:18px;object-fit:contain">
-          <span>Находки у Чушпана</span>
-        </div>
-        <div id="bomzhItemsWrap" class="inventory-row" style="border:1.5px solid rgba(255,150,50,0.6);border-radius:18px;padding:12px;box-shadow:0 0 12px rgba(255,150,50,0.12)"></div>
-      </div>
       <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
         <span onclick="openAbilkiStats()" style="background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;cursor:pointer">🤝 Связи</span>
         <button onclick="openModal('modalHowToUse')" style="display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(99,102,241,.08));border:1px solid rgba(99,102,241,.4);border-radius:10px;padding:5px 10px;font-family:'Unbounded',sans-serif;font-size:9px;font-weight:800;color:#818cf8;cursor:pointer">Когда юзать</button>
       </div>
       <div id="inventoryWrap" class="inventory-row" style="border:1.5px solid rgba(255,255,255,.6);border-radius:18px;padding:12px;box-shadow:0 0 12px rgba(255,255,255,.06)"></div>
+
+      <div id="bomzhItemsSection" style="display:none">
+        <div class="section-title" style="display:flex;align-items:center;gap:8px">
+          <img src="/static/icons/premium_dark.png" style="width:18px;height:18px;object-fit:contain">
+          <span>Артефакты</span>
+        </div>
+        <div id="bomzhItemsWrap" class="inventory-row" style="border:1.5px solid rgba(255,150,50,0.6);border-radius:18px;padding:12px;box-shadow:0 0 12px rgba(255,150,50,0.12)"></div>
+      </div>
 
       <div class="section-title">Задания</div>
 
@@ -1602,7 +1771,7 @@
         <div class="task-icon"><img src="/static/icons/chats.png" alt=""></div>
         <div class="task-info" style="flex:1">
           <div class="task-name">Подпишись на чат</div>
-          <div class="task-reward" style="margin-top:4px"><img src="/static/icons/rat.png" alt=""> Стукач за подписку</div>
+          <div class="task-reward" style="margin-top:4px"><img src="/static/pics/rat.png" alt=""> Стукач за подписку</div>
         </div>
         <button id="btnChatStatus" class="task-share-btn" style="background:rgba(99,102,241,.2);color:#818cf8;border-color:rgba(99,102,241,.3);flex-shrink:0">Получить</button>
       </div>
@@ -1610,7 +1779,7 @@
         <div class="task-icon"><img src="/static/icons/telegram.png" alt=""></div>
         <div class="task-info" style="flex:1">
           <div class="task-name">Подпишись на канал</div>
-          <div class="task-reward" style="margin-top:4px"><img src="/static/icons/rat.png" alt=""> Стукач за подписку</div>
+          <div class="task-reward" style="margin-top:4px"><img src="/static/pics/rat.png" alt=""> Стукач за подписку</div>
         </div>
         <button id="btnChannelStatus" class="task-share-btn" style="background:rgba(99,102,241,.2);color:#818cf8;border-color:rgba(99,102,241,.3);flex-shrink:0">Получить</button>
       </div>
@@ -1747,9 +1916,8 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <button class="nav-item active" data-tab="game"><img src="/static/icons/knuckles.png" alt=""><span class="nav-label">Играть</span></button>
+  <button class="nav-item active" data-tab="game" style="position:relative"><span id="navVoteDot" class="nav-vote-dot"></span><img src="/static/icons/knuckles.png" alt=""><span class="nav-label">Играть</span></button>
   <button class="nav-item" data-tab="shop"><img src="/static/icons/game_store.png" alt="" onerror="this.src='/static/icons/game_store.png'"><span class="nav-label">Шопик</span></button>
-  <button class="nav-item" data-tab="rayon" id="nav-rayon"><img src="/static/icons/street.png" alt=""><span class="nav-label">Район</span></button>
   <button class="nav-item" data-tab="profile"><img id="navProfileIcon" src="/static/icons/gangster.png" alt=""><span class="nav-label">Профиль</span></button>
 </nav>
 
@@ -1762,13 +1930,40 @@ if (tg) {
   try { tg.setHeaderColor('#000000'); } catch(e) {}
 }
 
+function _dn(firstName, username, fallback) {
+  fallback = fallback || 'Игрок';
+  var s = firstName || '';
+  var clean = '';
+  for (var j = 0; j < s.length; j++) {
+    var c = s.charCodeAt(j);
+    if (c === 0x20 || c === 0x09 || c === 0x0a || c === 0x0d) continue;
+    if (c === 0x00ad || c === 0x034f || c === 0xfeff || c === 0x3164 || c === 0xffa0 || c === 0x1160 || c === 0x115f) continue;
+    if (c >= 0x200b && c <= 0x200f) continue;
+    if (c >= 0x2028 && c <= 0x202e) continue;
+    if (c >= 0x2060 && c <= 0x206f) continue;
+    if (c >= 0xfe00 && c <= 0xfe0f) continue;
+    clean += s[j];
+  }
+  // Если после очистки нет ни одной буквы/цифры/не-ASCII — пустой символ-ник
+  // Нужна хотя бы одна буква (a-z, A-Z, не-ASCII) — цифры и символы не считаются
+  var hasMeaningful = false;
+  for (var k = 0; k < clean.length; k++) {
+    var cc = clean.charCodeAt(k);
+    if (cc > 127) { hasMeaningful = true; break; }           // не-ASCII: кириллица, эмодзи, CJK
+    if (cc >= 65 && cc <= 90) { hasMeaningful = true; break; } // A-Z
+    if (cc >= 97 && cc <= 122) { hasMeaningful = true; break; } // a-z
+  }
+  if (clean && hasMeaningful) return firstName;
+  return username ? ('@' + username) : fallback;
+}
+
 let currentUser = null;
 let currentGame = { status:'none', number:1, current_day:0, player_count:0 };
 
 // ===== РАЙОН: ADMIN ONLY =====
 function initRayonTab() {
-  // Район открыт для всех
-  document.getElementById('nav-rayon').style.display = 'flex';
+  const el = document.getElementById('nav-rayon');
+  if(el) el.style.display = 'flex';
 }
 setTimeout(initRayonTab, 500);
 setTimeout(()=>{ if(currentUser) { checkBomzhItemAwarded(); loadBomzhChat(); } }, 1500);
@@ -2129,11 +2324,11 @@ async function loadLastBuyer(){
       const b = d.buyer;
       const _itemNames = {anon_msg:'Сговориться',spy:'Стукач',black_mark:'Мусорнуть',anon_player:'Анонимус',double_vote:'Двустволка',hacker:'Ворюга',tiebreaker:'Решала',shield:'Крыша',killer:'Киллер',resurrect:'Постанова',combo:'Олигарх'};
       const _itemIconFiles = {anon_msg:'conspire.png',spy:'rat.png',black_mark:'police.png',anon_player:'anonymous.png',double_vote:'double-barreled.png',hacker:'thief.png',tiebreaker:'fixer.png',shield:'criminal_roof.png',killer:'killer.png',resurrect:'fakeout.png',combo:'oligarch.png'};
-      document.getElementById('lastBuyerName').textContent = b.first_name || b.username || 'Игрок';
+      document.getElementById('lastBuyerName').textContent = _dn(b.first_name,b.username);
       const _itemEl = document.getElementById('lastBuyerItem');
       if(_itemEl && b.item_type){
         const _f = _itemIconFiles[b.item_type];
-        _itemEl.innerHTML = (_f?`<img src="/static/icons/${_f}" style="width:13px;height:13px;object-fit:contain;vertical-align:middle;margin-right:3px">`:'')+(_itemNames[b.item_type]||b.item_type);
+        _itemEl.innerHTML = (_f?`<img src="/static/pics/${_f}" style="width:13px;height:13px;object-fit:contain;vertical-align:middle;margin-right:3px">`:'')+(_itemNames[b.item_type]||b.item_type);
       }
       const avatar = document.getElementById('lastBuyerAvatar');
       const fallback = document.getElementById('lastBuyerAvatarFallback');
@@ -2369,6 +2564,13 @@ async function auth(){
     if(data.ok){
       const _wasPremium = currentUser ? currentUser.is_premium : null;
       currentUser = data.user;
+      // Синхронизируем раскрытых анонимусов с сервера (black_mark история)
+      if(data.user.revealed_anons){
+        Object.entries(data.user.revealed_anons).forEach(([uid, name]) => {
+          _revealedAnons[uid] = name;
+        });
+        try { localStorage.setItem('shrimp_revealed_anons', JSON.stringify(_revealedAnons)); } catch(e){}
+      }
       loadAllyIds();
       updateShopClanBlock();
       // Показываем поздравление если только что получил премиум
@@ -2428,10 +2630,20 @@ function updateNavPulse(){
   const isActive = currentGame.status === 'active';
   if(isActive) gameBtn.classList.add('game-active');
   else gameBtn.classList.remove('game-active');
+  // Зелёная мигающая точка — если живой, в игре и ещё не голосовал
+  const dot = document.getElementById('navVoteDot');
+  if(dot){
+    const needVote = isActive && currentUser && currentUser.in_game &&
+      currentUser.is_alive && currentUser.is_alive !== 0 && !currentUser.voted_today;
+    if(needVote) dot.classList.add('visible');
+    else dot.classList.remove('visible');
+  }
 }
 
 let _updateActionBtnTimer = null;
 let _authDataReady = false; // флаг: данные с сервера уже пришли
+// Локальное отслеживание голоса — не зависит от стейл-ответов сервера
+let _myVotedDay = 0; // номер раунда в котором проголосовали (0 = не голосовали)
 function updateActionBtn(){
   if(!_authDataReady) return; // не дёргаем до первого ответа auth
   clearTimeout(_updateActionBtnTimer);
@@ -2472,7 +2684,10 @@ function _updateActionBtnReal(){
   if(currentGame.status==='active' && currentUser.in_game && currentUser.is_alive!==0 && currentUser.is_alive!==false && currentUser.is_alive!==null){
     setStyle(timerWrap,'display',_voteEndCache ? '' : 'none');
     showMain();
-    if(currentUser.voted_today){
+    // Проверяем голос: серверный флаг ИЛИ локально отслеженный (_myVotedDay защищает от стейл-ответов)
+    const _curDay = currentGame.current_day || 0;
+    const _isVotedToday = currentUser.voted_today || (_myVotedDay > 0 && _myVotedDay === _curDay);
+    if(_isVotedToday){
       const wasRandom = localStorage.getItem('shrimp_vote_random') === '1';
       // Приоритет: сервер > текущая сессия > localStorage (последний ненадёжен между раундами)
       const _vn = currentUser.voted_target_name || myLastVoteTarget || localStorage.getItem('shrimp_my_vote_name') || '';
@@ -2484,8 +2699,11 @@ function _updateActionBtnReal(){
       }
       btn.onclick=showMyVoteInfo;
     } else {
-      localStorage.removeItem('shrimp_my_vote_name');
-      localStorage.removeItem('shrimp_vote_random');
+      // Не чистим localStorage если в текущем раунде уже был голос — защита от временного сброса
+      if(!_myVotedDay || _myVotedDay !== _curDay){
+        localStorage.removeItem('shrimp_my_vote_name');
+        localStorage.removeItem('shrimp_vote_random');
+      }
       btn.className='btn-register vote'; setStyle(btn,'width','100%');
       setHTML(btn, '<img src="/static/icons/vote.png" alt="" style="width:16px;height:16px;object-fit:contain">Голосовать');
       btn.onclick=()=>{ if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium'); openVoteModal(); };
@@ -2496,7 +2714,7 @@ function _updateActionBtnReal(){
     if(currentGame.status==='waiting'){
       btn.className='btn-register already'; setStyle(btn,'width','100%'); setStyle(btn,'opacity','1');
       setHTML(btn, '<img src="/static/icons/ok.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px"> Зарегистрирован!');
-      btn.onclick=openPlayersModal;
+      btn.onclick=()=>{ if(tg) tg.showAlert('⏳ Ожидай!\n\nКак только наберётся нужное количество игроков — игра начнётся и бот тебя уведомит.'); };
     } else {
       // Убит — блок ниже в _iStillDead
       const _hasResurrect = currentUser && (currentUser.items||[]).some(i=>i.type==='resurrect');
@@ -2508,13 +2726,13 @@ function _updateActionBtnReal(){
         setStyle(btn,'width','100%'); setStyle(btn,'opacity','1');
         // btnShareResult убран
         const _btnNextGame = document.getElementById('btnNextGame');
-        // Кнопка Постановы (при 10+ живых И если ещё не зарегистрирован на след игру)
+        // Кнопка Постановы (при 5+ живых И если ещё не зарегистрирован на след игру)
         if(_aliveForRes >= 10 && !_preRegistered){
           btn.style.display='';
           btn.className='btn-register join';
           btn.style.background='linear-gradient(135deg,#dc2626,#991b1b)';
           if(_hasResurrect){
-            setHTML(btn, '<img src="/static/icons/fakeout.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Активировать Постанову');
+            setHTML(btn, '<img src="/static/pics/fakeout.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Активировать Постанову');
             btn.onclick=()=>{
               tg.showConfirm('🎭 Активировать Постанову?\n\nТы инсценируешь свою смерть и вернёшься в игру прямо сейчас!', async ok=>{
                 if(!ok) return;
@@ -2527,7 +2745,7 @@ function _updateActionBtnReal(){
               });
             };
           } else {
-            setHTML(btn, '<img src="/static/icons/fakeout.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Купить Постанову — вернуться в игру');
+            setHTML(btn, '<img src="/static/pics/fakeout.png" alt="" style="width:16px;height:16px;object-fit:contain">🎭 Купить Постанову — вернуться в игру');
             btn.onclick=()=>{ document.getElementById('buy-resurrect')?.click(); };
           }
         } else {
@@ -2581,7 +2799,7 @@ function _updateActionBtnReal(){
 
 async function renderProfile(user){
   loadCasinoBalance();
-  document.getElementById('profileName').textContent = user.first_name||'Игрок';
+  document.getElementById('profileName').textContent = _dn(user.first_name,user.username);
 
   // Партнёры
   const PARTNERS = [
@@ -2692,20 +2910,14 @@ async function renderProfile(user){
         _bomzhWrap.innerHTML = `<div style="color:rgba(255,150,50,0.4);font-size:11px;text-align:center;width:100%;padding:8px 0">Пока пусто — загляни к Чушпану на районе</div>`;
         return;
       }
-      const BOMZH_DEADLINE = new Date('2026-05-25T15:00:00Z');
-      const BUYOUT_DEADLINE = new Date(BOMZH_DEADLINE.getTime() + 24*60*60*1000);
+      const BOMZH_DEADLINE = new Date('2026-05-26T00:00:00Z');
       const now = new Date();
       const eventActive = now < BOMZH_DEADLINE;
-      const buyoutActive = !eventActive && now < BUYOUT_DEADLINE;
       _bomzhWrap.innerHTML = bd.items.map(i => {
         const isPerm = i.permanent === 1;
         let statusHtml = '';
-        if (isPerm) {
-          statusHtml = `<div class="inv-activate-hint" style="background:rgba(245,197,24,.2);color:#f5c518;border:1px solid rgba(245,197,24,.4)">⭐ Навсегда</div>`;
-        } else if (eventActive) {
+        if (eventActive || isPerm) {
           statusHtml = `<div class="inv-activate-hint" style="background:rgba(34,197,94,.2);color:#22c55e;border:1px solid rgba(34,197,94,.4)">✅ Активно</div>`;
-        } else if (buyoutActive) {
-          statusHtml = `<div class="inv-activate-hint bomzh-buy-btn" data-item="${i.item_id}" data-name="${i.item_name}" style="background:rgba(239,68,68,.25);color:#ef4444;border:1px solid rgba(239,68,68,.5);cursor:pointer;font-size:7px">💰 Выкупить</div><div class="bomzh-timer" data-deadline="${BUYOUT_DEADLINE.getTime()}" style="font-size:7px;color:#ef4444;font-family:'Unbounded',sans-serif;margin-top:2px">--:--:--</div>`;
         } else {
           statusHtml = `<div class="inv-activate-hint" style="background:rgba(100,100,100,.2);color:#666;border:1px solid rgba(100,100,100,.3)">⛔ Истёк</div>`;
         }
@@ -2760,7 +2972,7 @@ async function renderProfile(user){
     return `<div class="inv-item inv-item-glow" style="${borderStyle};position:relative;overflow:hidden" onclick="invItemClick('${t}')">
       ${shimmer}
       <div class="inv-counter">${c}</div>
-      <img src="/static/icons/${ITEM_ICONS[t]||'gift.png'}" alt="">
+      <img src="/static/pics/${ITEM_ICONS[t]||'gift.png'}" alt="">
       <div class="inv-item-name">${ITEM_NAMES[t]||t}</div>
       <div class="inv-activate-hint" style="${btnStyle}">${btnLabel}</div>
     </div>`;
@@ -2853,7 +3065,7 @@ function renderTopList(){
     return `<div class="top-row${isMe?' top-row-me':''}">
       <div class="top-num">${num}</div>
       <div style="font-size:17px;flex-shrink:0">${icon}</div>
-      <div class="top-name">${p.first_name || p.username || 'Игрок'}${isMe?' 👈':''}</div>
+      <div class="top-name">${_dn(p.first_name,p.username)}${isMe?' 👈':''}</div>
       <div class="top-val">${p.val} <span style="font-size:9px;color:var(--muted2);font-weight:400">${labels[_topTab]}</span></div>
     </div>`;
   }).join('');
@@ -2876,7 +3088,7 @@ function openAbilkiStats(){
 }
 
 // ── PREMIUM ──
-const PREMIUM_ICONS = ['shrimp','vip','crown','crystal','diamond','death','bone','dynamit','pepe','sword','lightning','fire','utya','winner','wc2','money','gold','brunette','blonde','blonde_guy','brunette_guy','premium_light','premium_dark','finger_right','finger_down','finger_up','fuck','pistol','revolver','ak47','ass','squid','skull','shotgun','shield','smoke','star','str','target','telegram','ton','time','wc','work','100','bit','burger','code','congrats','dead','dice','earth','eye','games','ghost','gift','hacker','heart','hammer','invisible','killer','lock','night','partners','ok','profile2','rocket','shrimp_knife','anon','pyramid','cat_face','money_bag','grenade','comet','rose','knuckles','lotus','nuclear','barcode','qr','dog','legs','peace','energy_drink','radiation','wheel','ring','crescent','hacker_skull','toilet_paper','joker','mafia','plain','cat','military','cancel','swords','pirate_ship','coffin','tank','btc','pirate_flag','infinity','biohazard','braces','sport_car','angel','cross','yin_yang','clan','apple','shrimp_smile','smartphone','woman1','girl1','girl2','girl3','woman2','bully','girl','hooligan','joker2','woman','joker1','kiss','joker_girl','gangster','uk','kazakhstan','egypt','jew','fox','raccoon','football','germany','canada','russian_bear','wolf','rabbit','stadium','burj_al_arab','japan','north_korea','australia','bear_face','buterfly','heggehog','box','usa','switzerland','brazil','poland','deagon','panda','cow','china','ua','turkey','netherlands','eagle','penguin','ninja','india','russia','france','italy','saudi','lion','snake','minacraft','thailand','emirates','belarus','spain','israel','tiger','shark','roblox','anonymous'];
+const PREMIUM_ICONS = ['vip','crown','killer_icon','anonimous2','hacker2','crystal','diamond','death','bone','dynamit','pepe','sword','lightning','fire','utya','winner','wc2','money','gold','brunette','blonde','blonde_guy','brunette_guy','premium_light','premium_dark','finger_right','finger_down','finger_up','fuck','pistol','revolver','ak47','ass','squid','skull','shotgun','shield','smoke','star','str','target','telegram','ton','time','wc','work','100','bit','burger','code','congrats','dice','earth','eye','games','ghost','gift','hacker','heart','hammer','invisible','killer','lock','night','partners','ok','profile2','rocket','pyramid','cat_face','money_bag','grenade','comet','rose','knuckles','lotus','nuclear','barcode','qr','dog','legs','peace','energy_drink','radiation','wheel','ring','crescent','hacker_skull','toilet_paper','joker','mafia','plain','cat','military','cancel','swords','pirate_ship','coffin','tank','btc','pirate_flag','infinity','biohazard','braces','sport_car','angel','cross','yin_yang','clan','apple','smartphone','woman1','girl1','girl2','girl3','woman2','bully','girl','hooligan','joker2','woman','joker1','kiss','joker_girl','gangster','uk','kazakhstan','egypt','jew','fox','raccoon','football','germany','canada','russian_bear','wolf','rabbit','stadium','burj_al_arab','japan','north_korea','australia','bear_face','buterfly','heggehog','box','usa','switzerland','brazil','poland','deagon','panda','cow','china','ua','turkey','netherlands','eagle','penguin','ninja','india','russia','france','italy','saudi','lion','snake','minacraft','thailand','emirates','belarus','spain','israel','tiger','shark','roblox','anonymous'];
 
 function getPremiumIcon(user){
   if(!user || !user.is_premium || !user.premium_icon) return null;
@@ -2974,8 +3186,37 @@ async function selectPremiumIcon(icon){
 // ── СТАТИСТИКА ИГРОКА ──
 async function openPlayerStats(userId, firstName, username, isPremium){
   try {
+    // Загружаем ПРЯМО свежие данные от API, не полагаемся на кэш
+    try {
+      const aliveRes = await fetch('/api/game/alive?viewer_id='+(currentUser?.user_id||0));
+      const aliveData = await aliveRes.json();
+      if(aliveData.ok && aliveData.players) {
+        window._lastPlayersData = aliveData.players;
+        console.log('✅ openPlayerStats: загружены свежие данные, игроков:', aliveData.players.length);
+      }
+    } catch(e){
+      console.error('⚠️ Ошибка загрузки свежих данных:', e);
+    }
+
     const isAnon = firstName === 'Анонимус';
-    const icon = '🗡';
+
+    // Получаем информацию об игроке для правильной иконки
+    const _playerData = window._lastPlayersData ? window._lastPlayersData.find(p => p.user_id === userId) : null;
+    const _gender = _playerData?.gender;
+    const _premium = _playerData?.premium_icon;
+
+    // Иконка как в списке: премиум → анонимус → гендер
+    let icon = '🗡';
+    if(_premium && !isAnon){
+      icon = `<img src="/static/icons/${_premium}.png" style="width:20px;height:20px;object-fit:contain">`;
+    } else if(isAnon){
+      icon = '<img src="/static/pics/anonymous.png" style="width:100%;height:100%;object-fit:contain">';
+    } else if(_gender === 'female'){
+      icon = '<img src="/static/icons/girl.png" style="width:20px;height:20px;object-fit:contain">';
+    } else {
+      icon = '<img src="/static/icons/bully.png" style="width:20px;height:20px;object-fit:contain">';
+    }
+
     document.getElementById('psIcon').innerHTML = icon;
     document.getElementById('psName').textContent = isAnon ? 'Анонимус' : (firstName || 'Игрок');
     document.getElementById('psUsername').textContent = '';
@@ -3046,22 +3287,80 @@ async function openPlayerStats(userId, firstName, username, isPremium){
     document.getElementById('psActionKiller').style.opacity = isActive ? '1' : '0.35';
     document.getElementById('psActionKiller').style.pointerEvents = isActive ? 'auto' : 'none';
 
-    // Кнопка Проголосовать — только если идёт голосование, не голосовал, это не ты сам
+    // Кнопка Проголосовать — кнопка всегда видна, но может быть отключена
     const _voteBtn = document.getElementById('psActionVote');
     if(_voteBtn){
       const isAlly = _allyIds.includes(userId);
-      const canVote = isActive && _voteEndCache && !currentUser?.voted_today && userId !== currentUser?.user_id && !isAlly;
-      if(isAlly && isActive){
-        _voteBtn.style.display = 'flex';
+      const _targetPlayer = window._lastPlayersData ? window._lastPlayersData.find(p => p.user_id === userId) : null;
+      const isShielded = _targetPlayer && _targetPlayer.has_shield;
+      const hasCarKey = _targetPlayer && _targetPlayer.has_car_key;
+      const canVote = isActive && _voteEndCache && !currentUser?.voted_today && userId !== currentUser?.user_id && !isAlly && !isShielded && !hasCarKey;
+
+      // ДЕБАГ ДАРЬИ
+      if(userId === 7215817121){
+        console.log('🔴🔴🔴 ДАРЬЯ ДЕБАГ 🔴🔴🔴');
+        console.log('  userId:', userId);
+        console.log('  _targetPlayer найден?', _targetPlayer ? 'ДА' : 'НЕТ');
+        if(_targetPlayer) {
+          console.log('  _targetPlayer.has_shield:', _targetPlayer.has_shield);
+          console.log('  _targetPlayer.has_car_key:', _targetPlayer.has_car_key);
+        }
+        console.log('  isShielded:', isShielded);
+        console.log('  hasCarKey:', hasCarKey);
+        console.log('  isAlly:', isAlly);
+        console.log('  isActive:', isActive);
+        console.log('  currentGame.status:', currentGame?.status);
+        console.log('  _voteEndCache:', _voteEndCache);
+        console.log('  currentUser?.voted_today:', currentUser?.voted_today);
+        console.log('  canVote:', canVote);
+        console.log('🔴🔴🔴 ЧТО БУДЕТ ПОКАЗАНО: ',
+          isAlly && isActive ? 'СОЮЗНИК' :
+          isShielded && isActive ? '🤵 ПОД КРЫШЕЙ' :
+          hasCarKey && isActive ? '🚗 КАТАЕТСЯ' :
+          canVote ? 'ПРОГОЛОСОВАТЬ' :
+          'НЕДОСТУПНО'
+        );
+      }
+
+      // Кнопка всегда видна
+      _voteBtn.style.display = 'flex';
+
+      // ЖЁСТКАЯ проверка: если есть shields — отключаем, точка!
+      if(isShielded){
         _voteBtn.style.background = 'var(--bg4)';
         _voteBtn.style.boxShadow = 'none';
         _voteBtn.style.border = '1px solid var(--border)';
         _voteBtn.style.color = 'var(--muted2)';
         _voteBtn.style.cursor = 'default';
         _voteBtn.style.pointerEvents = 'none';
-        _voteBtn.innerHTML = '<img src="/static/icons/clan.png" style="width:16px;height:16px;object-fit:contain">Это ваш союзник';
-      } else {
-        _voteBtn.style.display = canVote ? 'flex' : 'none';
+        _voteBtn.innerHTML = '🤵 Под крышей';
+      } else if(isAlly && isActive){
+        _voteBtn.style.background = 'var(--bg4)';
+        _voteBtn.style.boxShadow = 'none';
+        _voteBtn.style.border = '1px solid var(--border)';
+        _voteBtn.style.color = 'var(--muted2)';
+        _voteBtn.style.cursor = 'default';
+        _voteBtn.style.pointerEvents = 'none';
+        _voteBtn.innerHTML = '<img src="/static/pics/clan.png" style="width:16px;height:16px;object-fit:contain">Это ваш союзник';
+      } else if(isShielded && isActive){
+        _voteBtn.style.background = 'var(--bg4)';
+        _voteBtn.style.boxShadow = 'none';
+        _voteBtn.style.border = '1px solid var(--border)';
+        _voteBtn.style.color = 'var(--muted2)';
+        _voteBtn.style.cursor = 'default';
+        _voteBtn.style.pointerEvents = 'none';
+        _voteBtn.innerHTML = '🤵 Под крышей';
+      } else if(hasCarKey && isActive){
+        if(userId === 7215817121) console.log('🟢 Ветка: КАТАЕТСЯ');
+        _voteBtn.style.background = 'var(--bg4)';
+        _voteBtn.style.boxShadow = 'none';
+        _voteBtn.style.border = '1px solid var(--border)';
+        _voteBtn.style.color = 'var(--muted2)';
+        _voteBtn.style.cursor = 'default';
+        _voteBtn.style.pointerEvents = 'none';
+        _voteBtn.innerHTML = '🚗 Игрок катается';
+      } else if(canVote){
+        if(userId === 7215817121) console.log('🟢 Ветка: ПРОГОЛОСОВАТЬ');
         _voteBtn.style.background = 'linear-gradient(135deg,#16a34a,#15803d,#166534)';
         _voteBtn.style.boxShadow = '0 4px 20px rgba(22,163,74,.45)';
         _voteBtn.style.border = 'none';
@@ -3069,21 +3368,46 @@ async function openPlayerStats(userId, firstName, username, isPremium){
         _voteBtn.style.cursor = 'pointer';
         _voteBtn.style.pointerEvents = 'auto';
         _voteBtn.innerHTML = '<img src="/static/icons/vote.png" alt="" style="width:16px;height:16px;object-fit:contain">Проголосовать за вылет';
+      } else {
+        if(userId === 7215817121) console.log('🟢 Ветка: НЕДОСТУПНО');
+        _voteBtn.style.background = 'var(--bg4)';
+        _voteBtn.style.boxShadow = 'none';
+        _voteBtn.style.border = '1px solid var(--border)';
+        _voteBtn.style.color = 'var(--muted2)';
+        _voteBtn.style.cursor = 'default';
+        _voteBtn.style.pointerEvents = 'none';
+        _voteBtn.innerHTML = '<img src="/static/icons/vote.png" alt="" style="width:16px;height:16px;object-fit:contain">Недоступно';
       }
     }
 
-    // Голосований в текущей игре
+    // Голосований в текущей игре — показываем только если это сам пользователь
+    const _isMe = currentUser && currentUser.user_id === userId;
     const _curPlayer = isActive && Array.isArray(window._lastPlayersData)
       ? window._lastPlayersData.find(p => p.user_id === userId) : null;
     const _vig = _curPlayer ? (_curPlayer.votes_in_game ?? 0) : null;
     const _vigEl = document.getElementById('psVotesInGame');
     if(_vigEl){
-      if(_vig && _vig > 0 && isActive){
+      // Скрываем статус голосования для чужих игроков (конфиденциально)
+      // Показываем только если это сам пользователь смотрит на себя
+      if(_vig && _vig > 0 && isActive && _isMe){
         _vigEl.style.display = 'flex';
         _vigEl.querySelector('span').textContent = 'Уже проголосовал в этом раунде';
       } else {
         _vigEl.style.display = 'none';
       }
+    }
+
+    // Проверяем car_key — игрок уехал на тачке
+    const _carKeyBlock = document.getElementById('psCarKeyBlock');
+    const _actionsBlock = document.getElementById('psActionsBlock');
+    const _anonRevealBlock = document.getElementById('psAnonReveal');
+    const _hasCarKey = isActive && _playerData && _playerData.has_car_key;
+    if(_carKeyBlock) _carKeyBlock.style.display = _hasCarKey ? 'block' : 'none';
+    if(_actionsBlock) _actionsBlock.style.display = _hasCarKey ? 'none' : 'flex';
+    if(_anonRevealBlock && _hasCarKey) _anonRevealBlock.style.display = 'none';
+    if(_hasCarKey){
+      const _ckName = document.getElementById('psCarKeyName');
+      if(_ckName) _ckName.textContent = firstName || 'Игрок';
     }
 
     document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.add('hidden'));
@@ -3122,13 +3446,8 @@ function psActionAnonMsg(){
 function psActionDoubleVote(){
   const targetId = window._psTargetId;
   const targetName = window._psIsAnon ? 'Анонимус' : window._psTargetName;
-  const hasDV = currentUser && (currentUser.items||[]).some(i=>i.type==='double_vote');
   closeModal('modalPlayerStats');
-  if(hasDV){
-    setTimeout(()=>{ confirmDoubleVote(targetId, targetName); }, 250);
-  } else {
-    setTimeout(()=>{ document.getElementById('buy-double_vote')?.click(); }, 250);
-  }
+  setTimeout(()=>{ confirmDoubleVote(targetId, targetName); }, 250);
 }
 
 function psActionKill(){
@@ -3205,7 +3524,7 @@ async function updateShopClanBlock(){
     } else {
       if(nameEl) nameEl.textContent = 'Создать клан';
       if(descEl) descEl.textContent = 'Объединись с союзниками. До 5 человек. Не видите друг друга в голосовании';
-      if(priceEl){ priceEl.style.display = ''; priceEl.textContent = '99'; }
+      if(priceEl){ priceEl.style.display = ''; priceEl.textContent = '25'; }
       if(btn) btn.style.display = '';
     }
   } catch(e){}
@@ -3216,29 +3535,107 @@ async function shopBuyClan(){
   try {
     const r = await fetch(`/api/clan/info/${currentUser.user_id}`);
     const d = await r.json();
-    if(d.ok && d.clan){ tg.showAlert('Ты уже в клане!'); return; }
-    tg.showPopup({
-      title: '⚔️ Название клана',
-      message: 'Введи название для своего клана (до 20 символов):',
-      buttons: [
-        {id:'ok', type:'default', text:'Продолжить'},
-        {id:'cancel', type:'cancel', text:'Отмена'}
-      ]
-    }, async (btnId) => {
-      if(btnId !== 'ok') return;
-      const clanName = prompt('Название клана:');
-      if(!clanName || !clanName.trim()) return;
-      const name = clanName.trim().slice(0, 20);
+    if(d.ok && d.clan){ openClanManageModal(d.clan); return; }
+    openModal('modalClanInfo');
+  } catch(e){ tg.showAlert('Ошибка сети'); }
+}
+
+async function clanBuyNow(){
+  closeModal('modalClanInfo');
+  if(!currentUser || !tg) return;
+  try {
+    const res = await fetch('/api/clan/invoice', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({user_id: currentUser.user_id})});
+    const rd = await res.json();
+    if(rd.ok && rd.free){
+      window._clanFree = true;
+      const inp = document.getElementById('clanNameInput');
+      if(inp) inp.value = '';
+      openModal('modalClanName');
+    } else if(rd.ok && rd.invoice_url){
+      window._clanFree = false;
+      tg.openInvoice(rd.invoice_url, status=>{
+        if(status==='paid'){
+          const inp = document.getElementById('clanNameInput');
+          if(inp) inp.value = '';
+          openModal('modalClanName');
+          setTimeout(()=>inp?.focus(), 300);
+        }
+      });
+    } else tg.showAlert(rd.error || 'Ошибка');
+  } catch(e){ tg.showAlert('Ошибка сети'); }
+}
+
+async function clanSubmitName(){
+  const inp = document.getElementById('clanNameInput');
+  const name = (inp?.value || '').trim().slice(0, 20);
+  if(!name){ tg.showAlert('Введи название клана'); return; }
+  closeModal('modalClanName');
+  if(!currentUser) return;
+  try {
+    if(window._clanFree){
       const res = await fetch('/api/clan/create', {method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({user_id: currentUser.user_id, clan_name: name})});
       const rd = await res.json();
-      if(rd.ok && rd.free){
-        tg.showAlert('⚔️ Клан «'+name+'» создан бесплатно!'); auth(); updateShopClanBlock();
-      } else if(rd.ok && rd.invoice_url){
-        tg.openInvoice(rd.invoice_url, status=>{ if(status==='paid'){ tg.showAlert('⚔️ Клан "'+name+'" создан! Теперь приглашай союзников через профиль игрока.'); auth(); updateShopClanBlock(); }});
-      } else tg.showAlert(rd.error || 'Ошибка');
-    });
+      if(rd.ok && rd.free){ auth(); updateShopClanBlock(); await _openClanManageAfterCreate(); }
+      else tg.showAlert(rd.error || 'Ошибка');
+    } else {
+      // Бот уже создал клан после оплаты — переименовываем, retry если не успел
+      let ok = false;
+      for(let i=0;i<6;i++){
+        try {
+          const res = await fetch('/api/clan/rename', {method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({user_id: currentUser.user_id, clan_name: name})});
+          const rd = await res.json();
+          if(rd.ok){ ok=true; break; }
+        } catch(e){}
+        await new Promise(r=>setTimeout(r, 1500));
+      }
+      if(ok){ auth(); updateShopClanBlock(); await _openClanManageAfterCreate(); }
+      else tg.showAlert('Клан создан, но переименовать не вышло. Попробуй через профиль позже.');
+    }
   } catch(e){ tg.showAlert('Ошибка сети'); }
+}
+
+async function _openClanManageAfterCreate(){
+  try {
+    const r = await fetch(`/api/clan/info/${currentUser.user_id}`);
+    const d = await r.json();
+    if(d.ok && d.clan) openClanManageModal(d.clan);
+  } catch(e){}
+}
+
+function openClanManageModal(clan){
+  const nameEl = document.getElementById('clanManageName');
+  const roleEl = document.getElementById('clanManageRole');
+  const membersEl = document.getElementById('clanManageMembers');
+  if(nameEl) nameEl.textContent = '⚔️ ' + clan.name;
+  if(roleEl) roleEl.textContent = clan.is_leader ? 'Лидер клана' : 'Участник';
+  if(membersEl){
+    const all = [{user_id: clan.leader_id, name: clan.leader_name, is_leader: true}, ...clan.members];
+    membersEl.innerHTML = all.length
+      ? all.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:12px;font-weight:600">${m.is_leader?'👑 ':'🗡 '}${m.name}</span>
+          ${clan.is_leader && !m.is_leader ? `<button onclick="clanKick(${m.user_id},'${(m.name||'').replace(/'/g,'')}')" style="padding:2px 8px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:6px;font-family:'Unbounded',sans-serif;font-size:8px;font-weight:800;color:#ef4444;cursor:pointer">Выгнать</button>` : ''}
+        </div>`).join('')
+      : '<div style="font-size:12px;color:var(--muted2)">Участников пока нет</div>';
+  }
+  const leaveBtn = document.querySelector('#modalClanManage .btn-modal-action.dark');
+  if(leaveBtn) leaveBtn.textContent = clan.is_leader ? 'Распустить клан' : 'Покинуть клан';
+  openModal('modalClanManage');
+}
+
+async function clanDoLeave(){
+  if(!currentUser || !tg) return;
+  tg.showConfirm('Ты уверен?', async confirmed=>{
+    if(!confirmed) return;
+    closeModal('modalClanManage');
+    try {
+      await fetch('/api/clan/leave', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({user_id: currentUser.user_id})});
+      auth(); updateShopClanBlock();
+    } catch(e){ tg.showAlert('Ошибка сети'); }
+  });
 }
 
 async function loadClanInfo(targetUserId){
@@ -3378,16 +3775,12 @@ function psOpenAnon(){
 }
 
 let _userItemCounts = {};
-const _revealedAnons = {}; // {user_id: real_name} — раскрытые через Мусорнуться
+// {user_id: real_name} — раскрытые через Мусорнуться, персистятся в localStorage
+const _revealedAnons = (() => {
+  try { return JSON.parse(localStorage.getItem('shrimp_revealed_anons') || '{}'); } catch(e){ return {}; }
+})();
 
 function openAbilkaModal(itemId){
-  const FULL = {anon_msg:1,spy:3,black_mark:5,anon_player:10,double_vote:15,hacker:20,tiebreaker:25,shield:2,killer:35,resurrect:40};
-  const SALE = {anon_msg:1,spy:2,black_mark:3,anon_player:5,double_vote:8,hacker:10,tiebreaker:13,shield:2,killer:18,resurrect:20};
-
-  const AUTO_ITEMS = ['shield', 'resurrect', 'tiebreaker', 'anon_player'];
-  const owned = (_userItemCounts[itemId] || 0) > 0;
-
-
   document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.add('hidden'));
   const el = document.getElementById('modalAbilka_'+itemId);
   if(el) el.classList.remove('hidden');
@@ -3484,11 +3877,18 @@ document.getElementById('shareBtn').addEventListener('click', shareLink);
 // PRIZE
 let _loadPlayersLiveBusy = false;
 async function loadPlayersLive(){
-  if(_loadPlayersLiveBusy) return;
+  // Если функция уже работает, ждём немного и повторяем
+  if(_loadPlayersLiveBusy){
+    console.log('📍 loadPlayersLive: уже работает, ждёмсь и повторяем');
+    await new Promise(r => setTimeout(r, 100));
+    return loadPlayersLive();
+  }
   _loadPlayersLiveBusy = true;
+  console.log('📍 loadPlayersLive: НАЧАЛО загрузки');
   try {
     const res = await fetch('/api/game/alive?viewer_id='+(currentUser?.user_id||0));
     const data = await res.json();
+    console.log('📍 loadPlayersLive: данные получены, игроков:', data.players?.length);
     const block = document.getElementById('playersLiveBlock');
     const list = document.getElementById('playersLiveList');
     const gameNumLabel = document.getElementById('gameNumberLabel');
@@ -3581,25 +3981,27 @@ async function loadPlayersLive(){
   const bAlive=b.is_alive&&b.is_alive!==0;
   if(aAlive && !bAlive) return -1;
   if(!aAlive && bAlive) return 1;
-  if(aAlive && bAlive){
-    const aVoted=votedIds.includes(a.user_id)?1:0;
-    const bVoted=votedIds.includes(b.user_id)?1:0;
-    return aVoted-bVoted; // не голосовавшие выше
-  }
   return 0;
 }).map((p, idx) => { const _pIcon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:2px">` : '🗡 ';
       const isDead = !p.is_alive;
       const isWinner = isFinished && winnerId && p.user_id === winnerId;
       const isMe = currentUser && p.user_id === currentUser.user_id;
       // Анонимус — используем флаг из api (для всех), или свой инвентарь (для себя)
-      const hasAnon = p.is_anon || (isMe && currentGame.status === 'active' && currentUser.items && currentUser.items.some(i => i.type === 'anon_player'));
-      const _revealedName = hasAnon && _revealedAnons[p.user_id] ? _revealedAnons[p.user_id] : null;
-      const name = _revealedName ? (_revealedName + ' 🚔') : (hasAnon ? 'Анонимус' : (p.first_name || p.username || 'Игрок'));
+      // Раскрыт если сервер вернул is_revealed=true или есть в локальном кеше
+      const _wasRevealed = !isMe && (p.is_revealed || !!_revealedAnons[p.user_id]);
+      // hasAnon=true только если анон И не раскрыт (раскрытый показывается как обычный игрок)
+      const hasAnon = (p.is_anon && !_wasRevealed) || (isMe && currentGame.status === 'active' && currentUser.items && currentUser.items.some(i => i.type === 'anon_player'));
+      const name = _wasRevealed ? (_revealedAnons[p.user_id] || _dn(p.first_name,p.username)) : (hasAnon ? 'Анонимус' : (_dn(p.first_name,p.username)));
       const meTag = isMe ? ' <span style="font-size:10px;opacity:.5">👈</span>' : '';
-      const _clickable = !isMe ? (hasAnon ? `onclick="openPlayerStats(${p.user_id},'Анонимус','')"` : `onclick="openPlayerStats(${p.user_id},'${(p.first_name||'').replace(/'/g,'')}','${p.username||''}',${p.is_premium?true:false})"`) : '';
+      // Для раскрытых — передаём реальные имя/иконку в openPlayerStats
+      const _clickable = !isMe ? (_wasRevealed
+        ? `onclick="openPlayerStats(${p.user_id},'${(p.first_name||'').replace(/'/g,'')}','${p.username||''}',${p.is_premium?true:false})"`
+        : hasAnon
+          ? `onclick="openPlayerStats(${p.user_id},'Анонимус','')"`
+          : `onclick="openPlayerStats(${p.user_id},'${(p.first_name||'').replace(/'/g,'')}','${p.username||''}',${p.is_premium?true:false})"`) : '';
       // Иконка: премиум в приоритете, потом анонимус, потом креветка
       const _defIcon = p.gender === 'female' ? '<img src="/static/icons/girl.png" style="width:18px;height:18px;object-fit:contain">' : '<img src="/static/icons/bully.png" style="width:18px;height:18px;object-fit:contain">';
-      const meIcon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/icons/anonymous.png" style="width:18px;height:18px">' : _defIcon);
+      const meIcon = hasAnon ? '<img src="/static/icons/anonimous2.png" style="width:18px;height:18px;object-fit:contain">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : _defIcon);
       const _pIcon2 = p.premium_icon && !hasAnon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;margin-right:3px">` : '';
       let badge, badgeClass, icon;
       if(isWinner){
@@ -3613,50 +4015,45 @@ async function loadPlayersLive(){
       } else if(isFinished && !isDead){
         badge = '🥈 2-е место';
         badgeClass = 'badge-novote';
-        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/icons/anonymous.png" style="width:18px;height:18px">' : _defIcon);
+        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : _defIcon);
       } else if(isDead){
         badge = '<img src="/static/icons/skull.png" style="width:13px;height:13px;vertical-align:middle"> Убит';
         badgeClass = 'badge-dead';
         icon = '<img src="/static/icons/rip.png" style="width:18px;height:18px">';
+      } else if(p.has_shield){
+        badge = '🤵 Под крышей';
+        badgeClass = 'badge-voted';
+        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : _defIcon);
+      } else if(p.has_car_key){
+        badge = '🚗 Катается..';
+        badgeClass = 'badge-voted';
+        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : _defIcon);
       } else if(currentGame.status === 'waiting'){
-        badge = '✅ В игре';
+        badge = '✅ Зареган';
         badgeClass = 'badge-voted';
-        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/icons/anonymous.png" style="width:18px;height:18px">' : _defIcon);
-      } else if(votedIds.includes(p.user_id)){
-        badge = '✅ Голос отдан';
-        badgeClass = 'badge-voted';
-        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/icons/anonymous.png" style="width:18px;height:18px">' : _defIcon);
+        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : _defIcon);
       } else {
-        badge = '⏳ Ждём голоса';
-        badgeClass = 'badge-novote';
-        icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/icons/anonymous.png" style="width:18px;height:18px">' : _defIcon);
+        badge = '⚔️ В игре';
+        badgeClass = 'badge-voted';
+        icon = hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : _defIcon);
       }
       const numColor = isMe ? 'rgba(255,255,255,.5)' : isDead && !isFinished ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.2)';
       const rowStyle = isMe
         ? 'border:1.5px solid rgba(255,255,255,.7);box-shadow:0 0 10px rgba(255,255,255,.08);background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.02) 100%)'
         : (isDead && !isFinished ? 'opacity:.35' : '');
       const nameContent = `${hasAnon || isMe ? meIcon : icon}<span>${name}</span>${meTag}`;
-      // Галочка если проголосовал в этом раунде
-      let actDot = '';
-      if(currentGame.status === 'active' && !isDead){
-        const vCount = p.votes_in_game ?? 0;
-        const vTotal = p.votes_total ?? 0;
-        if(vCount > 0){
-          actDot = `<img src="/static/icons/ok.png" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;opacity:0.7">`;
-        } else if(vTotal === 0){
-          actDot = `<span style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:rgba(255,255,255,.3);flex-shrink:0">0</span>`;
-        }
-      }
       return `<div class="player-live-row" style="${rowStyle}" ${_clickable}>
         <div class="player-live-num" style="color:${numColor}">${idx+1}</div>
         <div class="player-live-name">${nameContent}</div>
-        ${actDot}
         <div class="player-live-badge ${badgeClass}">${badge}</div>
       </div>`;
     }).join('');
     if(list.innerHTML !== newListHTML) list.innerHTML = newListHTML;
-  } catch(e){}
-  finally { _loadPlayersLiveBusy = false; }
+  } catch(e){ console.error('⚠️ loadPlayersLive error:', e); }
+  finally {
+    _loadPlayersLiveBusy = false;
+    console.log('📍 loadPlayersLive: ЗАВЕРШЕНО, window._lastPlayersData length:', window._lastPlayersData?.length);
+  }
 }
 
 async function loadPrize(){
@@ -3719,6 +4116,45 @@ async function _loadPlayersModal(){
     document.addEventListener('click', e => {
       const item = e.target.closest('#playersList .player-item:not(.no-click)');
       if(!item) return;
+      if(item.dataset.fakeShield === 'true'){
+        const mod = document.createElement('div');
+        mod.className = 'modal-overlay';
+        mod.innerHTML = `<div class="modal-content" style="max-width:280px">
+          <div class="modal-close" onclick="this.parentElement.parentElement.remove()">✕</div>
+          <div class="modal-title">🤵 Купить Крышу</div>
+          <div style="margin:16px 0;font-size:13px;text-align:center;color:var(--muted2)">Один раунд тебя нельзя выбить голосованием</div>
+          <button class="btn-buy" style="width:100%;padding:12px;margin-bottom:8px" onclick="buyItem('shield',2);this.parentElement.parentElement.remove()">Купить за 2 ⭐</button>
+          <button style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--text)" onclick="this.parentElement.parentElement.remove()">Отмена</button>
+        </div>`;
+        document.body.appendChild(mod);
+        return;
+      }
+      if(item.dataset.fakeKiller === 'true'){
+        const mod = document.createElement('div');
+        mod.className = 'modal-overlay';
+        mod.innerHTML = `<div class="modal-content" style="max-width:280px">
+          <div class="modal-close" onclick="this.parentElement.parentElement.remove()">✕</div>
+          <div class="modal-title">💀 Нанять Киллера</div>
+          <div style="margin:16px 0;font-size:13px;text-align:center;color:var(--muted2)">Выбываешь сам кого убрать — без голосования</div>
+          <button class="btn-buy" style="width:100%;padding:12px;margin-bottom:8px" onclick="this.parentElement.parentElement.remove();closeModal('modalPlayers');setTimeout(()=>{const t=document.querySelector('.nav-item[data-tab=\\'shop\\']');if(t)t.click();},200)">Перейти в шопик →</button>
+          <button style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--text)" onclick="this.parentElement.parentElement.remove()">Отмена</button>
+        </div>`;
+        document.body.appendChild(mod);
+        return;
+      }
+      if(item.dataset.fakeResurrect === 'true'){
+        const mod = document.createElement('div');
+        mod.className = 'modal-overlay';
+        mod.innerHTML = `<div class="modal-content" style="max-width:280px">
+          <div class="modal-close" onclick="this.parentElement.parentElement.remove()">✕</div>
+          <div class="modal-title">🎭 Фейковая смерть</div>
+          <div style="margin:16px 0;font-size:13px;text-align:center;color:var(--muted2)">Если тебя выбьют — автоматически вернёшься в игру</div>
+          <button class="btn-buy" style="width:100%;padding:12px;margin-bottom:8px" onclick="buyItem('resurrect',40);this.parentElement.parentElement.remove()">Купить за 40 ⭐</button>
+          <button style="width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--text)" onclick="this.parentElement.parentElement.remove()">Отмена</button>
+        </div>`;
+        document.body.appendChild(mod);
+        return;
+      }
       const uid = parseInt(item.dataset.uid);
       const name = item.dataset.name||'';
       const uname = item.dataset.uname||'';
@@ -3736,16 +4172,51 @@ async function _loadPlayersModal(){
     updatePlayerCount(data.count);
     const inGame = currentUser&&data.players.some(p=>p.user_id===currentUser.user_id);
     document.getElementById('btnModalRegister').style.display=(inGame||data.status!=='waiting')?'none':'flex';
-    document.getElementById('playersList').innerHTML = data.players.length
-      ? data.players.map((p,i)=>{
-          const _ico = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '';
-          const _isMe = currentUser && p.user_id === currentUser.user_id;
-          return `<div class="player-item${_isMe?' no-click':''}" data-uid="${p.user_id}" data-name="${(p.first_name||'').replace(/"/g,'')}" data-uname="${p.username||''}" data-premium="${p.is_premium?'true':'false'}">
-            <div class="player-num">${i+1}</div>
-            <div class="player-name">${_ico}${p.first_name||'Игрок'}${_isMe?' <span style="font-size:10px;opacity:.5">👈</span>':''}</div>
-          </div>`;
-        }).join('')
-      : '<div class="players-empty">Пока никто не записался.<br>Будь первым! 🗡</div>';
+    if(data.players.length){
+      // Разделяем живых и мёртвых
+      const alive = data.players.filter(p=>p.is_alive!==0&&p.is_alive!==false);
+      const dead = data.players.filter(p=>p.is_alive===0||p.is_alive===false);
+
+      const aliveHtml = alive.map((p,i)=>{
+        const _isAnon = p.is_anon && p.user_id !== currentUser?.user_id;
+        const _ico = _isAnon ? '<img src="/static/pics/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '');
+        const _isMe = currentUser && p.user_id === currentUser.user_id;
+        const _dispName = _isAnon ? 'Анонимус' : _dn(p.first_name,p.username);
+        return `<div class="player-item${_isMe?' no-click':''}" data-uid="${p.user_id}" data-name="${_isAnon ? 'Анонимус' : (p.first_name||'').replace(/"/g,'')}" data-uname="${_isAnon ? '' : (p.username||'')}" data-premium="${p.is_premium?'true':'false'}">
+          <div class="player-num">${i+1}</div>
+          <div class="player-name">${_ico}${_dispName}${_isMe?' <span style="font-size:10px;opacity:.5">👈</span>':''}</div>
+        </div>`;
+      }).join('');
+
+      // Добавляем фейк-ботов для шопа (они выше убитых, исчезают при ≤15 живых)
+      const fakeBotsHtml = alive.length > 15 ? `
+        <div class="player-item" style="cursor:pointer;opacity:0.8" data-fake-killer="true">
+          <div class="player-num" style="background:rgba(139,92,246,0.4)"></div>
+          <div class="player-name"><img src="/static/icons/killer.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">Нанять Киллера</div>
+        </div>
+        <div class="player-item" style="cursor:pointer;opacity:0.8" data-fake-shield="true">
+          <div class="player-num" style="background:rgba(232,51,109,0.4)"></div>
+          <div class="player-name"><img src="/static/icons/mafia.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">Купить Крышу</div>
+        </div>
+        <div class="player-item" style="cursor:pointer;opacity:0.8" data-fake-resurrect="true">
+          <div class="player-num" style="background:rgba(251,191,36,0.3)"></div>
+          <div class="player-name"><img src="/static/icons/ghost.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">Фейковая смерть</div>
+        </div>
+      ` : '';
+
+      const deadHtml = dead.map((p,i)=>{
+        const _ico = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '';
+        const deadIdx = alive.length + 2 + i; // номер после живых и ботов
+        return `<div class="player-item no-click" data-uid="${p.user_id}" data-name="${(p.first_name||'').replace(/"/g,'')}" data-uname="${p.username||''}" data-premium="${p.is_premium?'true':'false'}" style="opacity:0.6">
+          <div class="player-num">${deadIdx}</div>
+          <div class="player-name" style="text-decoration:line-through">${_ico}${_dn(p.first_name,p.username)}</div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('playersList').innerHTML = aliveHtml + fakeBotsHtml + deadHtml;
+    } else {
+      document.getElementById('playersList').innerHTML = '<div class="players-empty">Пока никто не записался.<br>Будь первым! 🗡</div>';
+    }
   } catch(e){ document.getElementById('modalPlayersSub').textContent='Ошибка: '+e.message; }
 }
 
@@ -3782,7 +4253,6 @@ async function preRegisterNextGame(){
       }
       if(!d.already){
         if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        tg?.showAlert('✅ Ты записан на следующую игру!\n\nКак только текущая игра закончится и откроется регистрация — ты будешь первым.');
       }
     } else {
       if(btnNext){ btnNext.style.opacity='1'; btnNext.onclick=preRegisterNextGame; }
@@ -3891,16 +4361,16 @@ async function checkAndRegister(){
       if(tg && data.welcome_gems){
         tg.showPopup({
           title: '✅ Ты записан в игру!',
-          message: `💎 +${data.welcome_gems} Гемов — подарок новичку! Проверь баланс командой /bank в чате.\n\nИгра начнётся когда наберётся достаточно участников. Бот уведомит тебя о старте.`,
+          message: `💎 +${data.welcome_gems} Гемов — подарок новичку! Проверь баланс командой /bank в чате.\n\nИгра начнётся как только наберётся нужное количество людей. Как только игра начнётся — бот тебя уведомит!`,
           buttons: [
             {id:'chat', type:'default', text:'💬 Войти в чат'},
             {id:'ok', type:'ok', text:'OK'}
           ]
         }, (btn_id) => { if(btn_id==='chat') tg.openTelegramLink('https://t.me/shrimpgames_chat'); });
       } else if(tg){
-        tg.showAlert('✅ Ты записан в игру!\n\nИгра начнётся когда наберётся достаточно участников. Бот уведомит тебя о старте, а в чате выйдет объявление.');
+        tg.showAlert('✅ Ты зарегистрирован!\n\nИгра начнётся как только наберётся нужное количество людей.\nКак только игра начнётся — бот тебя уведомит!');
       }
-      currentUser.in_game=true; updateActionBtn(); updatePlayerCount(data.count); openPlayersModal();
+      currentUser.in_game=true; updateActionBtn(); updatePlayerCount(data.count);
     } else if(data.error==='not_subscribed'){
       openModal('modalSubscribe');
     } else {
@@ -3945,10 +4415,11 @@ async function openVoteModal(){
             <div class="player-name" style="color:#60a5fa;font-weight:700">Проголосовать рандомно</div>
           </div>` : '';
     document.getElementById('votePlayersList').innerHTML = players.length
-      ? shuffleArray(players).map((p,i)=>{
+      ? players.map((p,i)=>{
           const isMarked = markedIdsVote.includes(p.user_id);
-          const _voteIcon = p.is_anon ? '<img src="/static/icons/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:3px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:3px">` : `<img src="/static/icons/${p.gender === 'female' ? 'girl' : 'bully'}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:3px">`);
-          const _voteName = (p.is_anon && _revealedAnons[p.user_id]) ? (_revealedAnons[p.user_id]+' 🚔') : (p.is_anon ? 'Анонимус' : (p.first_name||'Игрок'));
+          const _isAnonOrRevealed = p.is_anon && !_revealedAnons[p.user_id];
+          const _voteIcon = _isAnonOrRevealed ? '<img src="/static/pics/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:3px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:3px">` : `<img src="/static/icons/${p.gender === 'female' ? 'girl' : 'bully'}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:3px">`);
+          const _voteName = _revealedAnons[p.user_id] ? _revealedAnons[p.user_id] : (p.is_anon ? 'Анонимус' : (_dn(p.first_name,p.username)));
           const nameHtml = `${_voteIcon}${_voteName}`;
           const numHtml = `${i+1}`;
           return `<div class="player-item" id="vpi-${p.user_id}" onclick="selectVoteTarget(${p.user_id},'${(_voteName).replace(/'/g,'&#39;')}')">
@@ -4012,6 +4483,9 @@ async function submitVote(targetId, targetName){
     closeModal('modalVote');
     if(data.ok){
       currentUser.voted_today=true;
+      _myVotedDay = currentGame.current_day || 0; // запоминаем раунд голоса локально
+      updateActionBtn();
+      updateNavPulse();
       myLastVoteTarget = targetName;
       localStorage.setItem('shrimp_my_vote_name', targetName);
       if(_randomVote){ localStorage.setItem('shrimp_vote_random','1'); }
@@ -4028,8 +4502,18 @@ async function submitVote(targetId, targetName){
         btn.onclick=showMyVoteInfo;
       }
       _randomVote = false;
-    } else { if(tg) tg.showAlert(data.error||'Ошибка'); else alert(data.error||'Ошибка'); }
-  } catch(e){ if(tg) tg.showAlert('Ошибка'); else alert('Ошибка'); }
+    } else { if(tg) tg.showAlert(data.error||'Ошибка голосования'); else alert(data.error||'Ошибка голосования'); }
+  } catch(e){
+    // Сеть упала — голос мог уйти, считаем как успех
+    closeModal('modalVote');
+    currentUser.voted_today=true;
+    _myVotedDay = currentGame.current_day || 0;
+    updateActionBtn();
+    myLastVoteTarget = targetName;
+    localStorage.setItem('shrimp_my_vote_name', targetName);
+    const btn = document.getElementById('btnRegister');
+    if(btn){ btn.className='btn-register already'; btn.style.width='100%'; btn.innerHTML=`<img src="/static/icons/ok.png" alt="">Против: ${targetName}`; btn.onclick=showMyVoteInfo; }
+  }
 }
 
 // KILLER
@@ -4043,8 +4527,8 @@ async function openKillerModal(){
     const players = data.players.filter(p=>p.user_id!==currentUser?.user_id && p.is_alive!==0 && p.is_alive!==false && !p.is_anon && !_allyIds.includes(p.user_id));
     document.getElementById('killerPlayersList').innerHTML = players.length
       ? players.map((p,i)=>{
-          const _kIcon = p.is_anon ? '<img src="/static/icons/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '<img src="/static/icons/bully.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">');
-          const _kName = p.is_anon ? 'Анонимус' : (p.first_name||'Игрок');
+          const _kIcon = p.is_anon ? '<img src="/static/pics/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '<img src="/static/icons/bully.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">');
+          const _kName = p.is_anon ? 'Анонимус' : (_dn(p.first_name,p.username));
           return `<div class="player-item" onclick="confirmKill(${p.user_id},'${_kName.replace(/'/g,'&#39;')}')"><div class="player-num">${i+1}</div><div class="player-name">${_kIcon}${_kName}</div></div>`;
         }).join('')
       : '<div class="players-empty">Нет других игроков</div>';
@@ -4062,8 +4546,9 @@ async function openDoubleVoteModal(){
     const players = data.players.filter(p=>p.user_id!==currentUser?.user_id && p.is_alive);
     document.getElementById('doubleVotePlayersList').innerHTML = players.length
       ? players.map((p,i)=>{
-          const displayName = (p.is_anon && _revealedAnons[p.user_id]) ? (_revealedAnons[p.user_id]+' 🚔') : (p.is_anon ? 'Анонимус' : (p.first_name||'Игрок'));
-          const _dvIcon = p.is_anon ? '<img src="/static/icons/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '<img src="/static/icons/bully.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">');
+          const _dvIsAnon = p.is_anon && !_revealedAnons[p.user_id];
+          const displayName = _revealedAnons[p.user_id] ? _revealedAnons[p.user_id] : (p.is_anon ? 'Анонимус' : (_dn(p.first_name,p.username)));
+          const _dvIcon = _dvIsAnon ? '<img src="/static/pics/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : `<img src="/static/icons/${p.gender === 'female' ? 'girl' : 'bully'}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">`);
           return `
           <div class="player-item" onclick="confirmDoubleVote(${p.user_id},'${displayName.replace(/'/g,'&#39;')}')">
             <div class="player-num">${i+1}</div>
@@ -4102,8 +4587,9 @@ async function openBlackMarkModal(){
     const players = data.players.filter(p=>p.user_id!==currentUser?.user_id && p.is_alive);
     document.getElementById('blackMarkPlayersList').innerHTML = players.length
       ? players.map((p,i)=>{
-          const displayName = (p.is_anon && _revealedAnons[p.user_id]) ? (_revealedAnons[p.user_id]+' 🚔') : (p.is_anon ? 'Анонимус' : (p.first_name||'Игрок'));
-          const _bmIcon = p.is_anon ? '<img src="/static/icons/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '<img src="/static/icons/bully.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">');
+          const _bmIsAnon = p.is_anon && !_revealedAnons[p.user_id];
+          const displayName = _revealedAnons[p.user_id] ? _revealedAnons[p.user_id] : (p.is_anon ? 'Анонимус' : (_dn(p.first_name,p.username)));
+          const _bmIcon = _bmIsAnon ? '<img src="/static/pics/anonymous.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : `<img src="/static/icons/${p.gender === 'female' ? 'girl' : 'bully'}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">`);
           return `
           <div class="player-item" onclick="confirmBlackMark(${p.user_id},'${displayName.replace(/'/g,'&#39;')}')">
             <div class="player-num">${i+1}</div>
@@ -4124,6 +4610,7 @@ async function confirmBlackMark(targetId, targetName){
       closeModal('modalBlackMark');
       if(d.ok){
         _revealedAnons[targetId] = d.real_name || targetName;
+        try { localStorage.setItem('shrimp_revealed_anons', JSON.stringify(_revealedAnons)); } catch(e){}
         tg.showAlert(`🚔 Мусорнулся!\n\nАнонимус — это ${d.real_name || targetName}`);
         auth();
       } else tg.showAlert(d.error||'Ошибка');
@@ -4193,7 +4680,7 @@ async function openFriendsModal(){
       const fr = data.friends;
       document.getElementById('modalFriendsSub').textContent = fr.length?declFriend(fr.length):'Ты ещё никого не пригласил';
       document.getElementById('friendsList').innerHTML = fr.length
-        ? fr.map(f=>`<div class="friend-item"><div class="friend-avatar">${f.photo_url?`<img src="${f.photo_url}" alt="">`:''}</div><div><div class="friend-name">${f.first_name||'Игрок'}</div><div class="friend-username">${f.username?'@'+f.username:''}</div></div></div>`).join('')
+        ? fr.map(f=>`<div class="friend-item"><div class="friend-avatar">${f.photo_url?`<img src="${f.photo_url}" alt="">`:''}</div><div><div class="friend-name">${_dn(f.first_name,f.username)}</div><div class="friend-username">${f.username?'@'+f.username:''}</div></div></div>`).join('')
         : '<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">Поделись ссылкой 🗡</div>';
     }
   } catch(e){ document.getElementById('modalFriendsSub').textContent='Ошибка'; }
@@ -4205,21 +4692,73 @@ function declFriend(n){
   return n+' друзей';
 }
 
+// SHOP TABS
+function switchShopTab(tab){
+  const isLinks = tab === 'links';
+  document.getElementById('shopContentLinks').style.display = isLinks ? 'block' : 'none';
+  document.getElementById('shopContentArtifacts').style.display = isLinks ? 'none' : 'block';
+  const btnLinks = document.getElementById('shopTabLinks');
+  const btnArt = document.getElementById('shopTabArtifacts');
+  if(btnLinks){
+    btnLinks.style.background = isLinks ? 'linear-gradient(135deg,rgba(232,51,109,.25),rgba(139,92,246,.15))' : 'var(--bg3)';
+    btnLinks.style.borderColor = isLinks ? 'rgba(232,51,109,.6)' : 'var(--border)';
+    btnLinks.style.color = isLinks ? '#fff' : 'var(--muted2)';
+  }
+  if(btnArt){
+    btnArt.style.background = !isLinks ? 'linear-gradient(135deg,rgba(255,150,50,.25),rgba(139,92,246,.15))' : 'var(--bg3)';
+    btnArt.style.borderColor = !isLinks ? 'rgba(255,150,50,.6)' : 'var(--border)';
+    btnArt.style.color = !isLinks ? '#fff' : 'var(--muted2)';
+  }
+}
+
+const ARTIFACT_DATA = {
+  phone:       { name:'Мобилка',        img:'/static/pics/nokia.png',        bonus:'📱 Бесконечные анонимки',      price:100,  desc:'Обычная связь "Сговориться" исчезает после отправки. С Мобилкой — нет. Пиши анонимные маляры хоть каждый раунд, предмет не тратится. Строй союзы, сей панику, координируй атаки — из тени.' },
+  pistol:      { name:'Пистолет',       img:'/static/pics/gun.png',           bonus:'🔫 +1 голос каждый раунд',     price:250,  desc:'Каждый раунд твой голос против кого-то весит на 1 больше. Если все остальные кидают по 1 — ты кидаешь 2. В долгой игре это колоссальное преимущество. Тихо, незаметно, смертельно.' },
+  car_key:     { name:'Ключи от тачки', img:'/static/pics/car_keys.png',      bonus:'🚗 Иммунитет пока 15+ игроков', price:800,  desc:'Пока в игре больше 15 живых — тебя нет в списке голосования. Вообще. Ни голосовать против тебя, ни заказать киллера нельзя. Как только осталось 15 или меньше — уехавший возвращается и включается в общую игру.' },
+  credit_card: { name:'Кредитка',       img:'/static/pics/credit_card.png',   bonus:'💳 -50% на все Связи',         price:1000, desc:'Все Связи в Магазине стоят вдвое дешевле пока Кредитка активна. Щит за 1⭐, Двустволка за 8⭐, Киллер за 18⭐. Окупается уже после первой-двух покупок. Бери первым делом если планируешь активно играть в шопике.' },
+  drugs:       { name:'Таблетки',       img:'/static/pics/drugs.png',         bonus:'💊 -1 голос против тебя',      price:500,  desc:'Каждый раунд с тебя автоматически снимается 1 голос. Проголосовали 3 раза — засчитается 2. Проголосовали 1 раз — не засчитается вообще. Делает тебя значительно сложнее выбить, особенно в конце игры.' },
+};
+
+function openArtifactModal(itemId){
+  const art = ARTIFACT_DATA[itemId];
+  if(!art) return;
+  document.getElementById('artifactModalImg').src = art.img;
+  document.getElementById('artifactModalName').textContent = art.name;
+  document.getElementById('artifactModalBonus').textContent = art.bonus;
+  document.getElementById('artifactModalDesc').textContent = art.desc;
+  const btnWrap = document.getElementById('artifactModalBtnWrap');
+  btnWrap.innerHTML = `<button class="btn-buy" style="width:100%;padding:14px;font-size:13px;border-radius:14px" onclick="closeModal('modalArtifact');setTimeout(()=>buyArtifact('${itemId}',${art.price}),200)"><img src="/static/icons/star.png" style="width:16px;height:16px"> Купить за ${art.price} ⭐</button>`;
+  openModal('modalArtifact');
+}
+
+async function buyArtifact(itemId, stars){
+  if(!currentUser){ if(tg) tg.showAlert('Сначала войди в игру'); return; }
+  // Проверяем — нет ли уже такого артефакта
+  if(currentUser.bomzh_items && currentUser.bomzh_items.some(i => i.item_id === itemId)){
+    if(tg) tg.showAlert('🏺 Этот артефакт уже есть в твоём инвентаре');
+    return;
+  }
+  try {
+    const res = await fetch('/api/shop/buy_artifact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id,item_id:itemId})});
+    const data = await res.json();
+    if(data.free){ auth(); return; }
+    if(!data.ok){ if(tg) tg.showAlert(data.error||'Ошибка'); return; }
+    if(data.ok && data.invoice_url){
+      if(tg){ tg.openInvoice(data.invoice_url, status=>{ if(status==='paid'){ tg.showAlert('🏺 Артефакт добавлен в инвентарь!'); auth(); } }); }
+    }
+  } catch(e){ if(tg) tg.showAlert('Ошибка сети'); }
+}
+
 // SHOP
 async function buyItem(type, stars){
   if(!currentUser){ if(tg) tg.showAlert('Сначала войди в игру'); return; }
-  // Крышануться — только при 10+ живых игроках
+  // Крышануться — только при 5+ живых игроках
   if(type === 'shield'){
     const _aliveNow = window._lastPlayersData ? window._lastPlayersData.filter(p=>p.is_alive&&p.is_alive!==0).length : 0;
-    if(_aliveNow < 10 && currentGame.status === 'active'){
-      if(tg) tg.showAlert('🤵 Крышануться работает только когда в игре 10+ живых игроков');
+    if(_aliveNow < 5 && currentGame.status === 'active'){
+      if(tg) tg.showAlert('🤵 Крышануться работает только когда в игре 5+ живых игроков');
       return;
     }
-  }
-  // Если связь уже есть в инвентаре — применяем бесплатно
-  if((_userItemCounts[type]||0) > 0){
-    if(type === 'anon_msg'){ openAnonModal(); return; }
-    invItemClick(type); return;
   }
   try {
     const res = await fetch('/api/shop/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id,item_type:type})});
@@ -4301,7 +4840,7 @@ const ITEM_DATA = {
     stats: [
       { icon: '<img src="/static/icons/lightning.png">', label: 'Тип', text: 'Активная — нажми чтобы использовать' },
       { icon: '<img src="/static/icons/ok.png">', label: 'Эффект', text: 'Обнуляет все голоса против тебя в текущем раунде' },
-      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 3+ живых игроках' },
+      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 5+ живых игроках' },
       { icon: '<img src="/static/icons/cycle.png">', label: 'Расход', text: 'Исчезает после использования' },
     ],
     type: 'use',
@@ -4320,11 +4859,11 @@ const ITEM_DATA = {
   shield: {
     icon: 'criminal_roof.png',
     title: 'Крышануться',
-    sub: 'Купил крышу — в следующем раунде тебя нет в списках. Только при 10+ игроках',
+    sub: 'Купил крышу — в следующем раунде тебя нет в списках. Только при 5+ игроках',
     stats: [
       { icon: '<img src="/static/icons/time.png">', label: 'Когда работает', text: 'В следующем раунде голосования' },
       { icon: '<img src="/static/icons/ok.png">', label: 'Эффект', text: 'За тебя нельзя проголосовать' },
-      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 10+ живых игроках' },
+      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 5+ живых игроках' },
       { icon: '<img src="/static/icons/cycle.png">', label: 'Расход', text: 'Сгорает после одного раунда' },
     ],
     type: 'auto',
@@ -4336,7 +4875,7 @@ const ITEM_DATA = {
     stats: [
       { icon: '<img src="/static/icons/lightning.png">', label: 'Тип', text: 'Мгновенное действие' },
       { icon: '<img src="/static/icons/ok.png">', label: 'Эффект', text: 'Выбранный игрок немедленно выбывает' },
-      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 10+ живых игроках' },
+      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 5+ живых игроках' },
       { icon: '<img src="/static/icons/cycle.png">', label: 'Расход', text: 'Исчезает после использования' },
     ],
     type: 'use',
@@ -4348,7 +4887,7 @@ const ITEM_DATA = {
     stats: [
       { icon: '<img src="/static/icons/time.png">', label: 'Когда работает', text: 'Автоматически — когда тебя выбирают на вылет по итогам голосования' },
       { icon: '<img src="/static/icons/ok.png">', label: 'Эффект', text: 'Ты остаёшься в игре, вылетает игрок со вторым по количеству голосов' },
-      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 3+ живых игроках' },
+      { icon: '<img src="/static/icons/lock.png">', label: 'Ограничение', text: 'Только при 5+ живых игроках' },
       { icon: '<img src="/static/icons/cycle.png">', label: 'Расход', text: 'Сгорает после срабатывания — одноразовая' },
     ],
     type: 'auto',
@@ -4360,7 +4899,7 @@ function invItemClick(type){
   if(!data) return;
 
   // Иконка
-  document.getElementById('itemModalIcon').src = `/static/icons/${data.icon}`;
+  document.getElementById('itemModalIcon').src = `/static/pics/${data.icon}`;
   document.getElementById('itemModalTitle').textContent = data.title;
   document.getElementById('itemModalSub').textContent = data.sub;
 
@@ -4396,7 +4935,7 @@ function invItemClick(type){
     statusEl.innerHTML = '';
     const canUse = currentGame.status === 'active';
     if(canUse){
-      actionEl.innerHTML = `<button class="btn-item-use" onclick="useItemNow('${type}')"><img src="/static/icons/${data.icon}" alt="">Использовать сейчас</button>`;
+      actionEl.innerHTML = `<button class="btn-item-use" onclick="useItemNow('${type}')"><img src="/static/pics/${data.icon}" alt="">Использовать сейчас</button>`;
     } else {
       const reason = currentGame.status !== 'active' ? 'Доступно только во время активной игры' : 'Доступно начиная со 2-го раунда';
       actionEl.innerHTML = `<div class="item-status-badge off">⏳ ${reason}</div>`;
@@ -4540,10 +5079,10 @@ async function openAnonModal(){
       ? players.map((p,i)=>{
           const _anonIcon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">` : '<img src="/static/icons/bully.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:4px">';
           return `
-          <div class="player-item" onclick="selectAnonTarget(${p.user_id},'${(p.first_name||'Игрок').replace(/'/g,"&#39;")}')">
+          <div class="player-item" onclick="selectAnonTarget(${p.user_id},'${(_dn(p.first_name,p.username)).replace(/'/g,"&#39;")}')">
             <div class="player-num">${i+1}</div>
             
-            <div class="player-name">${_anonIcon}${p.first_name||'Игрок'}</div>
+            <div class="player-name">${_anonIcon}${_dn(p.first_name,p.username)}</div>
           </div>`}).join('')
       : '<div class="players-empty">Нет других игроков</div>';
   } catch(e){ document.getElementById('anonPlayersList').innerHTML='<div class="players-empty">Ошибка</div>'; }
@@ -4608,7 +5147,7 @@ async function doSendAnon(text){
 
 // Achievement toast
 function showAchievToast(achiev){
-  document.getElementById('achievToastIcon').src = `/static/icons/${achiev.icon}`;
+  document.getElementById('achievToastIcon').src = `/static/pics/${achiev.icon}`;
   document.getElementById('achievToastName').textContent = achiev.name;
   const toast = document.getElementById('achievToast');
   toast.classList.add('show');
@@ -4893,14 +5432,27 @@ setInterval(async () => {
     const data = await res.json();
     if(data.ok){
       const newDay = data.game?.current_day||0;
-      // Если сменился раунд — сбрасываем voted_today
+      const _prevVotedToday = currentUser?.voted_today;
+      const _prevGameDay = currentGame?.current_day;
+      // Если сменился раунд — сбрасываем voted_today и локальный трекер
       if(_prevDay && newDay > _prevDay && data.user){
         data.user.voted_today = false;
+        _myVotedDay = 0;
         localStorage.removeItem('shrimp_vote_random');
         localStorage.removeItem('shrimp_my_vote_name');
       }
       _prevDay = newDay;
       currentUser = data.user;
+      // Синхронизируем раскрытых анонимусов с сервера
+      if(data.user && data.user.revealed_anons){
+        Object.entries(data.user.revealed_anons).forEach(([uid, name]) => { _revealedAnons[uid] = name; });
+        try { localStorage.setItem('shrimp_revealed_anons', JSON.stringify(_revealedAnons)); } catch(e){}
+      }
+      // Если пользователь только что проголосовал, а запрос был in-flight до голоса —
+      // сервер вернёт voted_today=false (стейл). Сохраняем локальное значение если раунд не сменился.
+      if(_prevVotedToday && !currentUser.voted_today && newDay === _prevGameDay){
+        currentUser.voted_today = true;
+      }
       // Не перезаписываем currentGame если уже finished — auth не знает про finished игры
       if(currentGame.status !== 'finished'){
         currentGame = data.game || currentGame;
@@ -4980,10 +5532,10 @@ let _wSpin=false,_wCan=true,_wCdInt=null;
 function runSlotAnimation(prizeIcon, onDone){
   const reel = document.getElementById('slotReel1');
   const allIcons = [
-    '/static/icons/conspire.png','/static/icons/rat.png',
-    '/static/icons/police.png','/static/icons/anonymous.png','/static/icons/double-barreled.png',
-    '/static/icons/thief.png','/static/icons/fixer.png','/static/icons/criminal_roof.png',
-    '/static/icons/fakeout.png','/static/icons/killer.png','/static/icons/oligarch.png',
+    '/static/pics/conspire.png','/static/pics/rat.png',
+    '/static/pics/police.png','/static/pics/anonymous.png','/static/pics/double-barreled.png',
+    '/static/pics/thief.png','/static/pics/fixer.png','/static/pics/criminal_roof.png',
+    '/static/pics/fakeout.png','/static/pics/killer.png','/static/pics/oligarch.png',
     '/static/icons/gangster.png','/static/icons/game_store.png','/static/icons/knife.png'
   ];
   let ticks = 0;
@@ -5151,7 +5703,7 @@ async function pollEvents(){
 setInterval(pollEvents, 15000);
 
 // КАЗИК
-const CASINO_ICONS2 = {anon_msg:'/static/icons/conspire.png',spy:'/static/icons/rat.png',black_mark:'/static/icons/police.png',anon_player:'/static/icons/anonymous.png',double_vote:'/static/icons/double-barreled.png',hacker:'/static/icons/thief.png',tiebreaker:'/static/icons/fixer.png',shield:'/static/icons/criminal_roof.png',killer:'/static/icons/killer.png',resurrect:'/static/icons/fakeout.png',credits:'/static/icons/star.png',premium:'/static/icons/crown.png',nft_bull:'/static/icons/nft_bull.jpg',nft_bear:'/static/icons/nft_bear.jpg'};
+const CASINO_ICONS2 = {anon_msg:'/static/pics/conspire.png',spy:'/static/pics/rat.png',black_mark:'/static/pics/police.png',anon_player:'/static/pics/anonymous.png',double_vote:'/static/pics/double-barreled.png',hacker:'/static/pics/thief.png',tiebreaker:'/static/pics/fixer.png',shield:'/static/pics/criminal_roof.png',killer:'/static/pics/killer.png',resurrect:'/static/pics/fakeout.png',credits:'/static/icons/star.png',premium:'/static/icons/crown.png',nft_bull:'/static/icons/nft_bull.jpg',nft_bear:'/static/icons/nft_bear.jpg'};
 async function loadCasinoBalance(){if(!currentUser)return;try{const r=await fetch('/api/casino/balance?user_id='+currentUser.user_id);const d=await r.json();if(d.ok){const c=d.credits;const e1=document.getElementById('casinoCredits');const e2=document.getElementById('casinoCreditsModal');if(e1)e1.textContent=c;if(e2)e2.textContent=c;window._casinoFreeAvailable=d.free_available;}}catch(e){}}
 async function casinoTopup(){if(!currentUser||!tg)return;const input=document.getElementById('casinoTopupAmount');const amount=parseInt(input&&input.value);if(!amount||amount<5){if(tg)tg.showAlert('Минимум 5 звёзд');return;}try{const r=await fetch('/api/casino/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id,amount})});const d=await r.json();if(d.ok&&d.invoice_url){tg.openInvoice(d.invoice_url,async function(status){if(status==='paid'){await loadCasinoBalance();tg.showAlert('✅ Пополнено '+amount+' кредитов!');if(input)input.value='';}})}else{if(tg)tg.showAlert(d.error||'Ошибка');}}catch(e){if(tg)tg.showAlert('Ошибка');}}
 async function openCasinoModal(){await loadCasinoBalance();openModal('modalCasino');}
@@ -5259,7 +5811,7 @@ function openBomzhFoundItem(item_id, item_name, isPerm, eventActive) {
   const BOMZH_ITEM_DESC = {
     'phone':       { bonus: '📱 Бесконечные анонимки', desc: 'В твоих связях появляется анонимка — она не исчезает после использования. Пиши сколько угодно все 7 дней события.' },
     'pistol':      { bonus: '🔫 +1 голос каждый раунд', desc: 'Твой голос весит на 1 больше в каждом раунде. Автоматически.' },
-    'car_key':     { bonus: '🚗 Иммунитет первые 25 раундов', desc: 'Тебя нет в списке голосования первые 25 раундов. Уехал на тачке.' },
+    'car_key':     { bonus: '🚗 Иммунитет пока 15+ игроков', desc: 'Тебя нет в списке голосования пока в игре больше 15 живых. Уехал на тачке.' },
     'credit_card': { bonus: '💳 -50% в магазине', desc: 'Все предметы в шопике вдвое дешевле пока действует событие Чушпана.' },
     'drugs':       { bonus: '💊 -1 голос против тебя каждый раунд', desc: 'Каждый раунд с тебя снимается 1 голос. Если против тебя проголосовали 3 раза — засчитается 2. Сложнее выбить.' },
   };
@@ -5324,18 +5876,37 @@ async function doBomzhAttackPay() {
 async function doBomzhAttackSend() {
   const victim = document.getElementById('bomzhVictimInput').value.trim();
   if (!victim) { showToast('Введи ник'); return; }
-  if (!currentUser) return;
-  document.getElementById('modalBomzhVictim').classList.add('hidden');
+  if (!currentUser) { showToast('Ошибка авторизации'); return; }
+
+  closeModal('modalBomzhVictim');
+  showToast('⏳ Натравляем Чушпана...');
+
   try {
     const r = await fetch('/api/bomzh/attack_send', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ user_id: currentUser.user_id, username: currentUser.username || currentUser.first_name, victim })
+      body: JSON.stringify({
+        user_id: currentUser.user_id,
+        username: currentUser.username || currentUser.first_name,
+        victim: victim
+      })
     });
+
+    if (!r.ok) {
+      showToast('❌ Ошибка сервера');
+      return;
+    }
+
     const d = await r.json();
-    if (d.ok) showToast('🔪 Чушпан уже в пути...');
-    else showToast('Ошибка: ' + (d.error || 'попробуй позже'));
-  } catch(e) { showToast('Ошибка соединения'); }
+    if (d.ok) {
+      showToast('🔪 Чушпан уже в пути!');
+      document.getElementById('bomzhVictimInput').value = '';
+    } else {
+      showToast('❌ ' + (d.error || 'Не получилось'));
+    }
+  } catch(e) {
+    showToast('❌ Ошибка соединения');
+  }
 }
 
 
@@ -5440,31 +6011,31 @@ async function doBomzhAttackSend() {
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">100 кредитов</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">⭐ Редкий</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/fixer.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/fixer.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Решала</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/thief.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/thief.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Ворюга</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/double-barreled.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/double-barreled.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Двустволка</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/anonymous.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/anonymous.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Анонимус</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/police.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/police.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Мусорнуться</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/rat.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/rat.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Стукач</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:10px 14px">
-        <img src="/static/icons/conspire.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
+        <img src="/static/pics/conspire.png" style="width:44px;height:44px;object-fit:contain;flex-shrink:0">
         <div><div style="font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800">Сговориться</div><div style="font-size:10px;color:var(--muted2);margin-top:2px">Связь</div></div>
       </div>
     </div>
@@ -5533,8 +6104,25 @@ async function doBomzhAttackSend() {
     <div style="font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;color:#22c55e;margin-bottom:8px" id="bomzhFoundBonus"></div>
     <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:14px;line-height:1.7;background:rgba(255,150,50,0.06);border:1px solid rgba(255,150,50,0.2);border-radius:12px;padding:12px 14px" id="bomzhFoundDesc"></div>
     <div id="bomzhFoundStatus" style="font-size:11px;font-weight:700;font-family:'Unbounded',sans-serif;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:8px 12px;margin-bottom:14px;color:rgba(34,197,94,0.8)">✅ Предмет активирован</div>
-    <button id="bomzhFoundBuyBtn" style="display:none;width:100%;padding:14px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:14px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:8px" onclick="doBomzhItemBuy(document.getElementById('bomzhFoundImg').dataset.itemId,document.getElementById('bomzhFoundName').textContent);document.getElementById('modalBomzhFound').classList.add('hidden')">💰 Выкупить за 999 ⭐</button>
     <button onclick="document.getElementById('modalBomzhFound').classList.add('hidden')" style="width:100%;padding:14px;background:rgba(255,150,50,0.15);border:1.5px solid rgba(255,150,50,0.4);border-radius:14px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:rgba(255,150,50,0.9);cursor:pointer">Ясно</button>
+  </div>
+</div>
+
+<!-- МОДАЛКИ АРТЕФАКТОВ -->
+<div id="modalArtifact" class="modal-overlay hidden">
+  <div class="modal-sheet" style="padding-bottom:30px">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modalArtifact')">✕</button>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <img id="artifactModalImg" src="" style="width:64px;height:64px;object-fit:contain;border-radius:14px;flex-shrink:0;background:var(--bg3);border:1.5px solid var(--border)">
+      <div>
+        <div style="font-size:10px;color:rgba(255,150,50,.7);font-family:'Unbounded',sans-serif;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">🏺 Артефакт</div>
+        <div id="artifactModalName" style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#fff"></div>
+        <div id="artifactModalBonus" style="font-size:11px;font-weight:700;color:#22c55e;margin-top:3px"></div>
+      </div>
+    </div>
+    <div id="artifactModalDesc" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px"></div>
+    <div id="artifactModalBtnWrap"></div>
   </div>
 </div>
 

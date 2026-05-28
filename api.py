@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+﻿from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,6 +46,16 @@ WEBAPP_URL = os.getenv("WEBAPP_URL", "https://shrimpgames.zabeyda.lol")
 ADMIN_ID = 7308147004
 FAKE_IDS = {9000001, 9000002, 9000003, 9000004}  # тестовые боты — без наград
 LOG_GROUP_ID = int(os.getenv('LOG_GROUP_ID', '0'))
+
+import re as _re
+def _display(first_name, username, fallback="Игрок"):
+    """Показывает имя. Если имя пустое, из невидимых или только символов — показывает @username."""
+    clean = _re.sub(r'[\s­​‌‍‎‏⁠﻿ㅤﾠ︀-️͏ᅠᅟ  ‪-‮⁡-⁤⁦-⁯]+', '', first_name or '')
+    # Проверяем есть ли хоть одна буква/цифра/не-ASCII символ
+    has_meaningful = any(ord(c) > 127 or c.isalpha() for c in clean)  # цифры не считаются
+    if clean and has_meaningful:
+        return first_name
+    return (f"@{username}" if username else fallback)
 CHAT_USERNAME = "shrimpgames_chat"
 BOT_LINK = '\n\n<a href="https://t.me/shrimpgamesbot">@shrimpgamesbot</a>'
 
@@ -95,11 +105,15 @@ async def lifespan(app):
                                 if not check_notifications(p["user_id"]):
                                     continue
                                 try:
-                                    await _cl_r.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                                    _r = await _cl_r.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
                                         json={"chat_id": p["user_id"],
                                               "text": "⏰ <b>Осталось 2 минуты!</b> Ты ещё не проголосовал в этом раунде. Успей!",
                                               "parse_mode": "HTML",
                                               "reply_markup": {"inline_keyboard": [[{"text": "🗳 Голосовать", "web_app": {"url": WEBAPP_URL}}]]}})
+                                    _rd = _r.json()
+                                    if not _rd.get("ok") and "blocked" in _rd.get("description", ""):
+                                        from database import mark_bot_blocked
+                                        mark_bot_blocked(p["user_id"])
                                 except: pass
                     except: pass
 
@@ -125,18 +139,26 @@ async def auto_create_next_game(finished_game_id: int):
     await asyncio.sleep(5 * 60)
     try:
         conn = get_conn(); c = conn.cursor()
-        # Проверяем что нет уже новой активной/waiting игры
-        c.execute("SELECT id FROM games WHERE status IN ('active','waiting') AND id != ?", (finished_game_id,))
-        if c.fetchone():
-            conn.close(); return
-        # Берём номер новой игры (игнорируем тестовые номера >=90)
-        c.execute("SELECT MAX(number) as mx FROM games WHERE number < 90")
-        row = c.fetchone()
-        next_num = (row["mx"] or 0) + 1
-        # Создаём новую игру
-        c.execute("INSERT INTO games (number, status) VALUES (?, 'waiting')", (next_num,))
-        new_game_id = c.lastrowid
-        # Переносим очередь в новую игру
+        # Проверяем есть ли уже waiting игра
+        c.execute("SELECT id, number FROM games WHERE status='waiting' AND id != ?", (finished_game_id,))
+        existing_waiting = c.fetchone()
+        if existing_waiting:
+            # Waiting игра уже есть — просто переносим очередь в неё
+            new_game_id = existing_waiting["id"]
+            next_num = existing_waiting["number"]
+        else:
+            # Есть активная игра — не трогаем
+            c.execute("SELECT id FROM games WHERE status='active' AND id != ?", (finished_game_id,))
+            if c.fetchone():
+                conn.close(); return
+            # Создаём новую waiting игру
+            c.execute("SELECT MAX(number) as mx FROM games WHERE number < 90")
+            row = c.fetchone()
+            next_num = (row["mx"] or 0) + 1
+            c.execute("INSERT INTO games (number, status) VALUES (?, 'waiting')", (next_num,))
+            new_game_id = c.lastrowid
+
+        # Переносим очередь в игру
         c.execute("SELECT user_id FROM next_game_queue")
         queued = [r["user_id"] for r in c.fetchall()]
         added = 0
@@ -149,15 +171,19 @@ async def auto_create_next_game(finished_game_id: int):
         # Очищаем очередь
         c.execute("DELETE FROM next_game_queue")
         conn.commit(); conn.close()
-        # Уведомляем в чат
-        names_preview = ""
+        # Уведомляем в чат только если были в очереди
+        if added == 0:
+            return
         async with httpx.AsyncClient(timeout=10) as cl:
+            c2 = get_conn().cursor()
+            c2.execute("SELECT COUNT(*) as cnt FROM players WHERE game_id=?", (new_game_id,))
+            total = c2.fetchone()["cnt"]
             await cl.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
                 json={
                     "chat_id": "@shrimpgames_chat",
                     "text": (
                         f"🗡 <b>Стрелка #{next_num} — Регистрация открыта!</b>\n\n"
-                        f"👥 Уже записалось: {added}\n"
+                        f"👥 Уже записалось: {total}\n"
                         f"Заходи в бота и жми Участвовать!"
                     ),
                     "parse_mode": "HTML"
@@ -452,7 +478,7 @@ def get_display_name(user_id: int) -> str:
     c.execute("SELECT first_name, username FROM users WHERE user_id=?", (user_id,))
     u = c.fetchone()
     conn.close()
-    return (u["first_name"] or u["username"] or "Игрок") if u else "Игрок"
+    return _display(u["first_name"], u["username"]) if u else "Игрок"
 
 def push_event(game_id: int, event_type: str, text: str, icon: str = "🗡"):
     """Записать событие в ленту игры"""
@@ -465,6 +491,59 @@ def push_event(game_id: int, event_type: str, text: str, icon: str = "🗡"):
                   (game_id, game_id))
         conn.commit(); conn.close()
     except: pass
+BLOCKED_DEATH_MSGS = [
+    "поехал за хлебом и не вернулся",
+    "утонул в луже у подъезда",
+    "упал с крыши гаража",
+    "сел не в ту Приору",
+    "съел шаурму у вокзала",
+    "нашли в багажнике без объяснений",
+    "потерялся по дороге в магазин",
+    "уснул на лавочке и не проснулся",
+    "пошёл занять денег и пропал",
+    "побежал от участкового и исчез",
+    "провалился в канализацию",
+    "запутался в долгах и растворился",
+    "уехал на шашлыки и не вернулся",
+    "подскользнулся на арбузной корке",
+    "пошёл на разборку в одиночку",
+    "купил левый телефон и пропал",
+    "зашёл в подъезд и не вышел",
+    "нашли утром на детской площадке без сознания",
+    "занял денег не у тех людей",
+    "поверил что его ждут на сходке",
+    "пошёл проверить странный звук в подвале",
+    "выпал из маршрутки на повороте",
+    "попытался объяснить правила дорожного движения быку",
+    "продал чужой велосипед",
+    "наступил на хвост не тому коту",
+    "похвастался новым телефоном в плохом районе",
+    "поспорил что выиграет в напёрстки",
+    "пошёл один в лес за грибами",
+    "забыл кому задолжал",
+    "решил срезать через гаражи",
+    "доел чужую шаурму из холодильника",
+    "написал «сам дурак» не тому человеку",
+    "сел играть в карты с незнакомцами",
+    "попробовал объяснить счётчик",
+    "угнал самокат и упал в первом повороте",
+    "пообещал всем помочь с переездом",
+    "проиграл машину в бильярд",
+    "попытался объехать пробку через двор",
+    "купил Айфон с рук за 3000 рублей",
+    "пошёл разбираться с соседом снизу",
+    "решил сэкономить на такси и пошёл пешком",
+    "ответил «сам такой» в не том чате",
+    "нашёл «бесхозный» кошелёк у фонтана",
+    "согласился подержать пакет незнакомца",
+    "пропал после слов «я быстро, подождите»",
+    "взял телефон незнакомца посмотреть время",
+    "не вернул чужой зонт",
+    "поверил что такси бесплатное если водитель добрый",
+    "пошёл на свидание вслепую и не вернулся",
+    "спорил с банкоматом и проиграл",
+]
+
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.mount("/static", StaticFiles(directory="static"), name="static")
 init_db()
@@ -533,8 +612,16 @@ async def fetch_photo(user_id, bot_token):
 
 async def check_chat_member(user_id: int) -> bool:
     """Проверить подписан ли юзер на канал через Bot API"""
+    # Если уже проверяли раньше — доверяем
     try:
-        async with httpx.AsyncClient() as cl:
+        conn_c = get_conn(); c_c = conn_c.cursor()
+        c_c.execute("SELECT chat_joined FROM users WHERE user_id=?", (user_id,))
+        row_c = c_c.fetchone(); conn_c.close()
+        if row_c and row_c["chat_joined"]:
+            return True
+    except: pass
+    try:
+        async with httpx.AsyncClient(timeout=5) as cl:
             r = await cl.get(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember",
                 params={"chat_id": f"@{CHAT_USERNAME}", "user_id": user_id}
@@ -542,9 +629,10 @@ async def check_chat_member(user_id: int) -> bool:
             d = r.json()
             if d.get("ok"):
                 status = d["result"]["status"]
-                return status in ("member", "administrator", "creator")
+                return status in ("member", "administrator", "creator", "restricted")
     except: pass
-    return False
+    # При ошибке API — не блокируем, пускаем
+    return True
 
 
 @app.get("/")
@@ -652,11 +740,31 @@ async def auth(request: Request):
                     if is_target_anon:
                         voted_target_name = "Анонимус"
                     else:
-                        voted_target_name = (vt_u["first_name"] or vt_u["username"] or "Игрок") if vt_u else "Игрок"
+                        voted_target_name = _display(vt_u["first_name"], vt_u["username"]) if vt_u else "Игрок"
                     conn_vt.close()
                 except: voted_target_name = None
             else:
                 voted_target_name = None
+
+    # Раскрытые анонимусы — кого этот юзер раскрыл через мусорнуться в текущей игре
+    revealed_anons = {}
+    try:
+        if game and game["status"] == "active":
+            _ra_conn = get_conn(); _ra_c = _ra_conn.cursor()
+            # Ищем все black_mark_{game_id}_{day}_{target_id} где value = user_id
+            _ra_c.execute("SELECT key FROM settings WHERE key LIKE ? AND value=?",
+                          (f"black_mark_{game['id']}_%", str(user_id)))
+            _ra_rows = _ra_c.fetchall()
+            for _ra_row in _ra_rows:
+                try:
+                    _target_id = int(_ra_row["key"].split("_")[-1])
+                    _ra_c.execute("SELECT first_name, username FROM users WHERE user_id=?", (_target_id,))
+                    _ru = _ra_c.fetchone()
+                    if _ru:
+                        revealed_anons[_target_id] = _display(_ru["first_name"], _ru["username"])
+                except: pass
+            _ra_conn.close()
+    except: pass
 
     # Реальное кол-во игр из таблицы players
     try:
@@ -721,6 +829,7 @@ async def auth(request: Request):
             "streak_item": streak_item,
             "gems_claimed": int(user["gems_claimed"]) if user["gems_claimed"] else 0,
             "gems_max_purchase": int(user["gems_max_purchase"]) if user["gems_max_purchase"] else 0,
+            "revealed_anons": revealed_anons,
         },
         "game": {
             "game_id": game["id"] if game else None,
@@ -761,11 +870,22 @@ async def game_players():
     try:
         c.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)")
     except: pass
+    alive_count = sum(1 for p in players if p.get("is_alive"))
     for p in players:
         try:
             r = c.execute("SELECT value FROM settings WHERE key=?", (f"premium_icon_{p['user_id']}",)).fetchone()
             p["premium_icon"] = r["value"] if r else None
         except: p["premium_icon"] = None
+        try:
+            p["has_car_key"] = bool(has_bomzh_item(p["user_id"], "car_key") and alive_count > 15)
+        except: p["has_car_key"] = False
+        try:
+            if game["status"] == "active" and p.get("is_alive"):
+                anon_items = get_user_items(p["user_id"], game["id"])
+                p["is_anon"] = any(i["item_type"] == "anon_player" for i in anon_items)
+            else:
+                p["is_anon"] = False
+        except: p["is_anon"] = False
     conn.close()
     return {
         "ok": True, "game_id": game["id"],
@@ -868,6 +988,28 @@ async def game_alive(viewer_id: int = 0, next: int = 0):
     if game["status"] not in ("active", "waiting", "finished"):
         return {"ok": False, "error": "Нет активной игры"}
     players = get_game_players(game["id"], alive_only=False)
+    # Перемешиваем список игроков — только во время активной игры
+    import random as _rnd
+    alive = [p for p in players if p["is_alive"]]
+    dead  = [p for p in players if not p["is_alive"]]
+    if game["status"] == "active":
+        _current_day = game["current_day"] or 0
+        _rnd.seed(game["id"] * 1000 + _current_day)
+        _rnd.shuffle(alive)
+        _rnd.seed()
+    players = alive + dead
+    # Какие анонимусы раскрыты зрителем (через мусорнуться)
+    _viewer_revealed_ids = set()
+    if viewer_id and game["status"] == "active":
+        try:
+            _vr_conn = get_conn(); _vr_c = _vr_conn.cursor()
+            _vr_c.execute("SELECT key FROM settings WHERE key LIKE ? AND value=?",
+                          (f"black_mark_{game['id']}_%", str(viewer_id)))
+            for _vr_row in _vr_c.fetchall():
+                try: _viewer_revealed_ids.add(int(_vr_row["key"].split("_")[-1]))
+                except: pass
+            _vr_conn.close()
+        except: pass
     # Подтягиваем premium_icon
     conn2 = get_conn(); c2 = conn2.cursor()
     try: c2.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)")
@@ -881,15 +1023,27 @@ async def game_alive(viewer_id: int = 0, next: int = 0):
             else:
                 is_anon = False
             p["is_anon"] = is_anon
+            r = c2.execute("SELECT value FROM settings WHERE key=?", (f"premium_icon_{p['user_id']}",)).fetchone()
+            real_icon = r["value"] if r else None
             if is_anon and p["user_id"] != viewer_id:
-                # Скрываем иконку только для чужих анонимусов
-                p["premium_icon"] = None
+                if p["user_id"] in _viewer_revealed_ids:
+                    # Зритель раскрыл этого анонимуса — показываем реальные данные
+                    p["premium_icon"] = real_icon
+                    p["is_revealed"] = True
+                    # first_name и username остаются реальными (не маскируем)
+                else:
+                    # Скрываем имя и иконку для чужих нераскрытых анонимусов
+                    p["premium_icon"] = None
+                    p["first_name"] = "Анонимус"
+                    p["username"] = None
+                    p["is_revealed"] = False
             else:
-                r = c2.execute("SELECT value FROM settings WHERE key=?", (f"premium_icon_{p['user_id']}",)).fetchone()
-                p["premium_icon"] = r["value"] if r else None
+                p["premium_icon"] = real_icon
+                p["is_revealed"] = False
         except:
             p["premium_icon"] = None
             p["is_anon"] = False
+            p["is_revealed"] = False
     conn2.close()
     winner_id = game["winner_id"] if "winner_id" in game.keys() else None
 
@@ -941,6 +1095,7 @@ async def game_alive(viewer_id: int = 0, next: int = 0):
     # Собираем voted_ids и shielded_ids чтобы фронт не делал лишние запросы
     voted_ids_list = []
     shielded_ids_list = []
+    has_shield_map = {}
     if game and game["status"] == "active":
         try:
             day = game["current_day"] or 1
@@ -949,8 +1104,14 @@ async def game_alive(viewer_id: int = 0, next: int = 0):
             voted_ids_list = [r["voter_id"] for r in c_extra.fetchall()]
             c_extra.execute("SELECT DISTINCT user_id FROM items WHERE item_type='shield' AND status='active' AND user_id IN (SELECT user_id FROM players WHERE game_id=? AND is_alive=1)", (game["id"],))
             shielded_ids_list = [r["user_id"] for r in c_extra.fetchall()]
+            for uid in shielded_ids_list:
+                has_shield_map[uid] = True
             conn_extra.close()
         except: pass
+
+    # Добавляем has_shield флаг каждому игроку
+    for p in players:
+        p["has_shield"] = has_shield_map.get(p["user_id"], False)
 
     return {"ok": True, "players": players, "game_id": game["id"], "current_day": game["current_day"] or 0,
             "status": game["status"], "game_number": game["number"] or 1, "winner_id": winner_id,
@@ -1061,7 +1222,7 @@ async def game_vote(request: Request):
     if shield_active:
         return {"ok": False, "error": "У этого игрока иммунитет в этом раунде"}
     day = game["current_day"] or 1
-    if has_bomzh_item(target_id, 'car_key') and day <= 25:
+    if has_bomzh_item(target_id, 'car_key') and get_alive_count(game["id"]) > 15:
         return {"ok": False, "error": "У этого игрока иммунитет — уехал на тачке 🚗"}
     weight = cast_vote(game["id"], day, voter_id, target_id)
 
@@ -1074,31 +1235,33 @@ async def game_vote(request: Request):
             return "Анонимус"
         return f"@{u['username']}" if u["username"] else u["first_name"]
     double = " (x2 — Двустволка жахнула дуплетом)" if weight == 2 else ""
-    async with httpx.AsyncClient() as _cl:
-        await log_event(_cl, f"🗳 <b>Голос</b>\n{_n(voter_id)} → {_n(target_id)}{double}\nРаунд {day}")
-        # Считаем голос для уровня
-        try:
-            _cv = get_conn(); _cc = _cv.cursor()
-            _cc.execute("UPDATE users SET votes_cast=votes_cast+1 WHERE user_id=?", (voter_id,))
-            _cv.commit(); _cv.close()
-        except: pass
-
-    # Проверяем — все ли живые проголосовали
-    alive_players = get_game_players(game["id"])
-    alive_ids = [p["user_id"] for p in alive_players]
-    conn_chk = get_conn()
-    c_chk = conn_chk.cursor()
-    c_chk.execute("SELECT COUNT(DISTINCT voter_id) FROM votes WHERE game_id=? AND day_number=?", (game["id"], day))
-    voted_count = c_chk.fetchone()[0]
-    conn_chk.close()
-    all_voted = voted_count >= len(alive_ids)
-
-    # Счётчик раз проголосовали против цели
+    # Логируем и обновляем счётчики — всё в try чтобы не ронять ответ
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as _cl:
+            await log_event(_cl, f"🗳 <b>Голос</b>\n{_n(voter_id)} → {_n(target_id)}{double}\nРаунд {day}")
+    except: pass
+    try:
+        _cv = get_conn(); _cc = _cv.cursor()
+        _cc.execute("UPDATE users SET votes_cast=votes_cast+1 WHERE user_id=?", (voter_id,))
+        _cv.commit(); _cv.close()
+    except: pass
     try:
         conn_tva = get_conn(); c_tva = conn_tva.cursor()
         c_tva.execute("UPDATE users SET times_voted_against=times_voted_against+1 WHERE user_id=?", (target_id,))
         conn_tva.commit(); conn_tva.close()
     except: pass
+
+    # Проверяем — все ли живые проголосовали
+    try:
+        alive_players = get_game_players(game["id"])
+        alive_ids = [p["user_id"] for p in alive_players if p["is_alive"]]
+        conn_chk = get_conn(); c_chk = conn_chk.cursor()
+        c_chk.execute("SELECT COUNT(DISTINCT voter_id) FROM votes WHERE game_id=? AND day_number=?", (game["id"], day))
+        voted_count = c_chk.fetchone()[0]; conn_chk.close()
+        all_voted = voted_count >= len(alive_ids)
+    except:
+        voted_count = 0; all_voted = False; alive_ids = []
+
     return {"ok": True, "weight": weight, "all_voted": all_voted, "voted": voted_count, "alive": len(alive_ids)}
 
 
@@ -1141,8 +1304,8 @@ async def activate_shield(request: Request):
         return {"ok": False, "error": "Игра не активна"}
     from database import get_alive_count
     alive_now = get_alive_count(game["id"])
-    if alive_now < 3:
-        return {"ok": False, "error": "Крышануться работает только при 3+ игроках"}
+    if alive_now < 5:
+        return {"ok": False, "error": "Крышануться работает только при 5+ игроках"}
     items = get_user_items(user_id, game["id"])
     shield_item = next((i for i in items if i["item_type"] == "shield"), None)
     if not shield_item:
@@ -1191,8 +1354,8 @@ async def use_killer(request: Request):
             return None, False, "У этого игрока иммунитет — киллер не работает"
         from database import get_alive_count
         alive_now = get_alive_count(game["id"])
-        if alive_now < 3:
-            return None, False, "Киллер работает только при 3+ игроках"
+        if alive_now < 5:
+            return None, False, "Киллер работает только при 5+ игроках"
         ok, msg = kill_player_by_killer(game["id"], killer_id, target_id)
         if ok:
             conn_kc = get_conn(); c_kc = conn_kc.cursor()
@@ -1216,6 +1379,17 @@ async def use_killer(request: Request):
         _killer_name = _uname(killer_id)
         # Определяем имя киллера (анонимус или реальный)
         _killer_display = get_display_name(killer_id)
+        # Если имя пустое/невидимое — берём @username или ID
+        if not _killer_display or not _killer_display.strip():
+            try:
+                _ku = get_conn(); _kc = _ku.cursor()
+                _kc.execute("SELECT first_name, username FROM users WHERE user_id=?", (killer_id,))
+                _kr = _kc.fetchone(); _ku.close()
+                if _kr:
+                    _killer_display = f"@{_kr['username']}" if _kr['username'] else "Ник скрыт"
+                else:
+                    _killer_display = "Ник скрыт"
+            except: _killer_display = "Ник скрыт"
         current_day = game["current_day"] if game else "?"
         killer_phrases = [
             f"💀 <b>{_target_name} выбыл по-тихому.</b>\n\n{_killer_display} нанял киллера. Снайпер выследил жертву и снял её с крыши соседнего дома — один выстрел, никаких свидетелей.",
@@ -1301,9 +1475,9 @@ async def use_resurrect(request: Request):
     # Проверяем что в игре 10+ живых
     c.execute("SELECT COUNT(*) as cnt FROM players WHERE game_id=? AND is_alive=1", (game["id"],))
     alive_cnt = c.fetchone()["cnt"]
-    if alive_cnt < 10:
+    if alive_cnt < 5:
         conn.close()
-        return JSONResponse({"ok": False, "error": "Постанова работает только при 10+ живых игроках"})
+        return JSONResponse({"ok": False, "error": "Постанова работает только при 5+ живых игроках"})
     # Проверяем наличие предмета
     c.execute("SELECT id FROM items WHERE user_id=? AND item_type='resurrect' AND status='active' LIMIT 1", (user_id,))
     item = c.fetchone()
@@ -1405,14 +1579,12 @@ async def use_black_mark(request: Request):
     conn_rt = get_conn(); c_rt = conn_rt.cursor()
     c_rt.execute("SELECT first_name, username FROM users WHERE user_id=?", (target_id,))
     _tu = c_rt.fetchone(); conn_rt.close()
-    real_name = (_tu["first_name"] or _tu["username"] or "Неизвестный") if _tu else "Неизвестный"
-    # Снимаем анонимус у жертвы — его раскрыли
-    try:
-        conn_ba = get_conn(); c_ba = conn_ba.cursor()
-        c_ba.execute("UPDATE items SET status='used' WHERE user_id=? AND item_type='anon_player' AND status='active'", (target_id,))
-        conn_ba.commit(); conn_ba.close()
-    except: pass
-    _bm_name = get_display_name(user_id)
+    real_name = _display(_tu["first_name"], _tu["username"], "Неизвестный") if _tu else "Неизвестный"
+    # НЕ снимаем анонимус с жертвы — мусорнуть раскрывает имя только покупателю лично
+    # Покупатель тоже может быть анонимусом — берём "Анонимус" если у него активен anon_player
+    _bm_items = get_user_items(user_id, game["id"])
+    _bm_is_anon = any(i["item_type"] == "anon_player" for i in _bm_items)
+    _bm_name = "Анонимус" if _bm_is_anon else get_display_name(user_id)
     push_event(game["id"], "use", f"🚔 {_bm_name} мусорнулся и написал заяву на Анонимуса!", "🚔")
     await notify_ability_activate("black_mark", username=_bm_name)
     return {"ok": True, "real_name": real_name}
@@ -1494,6 +1666,58 @@ async def shop_buy(request: Request):
                     if item_type == "anon_player": c_ac.execute("UPDATE users SET went_anon=went_anon+1 WHERE user_id=?", (user_id,))
                     conn_ac.commit(); conn_ac.close()
                 except: pass
+                return {"ok": True, "invoice_url": d["result"]}
+            return {"ok": False, "error": d.get("description", "Ошибка")}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+ARTIFACTS = {
+    "phone":       {"name": "Мобилка",         "emoji": "📱", "stars": 100,  "bonus": "Бесконечные анонимки"},
+    "pistol":      {"name": "Пистолет",         "emoji": "🔫", "stars": 250,  "bonus": "+1 голос каждый раунд"},
+    "car_key":     {"name": "Ключи от тачки",   "emoji": "🔑", "stars": 800,  "bonus": "Иммунитет пока в игре 15+ человек"},
+    "credit_card": {"name": "Кредитка",         "emoji": "💳", "stars": 1000, "bonus": "-50% в Шопике"},
+    "drugs":       {"name": "Таблетки",         "emoji": "💊", "stars": 500,  "bonus": "-1 голос против тебя"},
+}
+
+@app.post("/api/shop/buy_artifact")
+async def shop_buy_artifact(request: Request):
+    body = await request.json()
+    user_id = body.get("user_id")
+    item_id = body.get("item_id")
+    if item_id not in ARTIFACTS:
+        return JSONResponse({"ok": False, "error": "Unknown artifact"}, status_code=400)
+    art = ARTIFACTS[item_id]
+
+    # Проверяем — нет ли уже такого артефакта
+    conn_chk = get_conn(); c_chk = conn_chk.cursor()
+    c_chk.execute("SELECT id FROM bomzh_items WHERE user_id=? AND item_id=?", (user_id, item_id))
+    already = c_chk.fetchone(); conn_chk.close()
+    if already:
+        return {"ok": False, "error": "Артефакт уже есть в инвентаре"}
+
+    # Админу бесплатно
+    if user_id == ADMIN_ID:
+        conn_a = get_conn(); c_a = conn_a.cursor()
+        c_a.execute("INSERT OR IGNORE INTO bomzh_items (user_id, username, item_id, item_name, permanent) VALUES (?,?,?,?,1)",
+                    (user_id, "", item_id, art["name"]))
+        conn_a.commit(); conn_a.close()
+        return {"ok": True, "free": True}
+
+    try:
+        async with httpx.AsyncClient() as cl:
+            r = await cl.post(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink",
+                json={
+                    "title": f"{art['emoji']} {art['name']}",
+                    "description": f"Артефакт: {art['bonus']}",
+                    "payload": f"{user_id}:artifact:{item_id}",
+                    "currency": "XTR",
+                    "prices": [{"label": art["name"], "amount": art["stars"]}],
+                }
+            )
+            d = r.json()
+            if d.get("ok"):
                 return {"ok": True, "invoice_url": d["result"]}
             return {"ok": False, "error": d.get("description", "Ошибка")}
     except Exception as e:
@@ -1601,6 +1825,33 @@ async def resolve_votes(request: Request):
 
     game_id = game["id"]
     day = game["current_day"] or 1
+
+    # ══════════════════════════════════════════
+    # ПОСТАНОВА — оживляем мёртвых у кого есть
+    # ══════════════════════════════════════════
+    _auto_resurrected_names = []
+    try:
+        _conn_res = get_conn(); _c_res = _conn_res.cursor()
+        _c_res.execute("""
+            SELECT p.user_id FROM players p
+            JOIN items i ON i.user_id = p.user_id
+            WHERE p.game_id=? AND p.is_alive=0
+              AND i.item_type='resurrect' AND i.status='active'
+        """, (game_id,))
+        _res_rows = _c_res.fetchall()
+        _conn_res.close()
+        for _rr in _res_rows:
+            _ruid = _rr["user_id"]
+            _conn_r2 = get_conn(); _c_r2 = _conn_r2.cursor()
+            _c_r2.execute("UPDATE players SET is_alive=1 WHERE user_id=? AND game_id=?", (_ruid, game_id))
+            _c_r2.execute("UPDATE items SET status='used' WHERE user_id=? AND item_type='resurrect' AND status='active' LIMIT 1", (_ruid,))
+            _conn_r2.commit(); _conn_r2.close()
+            _ru = get_user(_ruid)
+            _r_name = _display(_ru["first_name"], _ru["username"]) if _ru else "Игрок"
+            _auto_resurrected_names.append(_r_name)
+    except Exception as _e_res:
+        print(f"[RESURRECT AUTO] {_e_res}")
+
     alive_now = get_alive_count(game_id)
     results = get_vote_results(game_id, day)
 
@@ -1619,7 +1870,7 @@ async def resolve_votes(request: Request):
             anon = get_user_items(uid, game_id)
             if any(i["item_type"] == "anon_player" for i in anon):
                 return "Анонимус"
-            return u["first_name"] or u["username"] or "Игрок"
+            return _display(u["first_name"], u["username"])
 
         # Кто проголосовал в этом раунде
         conn_f = _gc2(); c_f = conn_f.cursor()
@@ -1775,10 +2026,101 @@ async def resolve_votes(request: Request):
         return {"ok": True, "outcome": "game_over", "winner_id": winner_id, "winner_name": w_name}
 
     # ══════════════════════════════════════════
+    # ВЫБИВАЕМ ЗАБЛОКИРОВАВШИХ БОТА
+    # ══════════════════════════════════════════
+    from database import get_blocked_alive_players
+    import random as _rnd_bl
+    blocked_players = get_blocked_alive_players(game_id)
+    _bl_deaths = []
+    for bp in blocked_players:
+        bp_uid = bp["user_id"]
+        if bp_uid in [9000001, 9000002, 9000003, 9000004]:
+            continue
+        bp_name = _display(bp["first_name"], bp["username"])
+        death_reason = _rnd_bl.choice(BLOCKED_DEATH_MSGS)
+        eliminate_player(game_id, bp_uid)
+        death_line = f"☠️ <b>{bp_name}</b> {death_reason}"
+        _bl_deaths.append(death_line)
+        push_event(game_id, "kill", death_line, "☠️")
+    if _bl_deaths:
+        combined = "\n".join(_bl_deaths)
+        try:
+            async with httpx.AsyncClient() as _bl_cl:
+                await _bl_cl.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                    json={"chat_id": "@shrimpgames_chat", "text": combined, "parse_mode": "HTML"})
+        except: pass
+
+    # ══════════════════════════════════════════
     # ОБЫЧНЫЙ РАУНД
     # ══════════════════════════════════════════
     if not results:
-        return {"ok": False, "error": "Голосов нет"}
+        # 0 голосов — выбиваем 2 самых неактивных (меньше всего голосовали за всю игру)
+        try:
+            _conn_nv = get_conn(); _c_nv = _conn_nv.cursor()
+            _c_nv.execute("""
+                SELECT p.user_id
+                FROM players p
+                WHERE p.game_id = ? AND p.is_alive = 1
+                  AND p.user_id NOT IN (9000001, 9000002, 9000003, 9000004)
+                ORDER BY (
+                    SELECT COUNT(*) FROM votes v
+                    WHERE v.game_id = ? AND v.voter_id = p.user_id
+                ) ASC, p.user_id ASC
+                LIMIT 2
+            """, (game_id, game_id))
+            _nv_rows = _c_nv.fetchall()
+            _conn_nv.close()
+        except Exception as _e_nv:
+            print(f"[NO_VOTES_KICK] {_e_nv}")
+            _nv_rows = []
+
+        _nv_names = []
+        for _nv_row in _nv_rows:
+            _nv_uid = _nv_row["user_id"]
+            try:
+                _cu = get_conn(); _cc = _cu.cursor()
+                _cc.execute("SELECT first_name, username FROM users WHERE user_id=?", (_nv_uid,))
+                _ur = _cc.fetchone(); _cu.close()
+                _nv_name = _display(_ur["first_name"], _ur["username"]) if _ur else "Игрок"
+            except: _nv_name = "Игрок"
+            eliminate_player(game_id, _nv_uid)
+            _nv_names.append(_nv_name)
+
+        from datetime import timedelta as _td_nv, datetime as _dt_nv
+        _conn_nv3 = get_conn(); _c_nv3 = _conn_nv3.cursor()
+        _now_nv = _dt_nv.utcnow()
+        _tallinn_nv = _now_nv + _td_nv(hours=3)
+        if (_tallinn_nv.hour >= 22) or (_tallinn_nv.hour < 7):
+            if _tallinn_nv.hour < 7:
+                _nv_ends = _now_nv.replace(hour=4, minute=0, second=0, microsecond=0)
+            else:
+                _nv_ends = (_now_nv + _td_nv(days=1)).replace(hour=4, minute=0, second=0, microsecond=0)
+        else:
+            _nv_ends = _now_nv + _td_nv(minutes=15)
+        _c_nv3.execute("UPDATE games SET current_day=current_day+1, voting_ends=? WHERE id=?",
+                       (_nv_ends.strftime("%Y-%m-%d %H:%M:%S"), game_id))
+        _conn_nv3.commit(); _conn_nv3.close()
+
+        _alive_nv = get_alive_count(game_id)
+        import random as _rand_nv
+        _names_line = "\n".join([f"☠️ <b>{n}</b> — {_rand_nv.choice(BLOCKED_DEATH_MSGS)}" for n in _nv_names])
+        _nv_chat_msg = (
+            f"🗡 <b>Раунд {day} завершён!</b>\n\n"
+            f"{_names_line}\n\n"
+            f"👥 Осталось: <b>{_alive_nv}</b>" + BOT_LINK
+        )
+        async with httpx.AsyncClient(timeout=10) as _cl_nv3:
+            try:
+                await _cl_nv3.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                    json={"chat_id": "@shrimpgames_chat", "text": _nv_chat_msg,
+                          "parse_mode": "HTML", "disable_web_page_preview": True})
+            except: pass
+        return {
+            "ok": True, "outcome": "eliminated",
+            "victim_name": _nv_names[0] if _nv_names else "?",
+            "second_victim_name": _nv_names[1] if len(_nv_names) > 1 else None,
+            "alive": _alive_nv
+        }
 
     # Ворюга срабатывает только вручную через /api/game/hacker — не авто
     item_events = []
@@ -1797,33 +2139,32 @@ async def resolve_votes(request: Request):
             name = u["first_name"] if u else "Игрок"
             item_events.append(f"🤵 {name} крышанулся — в следующем раунде его не достать")
     except: pass
-    # Киллер — кто был убит до голосования (is_alive=0 но голоса против них есть)
-    try:
-        c_ev.execute("""
-            SELECT DISTINCT v.target_id FROM votes v
-            JOIN players p ON p.user_id=v.target_id AND p.game_id=v.game_id
-            WHERE v.game_id=? AND v.day_number=? AND p.is_alive=0
-        """, (game_id, day))
-        for row in c_ev.fetchall():
-            uid = row["target_id"]
-            c_ev.execute("SELECT first_name FROM users WHERE user_id=?", (uid,))
-            u = c_ev.fetchone()
-            name = u["first_name"] if u else "Игрок"
-            item_events.insert(0, f"💀 {name} устранён — кто-то заказал на него киллера. Без голосований, без предупреждений")
-            push_event(game["id"], "kill", f"💀 {_target_name} устранён — кто-то заказал киллера", "💀")
-    except: pass
+    # Киллер уже обрабатывается в /api/game/killer endpoint — не нужно повторять в resolve_votes
     # Мусорнуться — кто помечен в этом раунде
+    # key = black_mark_{game_id}_{day}_{target_id}, value = actor_id (кто мусорнулся)
     try:
-        c_ev.execute("SELECT key FROM settings WHERE key LIKE ?", (f"black_mark_{game_id}_{day}_%",))
+        c_ev.execute("SELECT key, value FROM settings WHERE key LIKE ?", (f"black_mark_{game_id}_{day}_%",))
         for row in c_ev.fetchall():
-            parts = row["key"].split("_")
-            uid = int(parts[-1])
-            c_ev.execute("SELECT first_name FROM users WHERE user_id=?", (uid,))
-            u = c_ev.fetchone()
-            name = u["first_name"] if u else "Игрок"
-            c_ev.execute("SELECT first_name, username FROM users WHERE user_id=?", (int(row["key"].split("_")[4]),))
-            _bmu = c_ev.fetchone()
-            _bm_actor = (_bmu["first_name"] or _bmu["username"] or "Игрок") if _bmu else "Игрок"
+            _actor_id = int(row["value"]) if row["value"] else 0
+            if not _actor_id:
+                continue
+            # Извлекаем target_id из ключа black_mark_{game_id}_{day}_{target_id}
+            _bm_parts = row["key"].split("_")
+            try: _bm_target_id = int(_bm_parts[-1])
+            except: continue
+            # Показываем событие только если у цели есть активный анонимус
+            _target_items = get_user_items(_bm_target_id, game_id)
+            if not any(i["item_type"] == "anon_player" for i in _target_items):
+                continue
+            # Проверяем анонимность актора
+            _actor_anon = get_user_items(_actor_id, game_id)
+            _actor_is_anon = any(i["item_type"] == "anon_player" for i in _actor_anon)
+            if _actor_is_anon:
+                _bm_actor = "Анонимус"
+            else:
+                c_ev.execute("SELECT first_name, username FROM users WHERE user_id=?", (_actor_id,))
+                _bmu = c_ev.fetchone()
+                _bm_actor = _display(_bmu["first_name"], _bmu["username"]) if _bmu else "Игрок"
             item_events.append(f"🚔 {_bm_actor} мусорнулся и накатал заяву — теперь знает настоящий ник Анонимуса")
     except: pass
     conn_ev.close()
@@ -1843,13 +2184,12 @@ async def resolve_votes(request: Request):
         u = get_user(uid)
         if not u: return "Игрок"
         if not force_real:
-            # Если на игроке чёрная метка — показываем реальный ник
-            if uid in black_marked_ids:
-                return u["first_name"] or u["username"] or "Игрок"
+            # Анонимус — всегда показываем "Анонимус" в публичных итогах
+            # (мусорнуться раскрывает имя только покупателю лично, не в чат)
             anon_items = get_user_items(uid, game_id)
             if any(i["item_type"] == "anon_player" for i in anon_items):
                 return "Анонимус"
-        return u["first_name"] or u["username"] or "Игрок"
+        return _display(u["first_name"], u["username"])
 
     score_lines = []
     for uid, cnt in results:
@@ -1886,10 +2226,12 @@ async def resolve_votes(request: Request):
         return result is not None
 
     def use_shield(uid):
-        # Списываем предмет из items
         conn_s = get_conn(); c_s = conn_s.cursor()
-        c_s.execute("UPDATE items SET status='used' WHERE user_id=? AND item_type='shield' AND status='active' LIMIT 1", (uid,))
-        # Удаляем ключ из settings если был
+        # Берём ID одного щита и обновляем только его
+        c_s.execute("SELECT id FROM items WHERE user_id=? AND item_type='shield' AND status='active' LIMIT 1", (uid,))
+        row_s = c_s.fetchone()
+        if row_s:
+            c_s.execute("UPDATE items SET status='used' WHERE id=?", (row_s["id"],))
         shield_key = f"shield_active_{game_id}_{day}_{uid}"
         c_s.execute("DELETE FROM settings WHERE key=?", (shield_key,))
         conn_s.commit(); conn_s.close()
@@ -1916,7 +2258,39 @@ async def resolve_votes(request: Request):
             v_name = uname(victim_id)
             outcome = eliminate_player(game_id, victim_id)
 
-            # Если воскрешение сработало — вылетает следующий по голосам
+            # Если первая жертва выбилась - ищем вторую (минимум 2 за раунд)
+            second_victim_id = None
+            _second_outcome = None
+            if outcome == "eliminated":
+                # Ищем второго по голосам
+                next_candidates = [(uid, cnt) for uid, cnt in results if uid != victim_id]
+                if next_candidates:
+                    second_victim_id = next_candidates[0][0]
+                    _second_outcome = eliminate_player(game_id, second_victim_id)
+                else:
+                    # Нету второго по голосам — ищем самого неактивного живого (по всей игре)
+                    try:
+                        _conn_2nd = get_conn(); _c_2nd = _conn_2nd.cursor()
+                        _c_2nd.execute("""
+                            SELECT p.user_id
+                            FROM players p
+                            WHERE p.game_id = ? AND p.is_alive = 1 AND p.user_id != ?
+                              AND p.user_id NOT IN (9000001, 9000002, 9000003, 9000004)
+                            ORDER BY (
+                                SELECT COUNT(*) FROM votes v
+                                WHERE v.game_id = ? AND v.voter_id = p.user_id
+                            ) ASC, p.user_id ASC
+                            LIMIT 1
+                        """, (game_id, victim_id, game_id))
+                        _inactive_row = _c_2nd.fetchone()
+                        _conn_2nd.close()
+                        if _inactive_row:
+                            second_victim_id = _inactive_row["user_id"]
+                            _second_outcome = eliminate_player(game_id, second_victim_id)
+                    except Exception as _e2:
+                        print(f"[SECOND VICTIM SEARCH] {_e2}")
+
+            # Если воскрешение сработало — вылетает следующий по голосам или самый неактивный
             _resurrected_name = None
             _was_resurrected = False
             if outcome == "resurrected":
@@ -1939,25 +2313,58 @@ async def resolve_votes(request: Request):
                     victim_id = second_victim_id
                     v_name = uname(second_victim_id, force_real=True)
                 else:
-                    # Некого выбивать — воскресший остаётся, раунд без выбывания
-                    # Уведомляем чат
-                    _no_victim_msg = (
-                        f"🗡 <b>Раунд {day} завершён!</b>\n\n"
-                        f"🎭 <b>{v_name}</b> замутил Постанову — инсценировал смерть и вернулся в игру!\n"
-                        f"😮 Больше некого выбивать — раунд без выбывания!\n\n"
-                        f"👥 Осталось: <b>{get_alive_count(game_id)}</b>"
-                    )
-                    async with httpx.AsyncClient(timeout=10) as _cl_nv:
-                        try:
-                            await _cl_nv.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                                json={"chat_id": "@shrimpgames_chat", "text": _no_victim_msg, "parse_mode": "HTML"})
-                        except: pass
-                    outcome = "no_victim"
+                    # Нету по голосам — берём 2 самых неактивных живых
+                    try:
+                        _conn_ina = get_conn(); _c_ina = _conn_ina.cursor()
+                        _c_ina.execute("""
+                            SELECT p.user_id
+                            FROM players p
+                            WHERE p.game_id = ? AND p.is_alive = 1 AND p.user_id != ?
+                            ORDER BY (
+                                SELECT COUNT(*) FROM votes v
+                                WHERE v.game_id = ? AND v.voter_id = p.user_id
+                            ) ASC
+                            LIMIT 2
+                        """, (game_id, victim_id, game_id))
+                        _inactive_rows = _c_ina.fetchall()
+                        _conn_ina.close()
+                        if _inactive_rows:
+                            second_victim_id = _inactive_rows[0]["user_id"]
+                            second_outcome = eliminate_player(game_id, second_victim_id)
+                            outcome = second_outcome
+                            victim_id = second_victim_id
+                            v_name = uname(second_victim_id, force_real=True)
+                            # Выбиваем второго неактивного
+                            if len(_inactive_rows) > 1:
+                                _third_id = _inactive_rows[1]["user_id"]
+                                _third_outcome = eliminate_player(game_id, _third_id)
+                                if _third_outcome == "eliminated":
+                                    second_victim_id = _third_id
+                                    _second_outcome = _third_outcome
+                        else:
+                            # Совсем никого — раунд без выбывания
+                            _no_victim_msg = (
+                                f"🗡 <b>Раунд {day} завершён!</b>\n\n"
+                                f"🎭 <b>{_resurrected_name}</b> замутил Постанову — инсценировал смерть и вернулся в игру!\n"
+                                f"😮 Больше некого выбивать — раунд без выбывания!\n\n"
+                                f"👥 Осталось: <b>{get_alive_count(game_id)}</b>"
+                            )
+                            async with httpx.AsyncClient(timeout=10) as _cl_nv:
+                                try:
+                                    await _cl_nv.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                                        json={"chat_id": "@shrimpgames_chat", "text": _no_victim_msg, "parse_mode": "HTML"})
+                                except: pass
+                            outcome = "resurrected"
+                    except Exception as _e_ina:
+                        print(f"[INACTIVE SEARCH] {_e_ina}")
+                        outcome = "resurrected"
 
             # Тратим анонимус у выбывшего если был активен
             try:
                 conn_an = get_conn(); c_an = conn_an.cursor()
                 c_an.execute("UPDATE items SET status='used' WHERE user_id=? AND item_type='anon_player' AND status='active'", (victim_id,))  # тратим все
+                if second_victim_id:
+                    c_an.execute("UPDATE items SET status='used' WHERE user_id=? AND item_type='anon_player' AND status='active'", (second_victim_id,))
                 conn_an.commit(); conn_an.close()
             except: pass
 
@@ -1983,6 +2390,28 @@ async def resolve_votes(request: Request):
                     if day == 1:
                         _fe_c.execute("UPDATE users SET first_eliminated=COALESCE(first_eliminated,0)+1 WHERE user_id=?", (victim_id,))
                     _fe_conn.commit(); _fe_conn.close()
+                except: pass
+
+            # Обработка второй жертвы если она есть
+            if second_victim_id and _second_outcome == "eliminated":
+                c.execute("SELECT voter_id FROM votes WHERE game_id=? AND day_number=? AND target_id=?",
+                          (game_id, day, second_victim_id))
+                voters_2 = [r["voter_id"] for r in c.fetchall()]
+                for v in voters_2:
+                    if v not in FAKE_IDS:
+                        c.execute("UPDATE users SET kills=kills+1 WHERE user_id=?", (v,))
+                        try:
+                            c.execute("INSERT INTO kills_log (game_id, killer_id, victim_id) VALUES (?,?,?)",
+                                      (game_id, v, second_victim_id))
+                        except: pass
+                # first_eliminated для второй жертвы
+                try:
+                    _fe_conn2 = get_conn(); _fe_c2 = _fe_conn2.cursor()
+                    try: _fe_c2.execute("ALTER TABLE users ADD COLUMN first_eliminated INTEGER DEFAULT 0")
+                    except: pass
+                    if day == 1:
+                        _fe_c2.execute("UPDATE users SET first_eliminated=COALESCE(first_eliminated,0)+1 WHERE user_id=?", (second_victim_id,))
+                    _fe_conn2.commit(); _fe_conn2.close()
                 except: pass
             from datetime import timedelta as _td, datetime as _dt
             # Проверяем — все ли живые проголосовали
@@ -2047,61 +2476,49 @@ async def resolve_votes(request: Request):
                 # Имя второй жертвы (кто реально вылетел)
                 items_line = ("\n\n" + "\n".join(item_events)) if item_events else ""
                 _real_loser = v_name  # это уже второй (кто реально вылетел)
+                _resurrect_line2 = ("\n" + "\n".join([f"🎭 <b>{n}</b> вернулся в игру — Постанова сработала!" for n in _auto_resurrected_names])) if _auto_resurrected_names else ""
                 chat_msg = (
                     f"🗡 <b>Раунд {day} завершён!</b>\n\n"
                     f"📊 Счёт голосов:\n{score_text}\n\n"
                     f"🎭 <b>{_resurrected_name}</b> замутил Постанову — инсценировал свою смерть чтобы всех обмануть! Возвращается в игру.\n"
-                    f"🍳 Вылетает <b>{_real_loser}</b>\n\n"
+                    f"🍳 Вылетает <b>{_real_loser}</b>"
+                    f"{_resurrect_line2}\n\n"
                     f"👥 Осталось: <b>{alive}</b>"
                     f"{items_line}" + BOT_LINK
                 )
             else:
                 items_line = ("\n\n" + "\n".join(item_events)) if item_events else ""
-                # Если жертва была анонимусом — раскрываем реальное имя
+                # Если жертва была анонимусом — раскрываем реальное имя прямо в строке вылета
                 _real_victim_name = uname(victim_id, force_real=True)
                 _was_anon = v_name == "Анонимус"
-                _anon_reveal = f"\n🎭 Его звали <b>{_real_victim_name}</b>" if _was_anon else ""
+                _elim_name = _real_victim_name if _was_anon else v_name
+                _anon_suffix = " (был Анонимусом)" if _was_anon else ""
                 elim_phrases = [
-                    f"🍳 <b>{v_name}</b> ликвидирован!{_anon_reveal}",
-                    f"💀 <b>{v_name}</b> выбывает. Голосование беспощадно.{_anon_reveal}",
-                    f"🗡 <b>{v_name}</b> не выжил. Таков закон района.{_anon_reveal}",
-                    f"⚡ <b>{v_name}</b> ликвидирован. Жестоко, но честно.{_anon_reveal}",
+                    f"🍳 <b>{_elim_name}</b> ликвидирован!{_anon_suffix}",
+                    f"💀 <b>{_elim_name}</b> выбывает. Голосование беспощадно.{_anon_suffix}",
+                    f"🗡 <b>{_elim_name}</b> не выжил. Таков закон района.{_anon_suffix}",
+                    f"⚡ <b>{_elim_name}</b> ликвидирован. Жестоко, но честно.{_anon_suffix}",
                 ]
                 import random as _rand
-                # Выбиваем второго — следующего по голосам после первой жертвы
-                _second_v_name = None
-                _remaining_candidates = [(uid, cnt) for uid, cnt in results if uid != victim_id]
-                if _remaining_candidates and get_alive_count(game_id) > 5:
-                    _second_victim_id = _remaining_candidates[0][0]
-                    _second_v_name_raw = uname(_second_victim_id)
-                    _second_outcome = eliminate_player(game_id, _second_victim_id)
-                    if _second_outcome == "resurrected":
-                        # Постанова у второго — не считаем его выбывшим
-                        _second_v_name = None
-                    else:
-                        _second_v_name = _second_v_name_raw
-                        # +kills голосовавшим за второго
-                        try:
-                            conn_k2 = get_conn(); c_k2 = conn_k2.cursor()
-                            c_k2.execute("SELECT voter_id FROM votes WHERE game_id=? AND day_number=? AND target_id=?",
-                                         (game_id, day, _second_victim_id))
-                            for _vr in c_k2.fetchall():
-                                if _vr["voter_id"] not in FAKE_IDS:
-                                    c_k2.execute("UPDATE users SET kills=kills+1 WHERE user_id=?", (_vr["voter_id"],))
-                            conn_k2.commit(); conn_k2.close()
-                        except: pass
+                # Формируем сообщение о втором выбывшем если он есть
+                _second_v_name_display = None
+                if second_victim_id and _second_outcome == "eliminated":
+                    _second_v_name_display = uname(second_victim_id, force_real=True)
 
-                # Список только живых игроков после выбывания
-                _alive_players_msg = get_game_players(game_id, alive_only=True)
-                _players_lines = [f"  🗡 {uname(_p['user_id'])}" for _p in _alive_players_msg]
-                _players_text = "\n".join(_players_lines)
                 alive = get_alive_count(game_id)
-                _second_line = f"\n🍳 <b>{_second_v_name}</b> тоже вылетает — второй по голосам!" if _second_v_name else ""
+                # Для второго выбывшего (если есть) используем сообщение про неактив из BLOCKED_DEATH_MSGS
+                _second_line = ""
+                if _second_v_name_display:
+                    _inactive_msg = _rand.choice(BLOCKED_DEATH_MSGS)
+                    _second_line = f"\n☠️ <b>{_second_v_name_display}</b> {_inactive_msg}"
+
+                _resurrect_line = ("\n" + "\n".join([f"🎭 <b>{n}</b> вернулся в игру — Постанова сработала!" for n in _auto_resurrected_names])) if _auto_resurrected_names else ""
                 chat_msg = (
                     f"🗡 <b>Раунд {day} завершён!</b>\n\n"
                     f"📊 Счёт голосов:\n{score_text}\n\n"
                     f"{_rand.choice(elim_phrases)}"
-                    f"{_second_line}\n\n"
+                    f"{_second_line}"
+                    f"{_resurrect_line}\n\n"
                     f"👥 Осталось: <b>{alive}</b>"
                     f"{items_line}" + BOT_LINK
                 )
@@ -2212,6 +2629,39 @@ async def resolve_votes(request: Request):
                         conn_ng.commit(); conn_ng.close()
                     except: pass
                     asyncio.create_task(auto_create_next_game(game_id))
+                    # Топ-5 администратору
+                    try:
+                        conn_top1 = get_conn(); c_top1 = conn_top1.cursor()
+                        game_num_row1 = c_top1.execute("SELECT number FROM games WHERE id=?", (game_id,)).fetchone()
+                        game_num1 = str(game_num_row1["number"]) if game_num_row1 else "?"
+                        top_rows1 = c_top1.execute("""
+                            SELECT p.user_id, p.is_alive, u.first_name, u.username,
+                                   COALESCE((SELECT MAX(v.day_number) FROM votes v WHERE v.game_id=p.game_id AND v.target_id=p.user_id), 0) AS last_vote_day
+                            FROM players p JOIN users u ON p.user_id = u.user_id
+                            WHERE p.game_id = ?
+                            ORDER BY p.is_alive DESC, last_vote_day DESC
+                            LIMIT 5
+                        """, (game_id,)).fetchall()
+                        conn_top1.close()
+                        _place_icons1 = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+                        _lines1 = []
+                        for _i1, _r1 in enumerate(top_rows1):
+                            _fn1 = (_r1["first_name"] or "").strip()
+                            _un1 = " (@" + _r1["username"] + ")" if _r1["username"] else ""
+                            _lines1.append(_place_icons1[_i1] + " " + _fn1 + _un1)
+                        _top_text1 = "\n".join(_lines1) if _lines1 else "-"
+                        _admin_text1 = (
+                            "🏁 <b>Игра #" + game_num1 + " завершена!</b>\n\n"
+                            + "<b>Топ-5 игроков:</b>\n" + _top_text1 + "\n\n"
+                            + "🏆 Победитель: <b>" + w_name + "</b>"
+                        )
+                        async with httpx.AsyncClient() as _cl_adm1:
+                            await _cl_adm1.post(
+                                "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage",
+                                json={"chat_id": ADMIN_ID, "text": _admin_text1, "parse_mode": "HTML"}
+                            )
+                    except Exception as _e_adm1:
+                        print("[ADMIN NOTIFY] error:", _e_adm1)
                 return {"ok": True, "outcome": "game_over", "winner_id": winner_id, "winner_name": w_name}
 
 
@@ -2340,6 +2790,7 @@ async def resolve_votes(request: Request):
             # Выбиваем второго — следующего по голосам после первой жертвы (ничья)
             _second_v_name_tie = None
             _tie_remaining = [(uid, cnt) for uid, cnt in results if uid != victim_id]
+            conn.commit(); conn.close()
             if _tie_remaining and get_alive_count(game_id) > 5:
                 _second_vic_tie = _tie_remaining[0][0]
                 _second_name_tie_raw = uname(_second_vic_tie)
@@ -2353,6 +2804,10 @@ async def resolve_votes(request: Request):
                         for _vr3 in c_k3.fetchall():
                             if _vr3["voter_id"] not in FAKE_IDS:
                                 c_k3.execute("UPDATE users SET kills=kills+1 WHERE user_id=?", (_vr3["voter_id"],))
+                                try:
+                                    c_k3.execute("INSERT INTO kills_log (game_id, killer_id, victim_id) VALUES (?,?,?)",
+                                                 (game_id, _vr3["voter_id"], _second_vic_tie))
+                                except: pass
                         conn_k3.commit(); conn_k3.close()
                     except: pass
             from datetime import timedelta as _td, datetime as _dt
@@ -2472,6 +2927,39 @@ async def resolve_votes(request: Request):
                         conn_ng2.commit(); conn_ng2.close()
                     except: pass
                     asyncio.create_task(auto_create_next_game(game_id))
+                    # Топ-5 администратору
+                    try:
+                        conn_top2 = get_conn(); c_top2 = conn_top2.cursor()
+                        game_num_row2 = c_top2.execute("SELECT number FROM games WHERE id=?", (game_id,)).fetchone()
+                        game_num2 = str(game_num_row2["number"]) if game_num_row2 else "?"
+                        top_rows2 = c_top2.execute("""
+                            SELECT p.user_id, p.is_alive, u.first_name, u.username,
+                                   COALESCE((SELECT MAX(v.day_number) FROM votes v WHERE v.game_id=p.game_id AND v.target_id=p.user_id), 0) AS last_vote_day
+                            FROM players p JOIN users u ON p.user_id = u.user_id
+                            WHERE p.game_id = ?
+                            ORDER BY p.is_alive DESC, last_vote_day DESC
+                            LIMIT 5
+                        """, (game_id,)).fetchall()
+                        conn_top2.close()
+                        _place_icons2 = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+                        _lines2 = []
+                        for _i2, _r2 in enumerate(top_rows2):
+                            _fn2 = (_r2["first_name"] or "").strip()
+                            _un2 = " (@" + _r2["username"] + ")" if _r2["username"] else ""
+                            _lines2.append(_place_icons2[_i2] + " " + _fn2 + _un2)
+                        _top_text2 = "\n".join(_lines2) if _lines2 else "-"
+                        _admin_text2 = (
+                            "🏁 <b>Игра #" + game_num2 + " завершена!</b>\n\n"
+                            + "<b>Топ-5 игроков:</b>\n" + _top_text2 + "\n\n"
+                            + "🏆 Победитель: <b>" + w_name + "</b>"
+                        )
+                        async with httpx.AsyncClient() as _cl_adm2:
+                            await _cl_adm2.post(
+                                "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage",
+                                json={"chat_id": ADMIN_ID, "text": _admin_text2, "parse_mode": "HTML"}
+                            )
+                    except Exception as _e_adm2:
+                        print("[ADMIN NOTIFY] error:", _e_adm2)
                 return {"ok": True, "outcome": "game_over", "winner_id": winner_id, "winner_name": w_name}
 
             return {"ok": True, "outcome": outcome, "victim_id": victim_id,
@@ -2676,7 +3164,7 @@ async def anon_message(request: Request):
             if not is_sender_anon:
                 c_sn.execute("SELECT first_name, username FROM users WHERE user_id=?", (sender_id,))
                 _su = c_sn.fetchone()
-                sender_label = (_su["first_name"] or _su["username"] or "Игрок") if _su else "Игрок"
+                sender_label = _display(_su["first_name"], _su["username"]) if _su else "Игрок"
             else:
                 sender_label = "Анонимус"
             conn_sn.close()
@@ -2843,7 +3331,7 @@ async def test_launch(request: Request):
                 anon = get_user_items(p['user_id'], game_id)
                 if any(i['item_type'] == 'anon_player' for i in anon):
                     return 'Анонимус'
-                return p['first_name'] or p['username'] or 'Игрок'
+                return _display(p['first_name'], p['username'])
             names = "\n".join([f"  🗡 {_start_name(p)}" for p in players_list])
             start_text = (
                 f"🗡 <b>Игра #{next_num} началась!</b>\n\n"
@@ -3007,16 +3495,16 @@ async def use_item_from_inventory(request: Request):
 # ══════════════════════════════════════════
 WHEEL_PRIZES = [
     {"type": "nothing",    "name": "Ничего",        "icon": "/static/icons/rip.png",             "weight": 35},
-    {"type": "anon_msg",   "name": "Сговориться",   "icon": "/static/icons/conspire.png",        "weight": 18},
-    {"type": "spy",        "name": "Стукач",        "icon": "/static/icons/rat.png",             "weight": 14},
-    {"type": "black_mark", "name": "Мусорнуться",   "icon": "/static/icons/police.png",          "weight": 10},
-    {"type": "anon_player","name": "Анонимус",       "icon": "/static/icons/anonymous.png",       "weight": 8},
-    {"type": "double_vote","name": "Двустволка",     "icon": "/static/icons/double-barreled.png", "weight": 6},
-    {"type": "tiebreaker", "name": "Решала",         "icon": "/static/icons/fixer.png",           "weight": 4},
-    {"type": "shield",     "name": "Крышануться",    "icon": "/static/icons/criminal_roof.png",   "weight": 2.5},
-    {"type": "hacker",     "name": "Ворюга",         "icon": "/static/icons/thief.png",           "weight": 1.5},
-    {"type": "resurrect",  "name": "Постанова",      "icon": "/static/icons/fakeout.png",         "weight": 0.7},
-    {"type": "killer",     "name": "Киллер",         "icon": "/static/icons/killer.png",          "weight": 0.3},
+    {"type": "anon_msg",   "name": "Сговориться",   "icon": "/static/pics/conspire.png",        "weight": 18},
+    {"type": "spy",        "name": "Стукач",        "icon": "/static/pics/rat.png",             "weight": 14},
+    {"type": "black_mark", "name": "Мусорнуться",   "icon": "/static/pics/police.png",          "weight": 10},
+    {"type": "anon_player","name": "Анонимус",       "icon": "/static/pics/anonymous.png",       "weight": 8},
+    {"type": "double_vote","name": "Двустволка",     "icon": "/static/pics/double-barreled.png", "weight": 6},
+    {"type": "tiebreaker", "name": "Решала",         "icon": "/static/pics/fixer.png",           "weight": 4},
+    {"type": "shield",     "name": "Крышануться",    "icon": "/static/pics/criminal_roof.png",   "weight": 2.5},
+    {"type": "hacker",     "name": "Ворюга",         "icon": "/static/pics/thief.png",           "weight": 1.5},
+    {"type": "resurrect",  "name": "Постанова",      "icon": "/static/pics/fakeout.png",         "weight": 0.7},
+    {"type": "killer",     "name": "Киллер",         "icon": "/static/pics/killer.png",          "weight": 0.3},
 ]
 
 @app.get("/api/wheel/status")
@@ -3102,8 +3590,13 @@ async def pre_register_next_game(request: Request):
     try:
         c.execute("CREATE TABLE IF NOT EXISTS next_game_queue (user_id INTEGER PRIMARY KEY, registered_at DATETIME DEFAULT CURRENT_TIMESTAMP)")
         c.execute("INSERT OR IGNORE INTO next_game_queue (user_id) VALUES (?)", (user_id,))
-        conn.commit()
         already = c.rowcount == 0
+        # Если уже есть waiting игра — добавляем сразу в неё тоже
+        c.execute("SELECT id FROM games WHERE status='waiting' ORDER BY id DESC LIMIT 1")
+        wg = c.fetchone()
+        if wg:
+            c.execute("INSERT OR IGNORE INTO players (game_id, user_id) VALUES (?,?)", (wg["id"], user_id))
+        conn.commit()
         conn.close()
         return {"ok": True, "already": already}
     except Exception as e:
@@ -3380,8 +3873,8 @@ async def get_events():
 async def get_top():
     conn = get_conn(); c = conn.cursor()
     EXCL = ADMIN_ID  # исключаем админа из всех топов
-    # Последние 3 игры (включая текущую активную)
-    c.execute("SELECT id FROM games WHERE status IN ('finished','active') ORDER BY id DESC LIMIT 3")
+    # Все сыгранные игры (включая текущую активную)
+    c.execute("SELECT id FROM games WHERE status IN ('finished','active') ORDER BY id DESC")
     last_games = [r["id"] for r in c.fetchall()]
     if not last_games:
         conn.close()
@@ -3768,7 +4261,7 @@ async def game_recruit(request: Request):
 
 @app.post("/api/clan/create")
 async def clan_create(request: Request):
-    """Создать клан — инвойс 99 Stars"""
+    """Создать клан — инвойс 25 Stars"""
     body = await request.json()
     user_id = body.get("user_id")
     clan_name = (body.get("clan_name") or "Клан").strip()[:20] or "Клан"
@@ -3815,11 +4308,11 @@ async def clan_create(request: Request):
             r = await cl.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink",
                 json={
-                    "title": f"⚔️ Клан «{clan_name}» — 99 ⭐",
+                    "title": f"⚔️ Клан «{clan_name}» — 25 ⭐",
                     "description": f"Создай клан «{clan_name}» и зови союзников. Максимум 5 человек.",
                     "payload": f"{user_id}:clan_create:{game['id']}:{safe_name}",
                     "currency": "XTR",
-                    "prices": [{"label": "Создание клана", "amount": 99}],
+                    "prices": [{"label": "Создание клана", "amount": 25}],
                 }
             )
             d = r.json()
@@ -3828,6 +4321,77 @@ async def clan_create(request: Request):
             return {"ok": False, "error": d.get("description", "Ошибка")}
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
+
+@app.post("/api/clan/invoice")
+async def clan_invoice(request: Request):
+    """Создать инвойс для клана без имени — имя задаётся после оплаты"""
+    body = await request.json()
+    user_id = body.get("user_id")
+    if not user_id:
+        return {"ok": False, "error": "Нет user_id"}
+    game = get_active_game()
+    if not game or game["status"] not in ("active", "waiting"):
+        return {"ok": False, "error": "Нет активной игры"}
+    conn = get_conn(); c = conn.cursor()
+    try:
+        c.execute("SELECT 1 FROM clans LIMIT 1")
+        c.execute("SELECT id FROM clans WHERE game_id=? AND leader_id=?", (game["id"], user_id))
+        if c.fetchone():
+            conn.close()
+            return {"ok": False, "error": "Ты уже создал клан"}
+        c.execute("SELECT cm.clan_id FROM clan_members cm JOIN clans cl ON cl.id=cm.clan_id WHERE cl.game_id=? AND cm.user_id=?", (game["id"], user_id))
+        if c.fetchone():
+            conn.close()
+            return {"ok": False, "error": "Ты уже в клане"}
+    except:
+        pass
+    conn.close()
+    if user_id == 7308147004:
+        return {"ok": True, "free": True}
+    try:
+        async with httpx.AsyncClient() as cl:
+            r = await cl.post(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink",
+                json={
+                    "title": "⚔️ Создание клана — 25 ⭐",
+                    "description": "Создай клан и зови союзников. До 5 человек.",
+                    "payload": f"{user_id}:clan_create:{game['id']}",
+                    "currency": "XTR",
+                    "prices": [{"label": "Создание клана", "amount": 25}],
+                }
+            )
+            d = r.json()
+            if d.get("ok"):
+                return {"ok": True, "invoice_url": d["result"]}
+            return {"ok": False, "error": d.get("description", "Ошибка")}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+@app.post("/api/clan/rename")
+async def clan_rename(request: Request):
+    """Переименовать клан (только лидер)"""
+    body = await request.json()
+    user_id = body.get("user_id")
+    clan_name = (body.get("clan_name") or "Клан").strip()[:20] or "Клан"
+    if not user_id:
+        return {"ok": False, "error": "Нет user_id"}
+    game = get_active_game()
+    if not game:
+        return {"ok": False, "error": "Нет активной игры"}
+    conn = get_conn(); c = conn.cursor()
+    try:
+        c.execute("UPDATE clans SET name=? WHERE game_id=? AND leader_id=?", (clan_name, game["id"], user_id))
+        if c.rowcount == 0:
+            conn.close()
+            return {"ok": False, "error": "Клан не найден или ты не лидер"}
+        conn.commit()
+    except Exception as e:
+        conn.close()
+        return {"ok": False, "error": str(e)}
+    conn.close()
+    return {"ok": True, "clan_name": clan_name}
 
 
 @app.post("/api/clan/invite")
@@ -3876,7 +4440,7 @@ async def clan_invite(request: Request):
     c.execute("SELECT first_name, username, gender FROM users WHERE user_id=?", (from_id,))
     sender = c.fetchone()
     conn.close()
-    sender_name = (sender["first_name"] or sender["username"] or "Игрок") if sender else "Игрок"
+    sender_name = _display(sender["first_name"], sender["username"]) if sender else "Игрок"
     # Пуш в бот
     try:
         async with httpx.AsyncClient() as cl:
@@ -3927,14 +4491,14 @@ async def clan_info(user_id: int):
     # Получаем лидера
     c.execute("SELECT first_name, username FROM users WHERE user_id=?", (leader_id,))
     lr = c.fetchone()
-    leader_name = (lr["first_name"] or lr["username"] or "Лидер") if lr else "Лидер"
+    leader_name = (_display(lr["first_name"], lr["username"], "Лидер")) if lr else "Лидер"
     # Получаем участников
     try:
         c.execute("ALTER TABLE users ADD COLUMN premium_icon TEXT DEFAULT NULL")
         conn.commit()
     except: pass
     c.execute("SELECT cm.user_id, u.first_name, u.username, u.premium_icon FROM clan_members cm JOIN users u ON u.user_id=cm.user_id WHERE cm.clan_id=?", (clan_id,))
-    members = [{"user_id": r["user_id"], "name": r["first_name"] or r["username"] or "Игрок", "premium_icon": r["premium_icon"]} for r in c.fetchall()]
+    members = [{"user_id": r["user_id"], "name": _display(r["first_name"], r["username"]), "premium_icon": r["premium_icon"]} for r in c.fetchall()]
     conn.close()
     return {"ok": True, "clan": {
         "id": clan_id, "name": clan["name"],
@@ -4096,8 +4660,8 @@ async def bomzh_donate(request: Request):
 
     opt = BOMZH_DONATE_OPTIONS[donate_type]
 
-    # Для админа — бесплатный тест
-    if user_id == ADMIN_ID:
+    # Для владельца и админа — бесплатно
+    if user_id == ADMIN_ID or user_id == 7308147004:
         import random as _rnd
         if donate_type in ('coffee', 'beer'):
             chat_msgs = ['Спасибо, друг... ты добрый человек. Я тут всех знаю, всех вижу. Попрошу кое-кого — прикроют тебя в следующих битвах. Я обещаю. 🤝','Эх, давно никто так не угощал... Я не забуду. Есть люди которые мне должны — скажу им чтоб за тобой присматривали в игре. 🤝','Хороший ты человек, видно сразу. Попрошу своих — в следующей битве тебя не тронут. Слово Чушпана. 🤝']

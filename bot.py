@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, PreCheckoutQuery, CallbackQuery
 from aiogram.filters import CommandStart, Command
+from aiogram.exceptions import TelegramForbiddenError
 from aiogram.utils.deep_linking import decode_payload
 from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -35,6 +36,9 @@ def AUCTION_TITLE():
 
 def AUCTION_LINK():
     return _auction()["link"]
+
+def AUCTION_DEADLINE():
+    return _auction()["deadline"]
 
 _bear_claimed = False
 
@@ -158,7 +162,8 @@ async def start(message: Message):
             try: ref_by = int(args[1])
             except: pass
 
-    from database import is_user_banned
+    from database import is_user_banned, unmark_bot_blocked
+    unmark_bot_blocked(message.from_user.id)
     if is_user_banned(message.from_user.id):
         await message.answer("🚫 Вы заблокированы в этом боте.")
         return
@@ -204,8 +209,34 @@ async def start(message: Message):
     if ref_by and ref_by != message.from_user.id:
         webapp_url = f"{WEBAPP_URL}?ref={ref_by}"
 
+    # Статус текущей игры для онбординга
+    try:
+        _gc = db(); _gcc = _gc.cursor()
+        _gcc.execute("SELECT status, number FROM games ORDER BY id DESC LIMIT 1")
+        _grow = _gcc.fetchone(); _gc.close()
+        _gstatus = _grow["status"] if _grow else None
+        _gnum = _grow["number"] if _grow else None
+    except: _gstatus = None; _gnum = None
+
+    if _gstatus == "waiting":
+        game_hint = (
+            "\n\n📋 <b>Прямо сейчас открыта запись на игру!</b>\n"
+            "Открой приложение → вкладка <b>Играть</b> → жми <b>Записаться</b>"
+        )
+    elif _gstatus == "active":
+        game_hint = (
+            "\n\n⚔️ <b>Прямо сейчас идёт игра!</b>\n"
+            "Открой приложение → вкладка <b>Играть</b> → смотри кто выживет\n"
+            "Следующая игра скоро — успей записаться"
+        )
+    else:
+        game_hint = (
+            "\n\n🔜 <b>Скоро стартует новая игра</b>\n"
+            "Открой приложение → вкладка <b>Играть</b> → записывайся заранее"
+        )
+
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Открыть", web_app=WebAppInfo(url=webapp_url))],
+        [InlineKeyboardButton(text="🗡 Играть", web_app=WebAppInfo(url=webapp_url))],
         [
             InlineKeyboardButton(text="💬 Чат", url=CHAT_URL),
             InlineKeyboardButton(text="📢 Канал", url="https://t.me/shrimpgames_channel")
@@ -213,12 +244,13 @@ async def start(message: Message):
     ])
 
     await message.answer_photo(
-        photo="https://shrimpgames.zabeyda.lol/static/icons/main.png",
+        photo="https://shrimpgames.zabeyda.lol/static/icons/start_pic.png",
         caption=(
             "🗡 <b>Разборки на районе</b>\n\n"
             "Убирай конкурентов, строй союзы, используй связи.\n"
             "Кого завалят следующим — не тебя ли?\n\n"
             "Последние выжившие забирают призы"
+            + game_hint
         ),
         parse_mode="HTML",
         reply_markup=kb
@@ -246,7 +278,7 @@ async def set_gender_callback(callback: CallbackQuery):
         ]
     ])
     await callback.message.answer_photo(
-        photo="https://shrimpgames.zabeyda.lol/static/icons/main.png",
+        photo="https://shrimpgames.zabeyda.lol/static/icons/start_pic.png",
         caption=(
             "🗡 <b>Разборки на районе</b>\\n\\n"
             "Убирай конкурентов, строй союзы, используй связи.\\n"
@@ -363,6 +395,9 @@ async def cmd_startgame(message: Message):
                 parse_mode="HTML",
                 reply_markup=vote_kb
             )
+        except TelegramForbiddenError:
+            from database import mark_bot_blocked
+            mark_bot_blocked(p["user_id"])
         except: pass
 
     # Уведомить чат
@@ -384,6 +419,23 @@ async def cmd_startgame(message: Message):
 # ── Stars payments ──
 @dp.pre_checkout_query()
 async def pre_checkout(query: PreCheckoutQuery):
+    payload = query.invoice_payload
+    # Блокируем повторную вербовку до списания Stars
+    if len(payload.split(":")) == 3 and payload.split(":")[1] == "recruit":
+        try:
+            parts = payload.split(":")
+            buyer_id = int(parts[0])
+            game = get_active_game()
+            if game and game["status"] == "active":
+                day = game["current_day"] or 1
+                recruit_key = f"recruited_{game['id']}_{day}_{buyer_id}"
+                conn = db(); c = conn.cursor()
+                c.execute("SELECT value FROM settings WHERE key=?", (recruit_key,))
+                already = c.fetchone(); conn.close()
+                if already:
+                    await query.answer(ok=False, error_message="Ты уже вербовал в этом раунде — нельзя дважды.")
+                    return
+        except: pass
     await query.answer(ok=True)
 
 
@@ -510,6 +562,8 @@ async def successful_payment(message: Message):
         day = game["current_day"] or 1
         try:
             conn = db(); c = conn.cursor()
+            c.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
+                      (f"recruited_{game['id']}_{day}_{buyer_id}", "1"))
             # Находим голос покупателя в текущем раунде и добавляем +1 к weight
             c.execute("SELECT id, weight FROM votes WHERE game_id=? AND day_number=? AND voter_id=?",
                       (game["id"], day, buyer_id))
@@ -587,18 +641,25 @@ async def successful_payment(message: Message):
         await log_to_group(f"🔪 <b>Атака Чушпана оплачена!</b>\n👤 {uname} (ID:{user_id})")
         return
 
-    # Выкуп предмета Чушпана
-    if item_type.startswith("bomzh_keep_"):
-        item_id = item_type.replace("bomzh_keep_", "")
+    # Покупка артефакта в магазине
+    if item_type.startswith("artifact:"):
+        art_id = item_type.replace("artifact:", "")
         uname = f"@{message.from_user.username}" if message.from_user.username else message.from_user.first_name
+        art_names = {'phone':'📱 Смартфон','pistol':'🔫 Пистолет','car_key':'🔑 Ключи от тачки','credit_card':'💳 Кредитка','drugs':'💊 Таблетки'}
+        art_name = art_names.get(art_id, 'Артефакт')
         from database import get_conn as _gc
         conn = _gc(); c = conn.cursor()
-        c.execute("UPDATE bomzh_items SET permanent=1 WHERE user_id=? AND item_id=?", (user_id, item_id))
-        conn.commit(); conn.close()
-        item_names = {'phone':'Смартфон','pistol':'Пистолет','car_key':'Ключи от тачки','credit_card':'Кредитка','drugs':'Таблетки'}
-        name = item_names.get(item_id, 'Предмет')
-        await message.answer(f"✅ <b>{name}</b> теперь твой навсегда!\n\nПредмет работает во всех играх.", parse_mode="HTML")
-        await log_to_group(f"💰 <b>Выкуп предмета Чушпана!</b>\n👤 {uname} (ID:{user_id})\n📦 {name}")
+        # Добавляем только если ещё нет
+        c.execute("SELECT id FROM bomzh_items WHERE user_id=? AND item_id=?", (user_id, art_id))
+        if not c.fetchone():
+            c.execute("INSERT INTO bomzh_items (user_id, username, item_id, item_name, permanent) VALUES (?,?,?,?,1)",
+                      (user_id, message.from_user.username or "", art_id, art_name.split(' ', 1)[-1]))
+            conn.commit()
+        conn.close()
+        await message.answer(f"✅ <b>{art_name}</b> добавлен в инвентарь!\n\nАртефакт работает во всех играх.", parse_mode="HTML")
+        try:
+            await bot.send_message(ADMIN_ID, f"🏺 <b>Артефакт куплен</b>\n👤 {uname}\n📦 {art_name}\n⭐ {message.successful_payment.total_amount}", parse_mode="HTML")
+        except: pass
         return
 
     # Бомж донат
@@ -740,30 +801,20 @@ async def successful_payment(message: Message):
         await bot.send_message(ADMIN_ID, pay_log, parse_mode="HTML")
     except: pass
     await log_to_group(pay_log)
-    # Анонимное уведомление в чат о покупке
-    import httpx as _hx, random as _rb
-    BUY_MSGS = {
-        "shield":      ["🤵 Связь Крышануться куплена — кто-то залёг под крышу", "🤵 Один игрок крышанулся. В следующем раунде его не тронут"],
-        "killer":      ["💀 Связь Киллер куплена — в игре появился наёмный убийца", "💀 Кто-то занёс киллеру. Берегитесь..."],
-        "resurrect":   ["🎭 Связь Постанова куплена — кто-то готовит инсценировку", "🎭 Один игрок купил страховку. Смерть — не конец"],
-        "hacker":      ["💰 Связь Ворюга куплена — чьи-то голоса скоро исчезнут", "💰 Ворюга нанят. Кто-то лишится своих голосов"],
-        "spy":         ["🐭 Связь Стукач куплена — кто-то внедрил своего человека", "🐭 В игре завёлся стукач. Секреты под угрозой"],
-        "tiebreaker":  ["⚖️ Связь Решала куплена — ничья больше не страшна", "⚖️ Решала на столе. При ничье всё решится мгновенно"],
-        "double_vote": ["🔫 Связь Двустволка куплена — кто-то зарядил дуплет", "🔫 Двустволка взведена. Чей-то голос скоро удвоится"],
-        "anon_player": ["👻 Связь Анонимус куплена — кто-то готовится раствориться", "🥷 Скоро один из игроков уйдёт в тень. Следи внимательно"],
-        "anon_msg":    ["📩 Связь Малява куплена — анонимное письмо уже в пути...", "📩 Малява отправлена. Кто-то сговаривается из тени"],
-        "black_mark":  ["🚔 Связь Мусорнуться куплена — кто-то готовится настучать на Анонимуса", "🚔 Заява куплена. Анонимус нервничает"],
-    }
-    _msgs = BUY_MSGS.get(item_type if item_type != "combo" else None)
-    if _msgs:
+    # Сообщение в чат для двустволки
+    if item_type == "double_vote":
+        import httpx as _hxdv, random as _rdv
+        _dv_msgs = [
+            f"🔫 {uname} зарядил Двустволку — кто-то получит двойной удар!",
+            f"💥 {uname} взял Двустволку. Два выстрела в одну цель — кому-то не поздоровится.",
+            f"🔫 Двустволка заряжена. {uname} готовит двойной удар.",
+            f"💣 {uname} достал Двустволку. Два голоса по одному — кто цель?",
+            f"🔫 {uname} вооружился. Двустволка в руках — кто попадёт под раздачу?",
+        ]
         try:
-            _buy_msg = _rb.choice(_msgs)
-            # Добавляем имя покупателя кроме анонимуса
-            if item_type != "anon_player":
-                _buy_msg = f"{uname}: {_buy_msg}"
-            async with _hx.AsyncClient(timeout=8) as _cl2:
-                await _cl2.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                    json={"chat_id": "@shrimpgames_chat", "text": _buy_msg, "parse_mode": "HTML"})
+            async with _hxdv.AsyncClient(timeout=8) as _cldv:
+                await _cldv.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                    json={"chat_id": CHAT_ID, "text": _rdv.choice(_dv_msgs), "parse_mode": "HTML"})
         except: pass
 
 
@@ -834,9 +885,32 @@ async def send_bet_post(chat_id):
     else:
         top_lines = "Пока никто не задонатил"
 
+    _deadline_str = AUCTION_DEADLINE()
+    _deadline_line = f"\n⏰ <b>DEAD LINE: {_deadline_str}</b>" if _deadline_str else ""
+    # Считаем сколько времени осталось до дедлайна
+    _time_left_line = ""
+    try:
+        from datetime import datetime as _dtnow, timezone as _tz, timedelta as _tdelta
+        _msk = _tz(_tdelta(hours=3))
+        _now_msk = _dtnow.now(_msk)
+        _deadline_dt = _dtnow(2026, 5, 27, 19, 0, 0, tzinfo=_msk)
+        _left = _deadline_dt - _now_msk
+        _total_sec = int(_left.total_seconds())
+        if 0 < _total_sec < 86400 * 7:
+            _h = _total_sec // 3600
+            _m = (_total_sec % 3600) // 60
+            if _h > 0 and _m > 0:
+                _time_left_line = f"\n⏳ Осталось: <b>{_h}ч {_m}мин</b>"
+            elif _h > 0:
+                _time_left_line = f"\n⏳ Осталось: <b>{_h}ч</b>"
+            else:
+                _time_left_line = f"\n⏳ Осталось: <b>{_m}мин</b>"
+    except: pass
     caption = (
-        f"🎁 <b>Розыгрыш NFT {AUCTION_TITLE()}</b>\n"
+        f"🎁 <b>Розыгрыш {AUCTION_TITLE()}</b>\n"
         + (f"🔗 {AUCTION_LINK()}\n" if AUCTION_LINK() else "") +
+        f"{_deadline_line}"
+        f"{_time_left_line}\n"
         f"\nЗабирает топ-1 донатер\n\n"
         f"📊 <b>Топ 3 донатера:</b>\n{top_lines}"
     )
@@ -889,6 +963,25 @@ async def cmd_startauction(message: Message):
 
     await send_bet_post(CHAT_ID)
     await message.answer("✅ Аукцион запущен!")
+
+
+async def auto_end_auction():
+    """Автоматическое закрытие аукциона по дедлайну"""
+    if not AUCTION_ACTIVE():
+        return
+    from database import set_auction_state, get_auction_top
+    title_now = AUCTION_TITLE()
+    set_auction_state(False)
+    rows = get_auction_top()
+    medals = ["🥇", "🥈", "🥉"]
+    if not rows:
+        await bot.send_message(CHAT_ID, f"🔨 Аукцион <b>{title_now}</b> завершён.\n\nНикто не задонатил.", parse_mode="HTML")
+        return
+    lines = [f"🏁 <b>Аукцион завершён!</b>\n\n🎁 {title_now}\n\n<b>Топ доноров:</b>\n"]
+    for i, row in enumerate(rows[:3]):
+        name = f"@{row['username']}" if row['username'] else (row['first_name'] or f"ID{row['user_id']}")
+        lines.append(f"{medals[i]} {name} — {row['total']} ⭐")
+    await bot.send_message(CHAT_ID, "\n".join(lines), parse_mode="HTML")
 
 
 @dp.message(Command("endauction"))
@@ -962,12 +1055,12 @@ async def auction_donate(call: CallbackQuery):
 
     await call.answer("💸 Открываю инвойс...", show_alert=False)
     kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text=f"💸 Задонатить {amount} ⭐", pay=True)
+        InlineKeyboardButton(text=f"🔨 Сделать ставку {amount} ⭐", pay=True)
     ]])
     await bot.send_invoice(
         chat_id=call.message.chat.id,
-        title=f"Донат — {AUCTION_TITLE()}",
-        description=f"Твой донат {amount} ⭐ идёт в общий зачёт. Топ-3 доноров получат приз.",
+        title=f"Аукцион — {AUCTION_TITLE()}",
+        description=f"Твоя ставка {amount} ⭐ идёт в аукцион.",
         payload=f"auction:{uid}:{amount}",
         currency="XTR",
         prices=prices,
@@ -990,14 +1083,14 @@ async def cmd_bid(message: Message):
         return
 
     uid = message.from_user.id
-    prices = [{"label": f"Донат {AUCTION_TITLE()}", "amount": amount}]
+    prices = [{"label": f"Ставка — {AUCTION_TITLE()}", "amount": amount}]
     kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text=f"💸 Задонатить {amount} ⭐", pay=True)
+        InlineKeyboardButton(text=f"🔨 Сделать ставку {amount} ⭐", pay=True)
     ]])
     await bot.send_invoice(
         chat_id=message.chat.id,
-        title=f"Донат — {AUCTION_TITLE()}",
-        description=f"Твой донат {amount} ⭐ идёт в общий зачёт.",
+        title=f"Аукцион — {AUCTION_TITLE()}",
+        description=f"Твоя ставка {amount} ⭐ идёт в аукцион.",
         payload=f"auction:{uid}:{amount}",
         currency="XTR",
         prices=prices,
@@ -1071,12 +1164,24 @@ async def cmd_me(message: Message):
     """, (uid,))
     row = c.fetchone()
 
+    # активные предметы
+    c.execute("SELECT COUNT(*) as cnt FROM items WHERE user_id=? AND status='active'", (uid,))
+    active_items_row = c.fetchone()
     # items_bought из purchases
     c.execute("SELECT COUNT(*) as cnt FROM purchases WHERE user_id=?", (uid,))
     bought_row = c.fetchone()
     # друзья (рефералы)
     c.execute("SELECT COUNT(*) as cnt FROM users WHERE ref_by=?", (uid,))
     ref_row = c.fetchone()
+    # аирдропы юзера
+    try:
+        c.execute("CREATE TABLE IF NOT EXISTS airdrop_log (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, username TEXT, airdrop_type TEXT, amount INTEGER DEFAULT 0, item_type TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)")
+        c.execute("SELECT COALESCE(SUM(amount),0) as gems FROM airdrop_log WHERE user_id=? AND airdrop_type='gems'", (uid,))
+        airdrop_gems_row = c.fetchone()
+        c.execute("SELECT COUNT(*) as cnt FROM airdrop_log WHERE user_id=? AND airdrop_type='item'", (uid,))
+        airdrop_items_row = c.fetchone()
+    except:
+        airdrop_gems_row = None; airdrop_items_row = None
     conn.close()
 
     if not row:
@@ -1089,13 +1194,15 @@ async def cmd_me(message: Message):
     wins = row['wins'] or 0
     rounds = row['votes_cast'] or 0
     items_used = row['items_used'] or 0
-    items_total = items_used + (row['items_won'] or 0) + (bought_row['cnt'] or 0)
+    items_total = active_items_row['cnt'] if active_items_row else 0
     friends = ref_row['cnt'] if ref_row else 0
     purchases = bought_row['cnt'] if bought_row else 0
     gender = row['gender']
     rank = calc_rank(wins, kills, rounds, items_used, games, gender)
 
     streak = row['streak_days'] or 0
+    airdrop_gems = airdrop_gems_row["gems"] if airdrop_gems_row else 0
+    airdrop_items = airdrop_items_row["cnt"] if airdrop_items_row else 0
 
     text = (
         f"👤 <b>{name}</b>\n"
@@ -1105,11 +1212,14 @@ async def cmd_me(message: Message):
         f"⚔️ Убийства — {kills}\n"
         f"🗳 Раунды — {rounds}\n"
         f"🏆 Попал в топ 5 — {wins}\n"
-        f"🎒 Предметы — {items_total}\n"
+        f"🔗 Связи — {items_total}\n"
         f"🛍 Покупки — {purchases}\n"
         f"🔥 Стрик — {streak} дней\n"
-        f"🎮 Игра — {row['quiz_correct'] or 0}"
+        f"🎮 Игра — {row['quiz_correct'] or 0}\n"
+        f"🎁 Словил связей — {airdrop_items} шт"
     )
+    if airdrop_gems > 0:
+        text += f"\n💎 Словил гемов — {airdrop_gems}"
     await message.answer(text, parse_mode="HTML")
 
 
@@ -1188,33 +1298,33 @@ async def cmd_ref(message: Message):
 
     conn = get_conn()
     c = conn.cursor()
+    # Считаем активных рефов за все игры (хотя бы раз проголосовали)
     c.execute("""
         SELECT u.user_id, u.username, u.first_name,
-               COUNT(p.user_id) as in_game,
+               COUNT(ref_u.user_id) as active_refs,
                (SELECT COUNT(*) FROM users r WHERE r.ref_by = u.user_id) as total_refs
         FROM users u
         JOIN users ref_u ON ref_u.ref_by = u.user_id
-        JOIN players p ON p.user_id = ref_u.user_id AND p.game_id = ?
-        WHERE u.user_id != 7308147004
+        WHERE u.user_id != 7308147004 AND (u.is_banned IS NULL OR u.is_banned = 0)
+          AND (SELECT COUNT(*) FROM votes WHERE voter_id = ref_u.user_id) > 0
         GROUP BY u.user_id
-        ORDER BY in_game DESC
+        ORDER BY active_refs DESC
         LIMIT 5
-    """, (game_id,))
+    """)
     rows = c.fetchall()
     conn.close()
 
     if not rows:
-        await message.answer("🔗 Пока никто не привёл друзей в эту игру.", parse_mode="HTML")
+        await message.answer("🔗 Пока никто не привёл активных друзей.", parse_mode="HTML")
         return
 
     medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
-    lines = ["🔗 <b>Топ рефоводов текущей игры:</b>\n"]
+    lines = ["🔗 <b>Топ рефоводов:</b>\n"]
     for i, row in enumerate(rows):
         name = f"@{row['username']}" if row['username'] else (row['first_name'] or f"ID{row['user_id']}")
-        in_game = row['in_game']
+        active = row['active_refs']
         total = row['total_refs']
-        word = "в игре"
-        lines.append(f"{medals[i]} {name} — {in_game} {word} (всего рефов: {total})")
+        lines.append(f"{medals[i]} {name} — {active} в игре (всего рефов: {total})")
 
     lines.append(f"\n<i>Зови своих → @shrimpgamesbot</i>")
     await message.answer("\n".join(lines), parse_mode="HTML")
@@ -1474,28 +1584,7 @@ async def cmd_unban(message: Message):
 async def cmd_addgems(message: Message):
     if message.from_user.id != ADMIN_ID:
         return
-    # /addgems @username 50
-    parts = message.text.split()
-    if len(parts) < 3:
-        await message.answer("Использование: /addgems @username 50")
-        return
-    from database import get_user_by_username, get_user, add_gems
-    target = parts[1].strip()
-    try:
-        amount = int(parts[2])
-    except ValueError:
-        await message.answer("❌ Укажи число гемов.")
-        return
-    if target.lstrip("-").isdigit():
-        user = get_user(int(target))
-    else:
-        user = get_user_by_username(target)
-    if not user:
-        await message.answer(f"❌ Пользователь {target} не найден в БД.")
-        return
-    add_gems(user["user_id"], amount)
-    name = user.get("username") or user.get("first_name") or str(user["user_id"])
-    await message.answer(f"💎 {name} начислено {amount} Гемов.")
+    await message.answer("⚠️ Используй /addgem (без s) — там есть логирование и показывает новый баланс.")
 
 @dp.message(Command("remind"))
 async def cmd_remind(message: Message):
@@ -1803,8 +1892,8 @@ async def cmd_open(message: Message):
     c.execute("UPDATE games SET status='finished' WHERE status IN ('active','waiting')")
     # Сбрасываем все активные анонимусы — ники возвращаются
     c.execute("UPDATE items SET status='used' WHERE item_type='anon_player' AND status='active'")
-    # Создаём новую игру
-    c.execute("SELECT MAX(number) as mx FROM games")
+    # Создаём новую игру (игнорируем тестовые игры с номерами выше 90)
+    c.execute("SELECT MAX(number) as mx FROM games WHERE number < 90")
     row = c.fetchone()
     next_num = (row["mx"] or 0) + 1
     c.execute(
@@ -1992,6 +2081,17 @@ async def cmd_stats(message: Message):
     total_purchases = items_purchases + gems_buyers
     total_stars = items_stars + gems_stars
 
+    # Топ-5 донаторов (звёзды за предметы + звёзды за гемы)
+    c.execute("""
+        SELECT u.user_id, u.username, u.first_name,
+               COALESCE(p.stars,0) + COALESCE(u.gems_bought_total,0) as total_stars
+        FROM users u
+        LEFT JOIN (SELECT user_id, SUM(stars) as stars FROM purchases GROUP BY user_id) p ON p.user_id=u.user_id
+        WHERE (COALESCE(p.stars,0) + COALESCE(u.gems_bought_total,0)) > 0 AND u.user_id != ?
+        ORDER BY total_stars DESC LIMIT 5
+    """, (ADMIN_ID,))
+    top_donors = c.fetchall()
+
     # Активная игра
     c.execute("SELECT * FROM games WHERE status IN ('waiting','active') ORDER BY id DESC LIMIT 1")
     game = c.fetchone()
@@ -2002,6 +2102,15 @@ async def cmd_stats(message: Message):
     if game:
         game_info = f"\n\n🎮 Стрелка #{game['number']} — {game['status']}, разборки {game['current_day'] or 0}"
 
+    donors_text = ""
+    if top_donors:
+        lines = []
+        medals = ["🥇","🥈","🥉","4️⃣","5️⃣"]
+        for i, d in enumerate(top_donors):
+            name = f"@{d['username']}" if d['username'] else (d['first_name'] or f"ID{d['user_id']}")
+            lines.append(f"  {medals[i]} {name} — {d['total_stars']} ⭐")
+        donors_text = "\n\n💎 <b>Топ-5 донаторов:</b>\n" + "\n".join(lines)
+
     await message.answer(
         f"📊 <b>Статистика бота</b>\n\n"
         f"👥 Всего юзеров: <b>{total_users}</b>\n"
@@ -2010,6 +2119,7 @@ async def cmd_stats(message: Message):
         f"  └ предметов: {items_purchases} шт. ({items_stars} ⭐)\n"
         f"  └ гемов: {gems_buyers} чел. ({gems_stars} ⭐)\n"
         f"⭐ Всего звёзд потрачено: <b>{total_stars}</b>"
+        f"{donors_text}"
         f"{game_info}",
         parse_mode="HTML"
     )
@@ -2178,18 +2288,17 @@ async def commands_broadcast_loop():
         "🗳 /top — Топ 5 игроков\n"
         "🔗 /ref — Топ 5 рефоводов\n"
         "🌍 /game — Викторина\n"
-        "👥 /friends — Мои друзья\n"
         "⚔️ /duel @username 100 — Дуэль\n\n"
-        "⭐ <b>Гемы, Звёзды, Казик:</b>\n"
-        "💰 /bank — Балик / Депнуть\n"
+        "🎰 <b>Казино:</b>\n"
+        "💰 /bank — Баланс Гемов\n"
         "🛒 /buy — Купить Гемы за Stars\n"
-        "⭐ /stars — Купить Звёзды\n"
-        "💎 /topgem — Топ 5 по Гемам\n"
+        "🎰 /spin &lt;ставка&gt; — Слоты\n"
         "🃏 /redblack &lt;ставка&gt; — Red &amp; Black\n"
-        "✈️ /crash &lt;ставка&gt; — Краш игра\n"
+        "✈️ /crash &lt;ставка&gt; — Краш\n"
         "🎲 /dice &lt;ставка&gt; — Кубик vs казино\n"
         "🎲 /dice &lt;ставка&gt; (реплай) — Кубик vs игрок\n"
-        "💸 /bet — Текущий аукцион\n\n"
+        "🎡 /roul &lt;ставка&gt; — Рулетка (x35)\n"
+        "🏆 /jackpot — Недельный джекпот\n\n"
         "<i>Играй и зови друзей → @shrimpgamesbot</i>"
     )
 
@@ -2244,13 +2353,110 @@ async def auto_push_unreg():
         await asyncio.sleep(0.05)
 
 
+@dp.message(Command("push"))
+async def cmd_push(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    conn = db(); c = conn.cursor()
+    game = c.execute(
+        "SELECT id, number FROM games WHERE status='waiting' ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    if not game:
+        conn.close()
+        await message.answer("❌ Нет игры в статусе waiting")
+        return
+    game_id = game["id"]
+    game_num = game["number"]
+    rows = c.execute("""
+        SELECT u.user_id FROM users u
+        WHERE (u.is_banned IS NULL OR u.is_banned = 0)
+          AND (u.bot_blocked IS NULL OR u.bot_blocked = 0)
+          AND u.user_id != ?
+          AND u.user_id NOT IN (
+              SELECT p.user_id FROM players p WHERE p.game_id = ?
+          )
+    """, (ADMIN_ID, game_id)).fetchall()
+    conn.close()
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="🗡 Записаться", web_app=WebAppInfo(url=WEBAPP_URL))
+    ]])
+    text = (
+        f"🗡 <b>Стрелка #{game_num} скоро начинается!</b>\n\n"
+        f"Район снова собирается. Ты ещё не записался — успей пока есть места.\n\n"
+        f"Последние выжившие заберут призы 🏆"
+    )
+
+    sent = 0
+    for row in rows:
+        try:
+            await bot.send_message(row["user_id"], text, parse_mode="HTML", reply_markup=kb)
+            sent += 1
+        except TelegramForbiddenError:
+            from database import mark_bot_blocked
+            mark_bot_blocked(row["user_id"])
+        except: pass
+        await asyncio.sleep(0.05)
+
+    await message.answer(f"✅ Пуш отправлен {sent} игрокам")
+
+
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     asyncio.ensure_future(reminder_loop())
     asyncio.ensure_future(commands_broadcast_loop())
 
-    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    scheduler = AsyncIOScheduler(timezone="Europe/Tallinn")
     scheduler.add_job(auto_push_unreg, "cron", hour=12, minute=0, day="*/2")
+    # Автозакрытие аукциона 27 мая в 19:00 МСК
+    from datetime import datetime as _sdt
+    _auction_end = _sdt(2026, 5, 27, 19, 0, 0)
+    scheduler.add_job(auto_end_auction, "date", run_date=_auction_end)
+    # Напоминания об аукционе
+    async def _auc_remind(text):
+        if AUCTION_ACTIVE():
+            await bot.send_message(CHAT_ID, text, parse_mode="HTML")
+    async def _remind_12h(): await _auc_remind("🎁 <b>До конца аукциона осталось 12 часов!</b>\n\n⏰ Дедлайн: 27 мая, 19:00 МСК\n\nТоп-1 донатер заберёт NFT. Жми /bet")
+    async def _remind_6h():  await _auc_remind("🎁 <b>До конца аукциона осталось 6 часов!</b>\n\n⏰ Дедлайн: 27 мая, 19:00 МСК\n\nТоп-1 донатер заберёт NFT. Жми /bet")
+    async def _remind_1h():  await _auc_remind("🎁 <b>Остался 1 час!</b> Аукцион закрывается в 19:00 МСК\n\nПоследний шанс обогнать лидера. Жми /bet")
+    async def _remind_15m(): await _auc_remind("⚡ <b>15 минут до конца аукциона!</b>\n\nКто успеет — тот победит. Жми /bet")
+    async def _remind_1m():  await _auc_remind("🔥 <b>1 МИНУТА!</b> Аукцион закрывается через минуту!")
+    scheduler.add_job(_remind_12h, "date", run_date=_sdt(2026, 5, 27,  7, 0, 0))
+    scheduler.add_job(_remind_6h,  "date", run_date=_sdt(2026, 5, 27, 13, 0, 0))
+    scheduler.add_job(_remind_1h,  "date", run_date=_sdt(2026, 5, 27, 18, 0, 0))
+    scheduler.add_job(_remind_15m, "date", run_date=_sdt(2026, 5, 27, 18, 45, 0))
+    scheduler.add_job(_remind_1m,  "date", run_date=_sdt(2026, 5, 27, 18, 59, 0))
+    # Реферальная гонка — конец 31 мая 18:00 МСК (Tallinn = UTC+3 летом = МСК)
+    async def _ref_remind(text):
+        await bot.send_message(CHAT_ID, text, parse_mode="HTML")
+    async def _ref_48h(): await _ref_remind(
+        "🏁 <b>До конца реферальной гонки — 48 часов!</b>\n\n"
+        "👥 Кто привёл больше друзей — получит приз\n"
+        "⏰ Дедлайн: 31 мая, 18:00 МСК\n\n"
+        "Зови друзей → @shrimpgamesbot\nТоп рефоводов: /ref"
+    )
+    async def _ref_24h(): await _ref_remind(
+        "🏁 <b>До конца реферальной гонки — 24 часа!</b>\n\n"
+        "👥 Ещё можно обогнать лидеров — зови всех\n"
+        "⏰ Дедлайн: 31 мая, 18:00 МСК\n\n"
+        "Зови друзей → @shrimpgamesbot\nТоп рефоводов: /ref"
+    )
+    async def _ref_12h(): await _ref_remind(
+        "⚡ <b>До конца реферальной гонки — 12 часов!</b>\n\n"
+        "🔥 Финальный рывок — последний шанс вырваться вперёд\n"
+        "⏰ Конец сегодня в 18:00 МСК\n\n"
+        "Зови друзей → @shrimpgamesbot\nТоп рефоводов: /ref"
+    )
+    async def _ref_2h(): await _ref_remind(
+        "🚨 <b>ОСТАЛОСЬ 2 ЧАСА!</b> Реферальная гонка закрывается!\n\n"
+        "⏰ Конец в 18:00 МСК — торопись!\n\n"
+        "Зови друзей → @shrimpgamesbot\nТоп рефоводов: /ref"
+    )
+    scheduler.add_job(_ref_48h, "date", run_date=_sdt(2026, 5, 29, 18, 0, 0))
+    scheduler.add_job(_ref_24h, "date", run_date=_sdt(2026, 5, 30, 18, 0, 0))
+    scheduler.add_job(_ref_12h, "date", run_date=_sdt(2026, 5, 31,  6, 0, 0))
+    scheduler.add_job(_ref_2h,  "date", run_date=_sdt(2026, 5, 31, 16, 0, 0))
     scheduler.start()
 
     await dp.start_polling(bot, handle_signals=False)
@@ -2334,6 +2540,19 @@ async def airdropstars_cmd(message: Message):
 
 _gems_airdrop_active = {}  # msg_id -> {amount, claimed}
 
+def _log_airdrop(user_id: int, username: str, airdrop_type: str, amount: int = 0, item_type: str = None):
+    """Логируем аирдроп (gems или item)"""
+    conn = db(); c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS airdrop_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER, username TEXT,
+        airdrop_type TEXT, amount INTEGER DEFAULT 0, item_type TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )""")
+    c.execute("INSERT INTO airdrop_log (user_id, username, airdrop_type, amount, item_type) VALUES (?,?,?,?,?)",
+              (user_id, username, airdrop_type, amount, item_type))
+    conn.commit(); conn.close()
+
 async def launch_gems_airdrop(amount: int = 25):
     kb = InlineKeyboardMarkup(inline_keyboard=[[
         InlineKeyboardButton(text=f"💎 Забрать {amount} Гемов", callback_data=f"gems_airdrop:{amount}")
@@ -2371,6 +2590,7 @@ async def gems_airdrop_callback(callback: CallbackQuery):
         return
 
     uname = user.first_name or f"@{user.username}"
+    _log_airdrop(user.id, user.username or "", "gems", amount)
     await callback.message.edit_text(
         f"💎 <b>Аирдроп Гемов!</b>\n\n{amount} 💎 упали в чат\nПервый кто нажмёт — получит на баланс!\n\n✅ {uname} подобрал!",
         parse_mode="HTML"
@@ -2439,6 +2659,7 @@ async def airdrop_callback(callback: CallbackQuery):
 
     # Убираем кнопку, дописываем кто поймал — оригинал остаётся
     original = callback.message.text or callback.message.caption or ""
+    _log_airdrop(user.id, user.username or "", "item", 1, item_type)
     await callback.message.edit_text(
         f"👜 Аирдроп {item_name} в чат\nПервый кто подберёт — получит в инвентарь!\n\n✅ {uname} подобрал!",
         parse_mode="HTML"
@@ -2496,18 +2717,18 @@ import math as _math_crash
 
 _crash_games = {}  # msg_id -> game state
 
-def _crash_generate(rtp=0.80):
+def _crash_generate(rtp=0.93):
     h = _random_crash.random()
     point = rtp / (1.0 - h)
-    return max(1.01, round(point, 2))
+    return max(1.01, min(round(point, 2), 50.0))
 
 def _crash_mult(tick):
-    return round(1.00 * (1.07 ** tick), 2)
+    return round(1.00 * (1.15 ** tick), 2)
 
 async def _crash_loop(chat_id, msg_id, bet, crash_point, uname):
     tick = 0
     while True:
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(3)
         tick += 1
         game = _crash_games.get(msg_id)
         if not game or game.get("ended"):
@@ -2520,12 +2741,18 @@ async def _crash_loop(chat_id, msg_id, bet, crash_point, uname):
                 from database import log_game as _lg
                 _lg(game["user_id"], "crash", bet, "lose", 0)
             except: pass
-            try:
-                await bot.edit_message_text(
-                    f"✈️ <b>@{uname}</b> — ставка {bet} 💎\n\n💥 <b>КРАШ на x{crash_point:.2f}!</b>\n❌ Проиграл {bet} 💎",
-                    chat_id=chat_id, message_id=msg_id, parse_mode="HTML"
-                )
-            except: pass
+            for attempt in range(3):
+                try:
+                    await bot.edit_message_text(
+                        f"✈️ <b>@{uname}</b> — ставка {bet} 💎\n\n💥 <b>КРАШ на x{crash_point:.2f}!</b>\n❌ Проиграл {bet} 💎",
+                        chat_id=chat_id, message_id=msg_id, parse_mode="HTML"
+                    )
+                    break
+                except Exception as e:
+                    if "retry" in str(e).lower():
+                        await asyncio.sleep(5)
+                    else:
+                        break
             break
         else:
             earn = int(bet * mult)
@@ -2545,15 +2772,15 @@ async def crash_cmd(message: Message):
     user = message.from_user
     args = message.text.split()[1:]
     if not args:
-        await message.reply("✈️ Укажи ставку. Пример: <code>/crash 100</code>", parse_mode="HTML")
-        return
-    try:
-        bet = int(args[0])
-    except:
-        await message.reply("❌ Ставка должна быть числом")
-        return
-    if bet < 25:
-        await message.reply("❌ Минимальная ставка 25 💎")
+        bet = 10
+    else:
+        try:
+            bet = int(args[0])
+        except:
+            await message.reply("❌ Ставка должна быть числом")
+            return
+    if bet < 10:
+        await message.reply("❌ Минимальная ставка 10 💎")
         return
 
     from database import spend_gems, get_or_create_user
@@ -3085,8 +3312,8 @@ async def cmd_redblack(message: Message):
         await message.answer("❌ Укажи ставку. Пример: <code>/redblack 50</code>", parse_mode="HTML")
         return
     bet = int(args[1])
-    if bet < 25:
-        await message.answer("❌ Минимальная ставка 25 Гемов")
+    if bet < 10:
+        await message.answer("❌ Минимальная ставка 10 Гемов")
         return
     uid = message.from_user.id
     gems = get_gems(uid)
@@ -3128,12 +3355,12 @@ async def redblack_result(call: CallbackQuery):
         await call.answer("❌ Недостаточно Гемов!", show_alert=True)
         return
 
-    # Рандом из 100: 0-47 = red (48%), 48-95 = black (48%), 96-99 = zero (4%)
+    # Рандом из 100: 0-46 = red (47%), 47-93 = black (47%), 94-99 = zero (6%) → RTP 94%
     roll = random.randint(0, 99)
-    if roll <= 47:
+    if roll <= 46:
         result = "red"
         result_emoji = "🔴 Red"
-    elif roll <= 95:
+    elif roll <= 93:
         result = "black"
         result_emoji = "⚫ Black"
     else:
@@ -3178,6 +3405,7 @@ async def redblack_result(call: CallbackQuery):
 
     await call.message.edit_text(text, parse_mode="HTML")
     await call.answer()
+    asyncio.create_task(_check_jackpot_overtake())
 
 
 # ── КУБИК /dice ──────────────────────────────────────────
@@ -3205,20 +3433,17 @@ async def _dice_solo(message, bet: int):
     from database import spend_gems, add_gems, get_gems, get_or_create_user
     get_or_create_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
 
-    fee = max(2, -(-bet // 20))  # ceil(5%) — минимум 2
-    total_cost = bet + fee
-
-    if not spend_gems(message.from_user.id, total_cost):
-        await message.reply(f"❌ Недостаточно Гемов! Нужно {total_cost} 💎 (ставка + 5% комиссия)")
+    if not spend_gems(message.from_user.id, bet):
+        await message.reply(f"❌ Недостаточно Гемов! Нужно {bet} 💎")
         return
 
     uname = message.from_user.first_name or f"@{message.from_user.username}"
-    winnings = bet * 2  # x2 от ставки
+    winnings = int(bet * 2 * 0.95)  # 5% комиссия вшита в выигрыш
 
     round_num = 1
     while True:
         prefix = f"🔄 Раунд {round_num}\n" if round_num > 1 else ""
-        await message.answer(f"{prefix}🎲 <b>{uname}</b> vs 🏦 Казино...", parse_mode="HTML")
+        await message.answer(f"{prefix}🎲 <b>{uname}</b> vs 🏦 Казино...\n💎 Ставка: {bet}", parse_mode="HTML")
 
         msg_p = await bot.send_dice(message.chat.id)
         await asyncio.sleep(1)
@@ -3231,24 +3456,26 @@ async def _dice_solo(message, bet: int):
         if p > b:
             from database import log_game
             add_gems(message.from_user.id, winnings)
-            log_game(message.from_user.id, "dice_solo", total_cost, "win", winnings)
+            log_game(message.from_user.id, "dice_solo", bet, "win", winnings)
+            asyncio.create_task(_check_jackpot_overtake())
             bal = get_gems(message.from_user.id)
             await message.answer(
                 f"🎲 <b>{uname}</b>: {p}  vs  🏦 Казино: {b}\n\n"
                 f"🏆 <b>Победа!</b>\n"
-                f"💎 +{bet} Гемов (x2 ставки, комиссия {fee} 💎)\n"
+                f"💎 +{winnings} Гемов\n"
                 f"Баланс: {bal} 💎",
                 parse_mode="HTML"
             )
             break
         elif p < b:
             from database import log_game
-            log_game(message.from_user.id, "dice_solo", total_cost, "lose", 0)
+            log_game(message.from_user.id, "dice_solo", bet, "lose", 0)
+            asyncio.create_task(_check_jackpot_overtake())
             bal = get_gems(message.from_user.id)
             await message.answer(
                 f"🎲 <b>{uname}</b>: {p}  vs  🏦 Казино: {b}\n\n"
                 f"😔 <b>Казино выиграло!</b>\n"
-                f"💎 -{total_cost} Гемов\n"
+                f"💎 -{bet} Гемов\n"
                 f"Баланс: {bal} 💎",
                 parse_mode="HTML"
             )
@@ -3267,12 +3494,12 @@ async def _dice_solo(message, bet: int):
 async def cmd_dice(message: Message):
     from database import get_or_create_user, spend_gems
     args = message.text.split()
-    bet = 25
+    bet = 10
     if len(args) > 1:
         try: bet = int(args[1])
         except: pass
-    if bet < 25:
-        await message.reply("❌ Минимальная ставка 25 💎")
+    if bet < 10:
+        await message.reply("❌ Минимальная ставка 10 💎")
         return
 
     # Соло режим — без реплая
@@ -3427,6 +3654,17 @@ async def dice_decline(call: CallbackQuery):
 
 @dp.message(Command("help"))
 async def cmd_help(message: Message):
+    # Считаем сколько гемов раздано через аирдроп
+    try:
+        conn = db(); c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS airdrop_log (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, username TEXT, airdrop_type TEXT, amount INTEGER DEFAULT 0, item_type TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)")
+        r = c.execute("SELECT COALESCE(SUM(amount),0) as total FROM airdrop_log WHERE airdrop_type='gems'").fetchone()
+        r2 = c.execute("SELECT COALESCE(COUNT(*),0) as total FROM airdrop_log WHERE airdrop_type='item'").fetchone()
+        conn.close()
+        total_airdrop = 3150 + (r["total"] if r else 0)
+        total_items = 125 + (r2["total"] if r2 else 0)
+    except: total_airdrop = 3150; total_items = 125
+
     await message.answer(
         "📋 <b>Команды Разборки на районе:</b>\n\n"
         "🎮 <b>Игра:</b>\n"
@@ -3435,16 +3673,19 @@ async def cmd_help(message: Message):
         "🗳 /top — Топ 5 игроков\n"
         "🔗 /ref — Топ 5 рефоводов\n"
         "🌍 /game — Викторина\n"
-        "👥 /friends — Мои друзья\n"
         "⚔️ /duel @username 100 — Дуэль\n\n"
-        "⭐ <b>Гемы, Звёзды, Казик:</b>\n"
-        "💰 /bank — Балик / Депнуть\n"
+        "🎰 <b>Казино:</b>\n"
+        "💰 /bank — Баланс Гемов\n"
         "🛒 /buy — Купить Гемы за Stars\n"
-        "⭐ /stars — Купить Звёзды\n"
-        "💎 /topgem — Топ 5 по Гемам\n"
-        "🃏 /redblack &lt;ставка&gt;\n"
-        "✈️ /crash 50 — Краш игра\n"
-        "💸 /bet — Текущий аукцион\n\n"
+        "🎰 /spin &lt;ставка&gt; — Слоты\n"
+        "🃏 /redblack &lt;ставка&gt; — Red &amp; Black\n"
+        "✈️ /crash &lt;ставка&gt; — Краш\n"
+        "🎲 /dice &lt;ставка&gt; — Кубик vs казино\n"
+        "🎲 /dice &lt;ставка&gt; (реплай) — Кубик vs игрок\n"
+        "🎡 /roul &lt;ставка&gt; — Рулетка (x35)\n"
+        "🏆 /jackpot — Недельный джекпот\n\n"
+        f"🎁 <b>Аирдроп раздача:</b> {total_airdrop} 💎\n"
+        f"🗡 <b>Роздано связей:</b> {total_items}\n\n"
         "<i>@shrimpgamesbot</i>",
         parse_mode="HTML"
     )
@@ -3454,7 +3695,29 @@ async def cmd_help(message: Message):
 #  ДУЭЛЬ — /duel
 # ══════════════════════════════════════════════════════════
 
-DUEL_BET = 25  # минимальная ставка гемов
+DUEL_BET = 10  # минимальная ставка гемов
+
+async def _duel_lock_chat():
+    """Запретить всем писать в чат во время дуэли"""
+    try:
+        from aiogram.types import ChatPermissions
+        await bot.set_chat_permissions(CHAT_ID, ChatPermissions(
+            can_send_messages=False
+        ))
+    except: pass
+
+async def _duel_unlock_chat():
+    """Открыть чат после дуэли"""
+    try:
+        from aiogram.types import ChatPermissions
+        await bot.set_chat_permissions(CHAT_ID, ChatPermissions(
+            can_send_messages=True,
+            can_send_media_messages=True,
+            can_send_polls=True,
+            can_send_other_messages=True,
+            can_add_web_page_previews=True,
+        ))
+    except: pass
 
 async def duel_accept_timer(duel_id: int, challenger_id: int, msg_id: int = None, chat_id_int: int = None):
     """Через 15 секунд отменяем дуэль если не принята"""
@@ -3485,9 +3748,9 @@ async def duel_accept_timer(duel_id: int, challenger_id: int, msg_id: int = None
 
 
 async def duel_timer(duel_id: int, question_turn: int, msg_chat_id: int):
-    """Через 5 секунд проверяем — если ход не сменился, передаём ход сопернику"""
+    """Через 7 секунд проверяем — если ход не сменился, передаём ход сопернику"""
     import json, random
-    await asyncio.sleep(5)
+    await asyncio.sleep(7)
     from database import get_duel, update_duel, add_gems
     from quiz import QUIZ_QUESTIONS
 
@@ -3505,6 +3768,14 @@ async def duel_timer(duel_id: int, question_turn: int, msg_chat_id: int):
     cur_name = duel["challenger_name"] if is_challenger else duel["opponent_name"]
     sc = duel["score_challenger"]
     so = duel["score_opponent"]
+    qc = duel.get("q_challenger") or 0
+    qo = duel.get("q_opponent") or 0
+
+    # Увеличиваем счётчик вопросов пропустившего игрока
+    if is_challenger:
+        qc += 1
+    else:
+        qo += 1
 
     # Новый вопрос
     q = random.choice(QUIZ_QUESTIONS)
@@ -3512,6 +3783,8 @@ async def duel_timer(duel_id: int, question_turn: int, msg_chat_id: int):
     random.shuffle(options)
 
     update_duel(duel_id,
+        q_challenger=qc,
+        q_opponent=qo,
         current_turn=next_turn,
         current_question=q["q"],
         current_answer=q["a"],
@@ -3540,6 +3813,9 @@ async def duel_timer(duel_id: int, question_turn: int, msg_chat_id: int):
 
 @dp.message(Command("duel"))
 async def cmd_duel(message: Message):
+    await message.answer("🔧 Дуэль временно отключена. Скоро вернём!")
+    return
+
     from database import get_gems, spend_gems, create_duel, get_active_duel_for_user
     uid = message.from_user.id
 
@@ -3673,12 +3949,14 @@ async def duel_accept(call: CallbackQuery):
     )
 
     duel = get_duel(duel_id)
+    await _duel_lock_chat()
     await call.message.edit_text(
         f"⚔️ <b>Дуэль началась!</b>\n\n"
         f"👊 {duel['challenger_name']} vs {duel['opponent_name']}\n"
-        f"💎 Банк: {DUEL_BET * 2} Гемов\n"
+        f"💎 Банк: {duel['bet'] * 2} Гемов\n"
         f"📊 Счёт: 0 — 0 (до 3 побед)\n\n"
-        f"Ходит: <b>{duel['challenger_name']}</b>",
+        f"Ходит: <b>{duel['challenger_name']}</b>\n\n"
+        f"🔇 <i>Чат заморожен на время дуэли</i>",
         parse_mode="HTML"
     )
     await call.answer()
@@ -3743,6 +4021,8 @@ async def duel_question_answer(call: CallbackQuery):
     is_challenger = call.from_user.id == duel["challenger_id"]
     sc = duel["score_challenger"]
     so = duel["score_opponent"]
+    qc = duel.get("q_challenger") or 0
+    qo = duel.get("q_opponent") or 0
 
     if chosen == correct:
         if is_challenger:
@@ -3761,21 +4041,43 @@ async def duel_question_answer(call: CallbackQuery):
     except:
         pass
 
-    # Проверяем победителя
+    # Обновляем счётчик вопросов
+    if is_challenger:
+        qc += 1
+    else:
+        qo += 1
+
+    # Победитель определяется только когда оба ответили одинаковое кол-во вопросов (минимум 3 каждый)
     winner_id = None
-    if sc >= 3:
-        winner_id = duel["challenger_id"]
-        winner_name = duel["challenger_name"]
-    elif so >= 3:
-        winner_id = duel["opponent_id"]
-        winner_name = duel["opponent_name"]
+    # Ничья если счёт 5:5 — возвращаем ставки
+    if sc == 5 and so == 5:
+        update_duel(duel_id, status="finished", score_challenger=sc, score_opponent=so, q_challenger=qc, q_opponent=qo)
+        add_gems(duel["challenger_id"], duel["bet"])
+        add_gems(duel["opponent_id"], duel["bet"])
+        await _duel_unlock_chat()
+        await call.message.answer(
+            f"🤝 <b>Ничья!</b>\n\n"
+            f"👊 {duel['challenger_name']} {sc} — {so} {duel['opponent_name']}\n\n"
+            f"💎 Ставки возвращены обоим",
+            parse_mode="HTML"
+        )
+        return
+    if qc == qo and qc >= 3:
+        if sc > so:
+            winner_id = duel["challenger_id"]
+            winner_name = duel["challenger_name"]
+        elif so > sc:
+            winner_id = duel["opponent_id"]
+            winner_name = duel["opponent_name"]
+        # Ничья — продолжаем
 
     if winner_id:
         pot = duel["bet"] * 2
         commission = max(1, int(pot * 0.05))
         winnings = pot - commission
         add_gems(winner_id, winnings)
-        update_duel(duel_id, status="finished", score_challenger=sc, score_opponent=so)
+        update_duel(duel_id, status="finished", score_challenger=sc, score_opponent=so, q_challenger=qc, q_opponent=qo)
+        await _duel_unlock_chat()
         await call.message.answer(
             f"🏆 <b>Дуэль завершена!</b>\n\n"
             f"👊 {duel['challenger_name']} {sc} — {so} {duel['opponent_name']}\n\n"
@@ -3797,14 +4099,18 @@ async def duel_question_answer(call: CallbackQuery):
     update_duel(duel_id,
         score_challenger=sc,
         score_opponent=so,
+        q_challenger=qc,
+        q_opponent=qo,
         current_turn=next_turn,
         current_question=q["q"],
         current_answer=q["a"],
         current_options=json.dumps(options, ensure_ascii=False)
     )
 
+    # Показываем текущий счёт
+    tie_note = " — ничья, продолжаем!" if (qc == qo and sc == so and qc >= 3) else ""
     await call.message.answer(
-        f"📊 Счёт: {duel['challenger_name']} {sc} — {so} {duel['opponent_name']}\n\n"
+        f"📊 Счёт: {duel['challenger_name']} {sc} — {so} {duel['opponent_name']}{tie_note}\n\n"
         f"Ходит: <b>{next_name}</b>",
         parse_mode="HTML"
     )
@@ -3824,7 +4130,7 @@ async def cmd_topgem(message: Message):
     from database import get_conn
     conn = get_conn()
     rows = conn.execute(
-        "SELECT first_name, username, COALESCE(gems,0) as gems FROM users ORDER BY gems DESC LIMIT 5"
+        f"SELECT first_name, username, COALESCE(gems,0) as gems FROM users WHERE user_id != {ADMIN_ID} ORDER BY gems DESC LIMIT 5"
     ).fetchall()
     conn.close()
 
@@ -3855,5 +4161,450 @@ async def cmd_topdeposit(message: Message):
         lines.append(f"{medals[i]} {name} — {row['total']} 💎")
     await message.answer("\n".join(lines), parse_mode="HTML")
 
+# ── СЛОТЫ /spin ──────────────────────────────────────────
+
+_SLOT_SYMS = ["🍒", "🍋", "🍇", "🍉", "💰", "💎"]
+
+# (символ, множитель, доля от всех выигрышей)
+# RTP = WIN_CHANCE × Σ(доля × множитель) = 0.304 × 3.06 ≈ 93%
+_SLOT_WINS = [
+    ("🍒",  1, 0.30),
+    ("🍋",  2, 0.25),
+    ("🍇",  3, 0.20),
+    ("🍉",  5, 0.12),
+    ("💰",  7, 0.08),
+    ("💎", 10, 0.05),
+]
+_SLOT_WIN_CHANCE = 0.304  # 0.304 × 3.06 ≈ 93%
+
+def _slot_roll(bet: int) -> tuple[list[str], int]:
+    import random
+    if random.random() < _SLOT_WIN_CHANCE:
+        r = random.random()
+        cumul = 0.0
+        sym, mult = "🍒", 2
+        for s, m, p in _SLOT_WINS:
+            cumul += p
+            if r <= cumul:
+                sym, mult = s, m
+                break
+        return [sym, sym, sym], bet * mult
+    else:
+        while True:
+            reels = [random.choice(_SLOT_SYMS) for _ in range(3)]
+            if not (reels[0] == reels[1] == reels[2]):
+                return reels, 0
+
+
+@dp.message(Command("spin"))
+async def cmd_spin(message: Message):
+    import random
+    from database import get_gems, spend_gems, add_gems, get_or_create_user
+
+    args = message.text.split()
+    try:
+        bet = int(args[1]) if len(args) > 1 else 10
+    except ValueError:
+        await message.answer("❌ Ставка должна быть числом. Пример: /spin 50")
+        return
+
+    if bet < 10:
+        await message.answer("❌ Минимальная ставка — 10 💎")
+        return
+    if bet > 10000:
+        await message.answer("❌ Максимальная ставка — 10 000 💎")
+        return
+
+    uid = message.from_user.id
+    get_or_create_user(uid, message.from_user.username or "", message.from_user.first_name or "")
+
+    gems = get_gems(uid)
+    if gems < bet:
+        await message.answer(f"❌ Недостаточно Гемов. У тебя {gems} 💎\n💰 /bank чтобы пополнить")
+        return
+
+    spend_gems(uid, bet)
+
+    name = message.from_user.first_name or f"@{message.from_user.username}" or "Игрок"
+
+    def rnd_reel():
+        return " │ ".join(random.choice(_SLOT_SYMS) for _ in range(3))
+
+    msg = await message.answer(
+        f"🎰 <b>Крутим...</b> (-{bet} 💎)\n┌─────────────┐\n│ ❓  │  ❓  │  ❓ │\n└─────────────┘",
+        parse_mode="HTML"
+    )
+    await asyncio.sleep(2.0)
+
+    reels, win = _slot_roll(bet)
+    reel_str = " │ ".join(reels)
+    sym_line = f"┌─────────────┐\n│ {reel_str} │\n└─────────────┘"
+
+    if win > 0:
+        add_gems(uid, win)
+        mult = win // bet
+        if reels[0] == "💎":
+            result = (
+                f"🎰 {sym_line}\n\n"
+                f"💥 <b>ДЖЕКПОТ! {name} сорвал куш!</b>\n"
+                f"💎 +{win} Гемов (×{mult})"
+            )
+        elif reels[0] == "💰":
+            result = (
+                f"🎰 {sym_line}\n\n"
+                f"🤑 <b>Большой выигрыш!</b> {name} забирает <b>{win} 💎</b> (×{mult})"
+            )
+        elif reels[0] == "🍒":
+            result = (
+                f"🎰 {sym_line}\n\n"
+                f"↩️ Возврат ставки. {name} забирает <b>{win} 💎</b>"
+            )
+        else:
+            result = (
+                f"🎰 {sym_line}\n\n"
+                f"✅ <b>Выигрыш!</b> {name} забирает <b>{win} 💎</b> (×{mult})"
+            )
+    else:
+        result = (
+            f"🎰 {sym_line}\n\n"
+            f"😞 Не повезло, {name}. Потеряно <b>{bet} 💎</b>"
+        )
+
+    from database import log_game as _lg
+    _lg(uid, "slot", bet, "win" if win > 0 else "lose", win)
+    asyncio.create_task(_check_jackpot_overtake())
+
+    try:
+        await msg.edit_text(result, parse_mode="HTML")
+    except:
+        await message.answer(result, parse_mode="HTML")
+
+
+@dp.message(Command("turnover"))
+async def cmd_turnover(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    conn = db(); c = conn.cursor()
+    try:
+        c.execute("""
+            SELECT
+                u.user_id,
+                u.username,
+                u.first_name,
+                SUM(gl.bet) as total,
+                SUM(CASE
+                    WHEN date(gl.created_at) >= date('now', '-' || ((strftime('%w','now') + 6) % 7) || ' days')
+                    THEN gl.bet ELSE 0 END) as week,
+                MAX(gl.created_at) as last_at,
+                COUNT(*) as rounds
+            FROM game_log gl
+            JOIN users u ON u.user_id = gl.user_id
+            GROUP BY gl.user_id
+            ORDER BY total DESC
+            LIMIT 30
+        """)
+        rows = c.fetchall()
+    except Exception as e:
+        conn.close()
+        await message.answer(f"❌ {e}")
+        return
+    conn.close()
+
+    if not rows:
+        await message.answer("Нет данных")
+        return
+
+    lines = ["📊 <b>Оборот игроков</b>\n<code>"]
+    lines.append(f"{'Игрок':<18} {'Неделя':>8} {'Всего':>9} {'Игр':>5}")
+    lines.append("─" * 44)
+    for row in rows:
+        name = (f"@{row['username']}" if row['username'] else (row['first_name'] or f"ID{row['user_id']}"))[:17]
+        lines.append(f"{name:<18} {row['week']:>8} {row['total']:>9} {row['rounds']:>5}")
+    lines.append("</code>")
+
+    await message.answer("\n".join(lines), parse_mode="HTML")
+
+
+# ── РУЛЕТКА /roul ────────────────────────────────────────────
+
+_ROUL_RED = {1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36}
+_roul_pending: dict = {}  # (user_id, chat_id) -> {bet, msg_id}
+
+def _roul_color(n: int) -> str:
+    if n == 0: return "🟢"
+    return "🔴" if n in _ROUL_RED else "⚫"
+
+def _roul_kb(bet: int) -> InlineKeyboardMarkup:
+    rows = [[InlineKeyboardButton(text="0", callback_data=f"roul:{bet}:0")]]
+    for i in range(0, 36, 6):
+        rows.append([
+            InlineKeyboardButton(text=str(n), callback_data=f"roul:{bet}:{n}")
+            for n in range(i+1, i+7)
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+@dp.message(Command("roul"))
+async def cmd_roul(message: Message):
+    from database import get_gems
+    uid = message.from_user.id
+    args = message.text.split()
+    bet = 1
+    if len(args) > 1:
+        try:
+            bet = int(args[1])
+        except:
+            await message.answer("❌ Ставка числом. Пример: /roul 50")
+            return
+    if bet < 1:
+        await message.answer("❌ Минимальная ставка — 1 💎")
+        return
+    bal = get_gems(uid)
+    if bal < bet:
+        await message.answer(f"❌ Недостаточно Гемов. Баланс: {bal} 💎")
+        return
+    uname = message.from_user.first_name or f"@{message.from_user.username}"
+    msg = await message.answer(
+        f"🎡 <b>Рулетка — {uname}</b>\n"
+        f"Ставка: <b>{bet} 💎</b>\n\n"
+        f"Выигрыш при попадании: <b>x35</b>\n\n"
+        f"Выбери число от 0 до 36:",
+        parse_mode="HTML",
+        reply_markup=_roul_kb(bet)
+    )
+    _roul_pending[(uid, message.chat.id)] = {"bet": bet, "msg_id": msg.message_id}
+
+
+@dp.callback_query(F.data.startswith("roul:"))
+async def roul_cb(callback: CallbackQuery):
+    from database import get_gems, spend_gems, add_gems, log_game
+    import random as _rnd
+    parts = callback.data.split(":")
+    bet = int(parts[1])
+    chosen = int(parts[2])
+    uid = callback.from_user.id
+    key = (uid, callback.message.chat.id)
+
+    pending = _roul_pending.get(key)
+    if not pending or pending["msg_id"] != callback.message.message_id:
+        await callback.answer("Это не твоя рулетка!", show_alert=True)
+        return
+
+    del _roul_pending[key]
+
+    if get_gems(uid) < bet:
+        await callback.answer("❌ Недостаточно Гемов!", show_alert=True)
+        return
+
+    spend_gems(uid, bet)
+    uname = callback.from_user.first_name or f"@{callback.from_user.username}"
+
+    await callback.message.edit_text(
+        f"🎡 <b>Рулетка — {uname}</b>\n"
+        f"Ставка {bet} 💎 на число <b>{chosen}</b>\n\n"
+        f"⏳ Шарик крутится...",
+        parse_mode="HTML"
+    )
+    await callback.answer()
+    await asyncio.sleep(2)
+
+    result = _rnd.randint(0, 36)
+    color = _roul_color(result)
+    new_bal = get_gems(uid)
+
+    if result == chosen:
+        win = bet * 35
+        add_gems(uid, bet + win)
+        log_game(uid, "roul", bet, "win", win)
+        new_bal = get_gems(uid)
+        text = (
+            f"🎡 <b>Рулетка — {uname}</b>\n"
+            f"Ставка {bet} 💎 на <b>{chosen}</b>\n\n"
+            f"🎯 Выпало: {color} <b>{result}</b>\n\n"
+            f"🎉 <b>ПОБЕДА! +{win} 💎 (x35)</b>"
+        )
+        asyncio.create_task(_check_jackpot_overtake())
+    else:
+        log_game(uid, "roul", bet, "lose", 0)
+        text = (
+            f"🎡 <b>Рулетка — {uname}</b>\n"
+            f"Ставка {bet} 💎 на <b>{chosen}</b>\n\n"
+            f"🎯 Выпало: {color} <b>{result}</b>\n\n"
+            f"😔 Не угадал. -{bet} 💎"
+        )
+        asyncio.create_task(_check_jackpot_overtake())
+
+    await callback.message.edit_text(text, parse_mode="HTML")
+
+
+def _jackpot_time_left() -> str:
+    from datetime import datetime, timedelta
+    now = datetime.utcnow()
+    # Следующий понедельник 00:00 UTC
+    days_ahead = (7 - now.weekday()) % 7 or 7
+    next_monday = (now + timedelta(days=days_ahead)).replace(hour=0, minute=0, second=0, microsecond=0)
+    delta = next_monday - now
+    total_sec = int(delta.total_seconds())
+    days = total_sec // 86400
+    hours = (total_sec % 86400) // 3600
+    minutes = (total_sec % 3600) // 60
+    if days >= 1:
+        if days == 1:   word = "день"
+        elif days <= 4: word = "дня"
+        else:           word = "дней"
+        return f"⏳ Осталось {days} {word}"
+    elif hours >= 1:
+        return f"⏳ Осталось {hours}ч {minutes}м"
+    else:
+        return f"⏳ Осталось {minutes} мин"
+
+
+@dp.message(Command("topstars"))
+async def cmd_topstars(message: Message):
+    conn = db(); c = conn.cursor()
+    c.execute("""
+        SELECT u.user_id, u.username, u.first_name,
+               COALESCE(p.stars,0) + COALESCE(g.stars,0) as total
+        FROM users u
+        LEFT JOIN (SELECT user_id, SUM(stars) as stars FROM purchases GROUP BY user_id) p ON p.user_id=u.user_id
+        LEFT JOIN (SELECT user_id, SUM(stars) as stars FROM gem_purchases GROUP BY user_id) g ON g.user_id=u.user_id
+        WHERE u.user_id != ? AND (COALESCE(p.stars,0) + COALESCE(g.stars,0)) > 0
+        ORDER BY total DESC LIMIT 5
+    """, (ADMIN_ID,))
+    rows = c.fetchall(); conn.close()
+    medals = ["🥇","🥈","🥉","4️⃣","5️⃣"]
+    lines = ["⭐ <b>Топ по Telegram Stars:</b>\n"]
+    for i, row in enumerate(rows):
+        name = f"@{row['username']}" if row['username'] else (row['first_name'] or f"ID{row['user_id']}")
+        lines.append(f"{medals[i]} {name} — {row['total']} ⭐")
+    lines.append("\n<i>Спасибо что поддерживаете район 🙏</i>")
+    await message.answer("\n".join(lines), parse_mode="HTML")
+
+
+@dp.message(Command("topbuygem"))
+async def cmd_topbuygem(message: Message):
+    conn = db(); c = conn.cursor()
+    c.execute("""
+        SELECT gp.gems, gp.stars, gp.created_at,
+               u.username, u.first_name
+        FROM gem_purchases gp
+        JOIN users u ON u.user_id = gp.user_id
+        ORDER BY gp.gems DESC LIMIT 10
+    """)
+    rows = c.fetchall(); conn.close()
+    medals = ["🥇","🥈","🥉","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟"]
+    lines = ["💎 <b>Топ 10 разовых покупок Гемов:</b>\n"]
+    for i, row in enumerate(rows):
+        name = f"@{row['username']}" if row['username'] else (row['first_name'] or "Аноним")
+        date = row['created_at'][:10]
+        lines.append(f"{medals[i]} {name} — {row['gems']} 💎 за {row['stars']} ⭐ <i>({date})</i>")
+    await message.answer("\n".join(lines), parse_mode="HTML")
+
+
+@dp.message(Command("jackpot"))
+async def cmd_jackpot(message: Message):
+    conn = db(); c = conn.cursor()
+    try:
+        # Оборот за текущую неделю (с пн 00:00 UTC) по всем играм, без админа
+        c.execute("""
+            SELECT gl.user_id,
+                   u.username, u.first_name,
+                   SUM(gl.bet) as turnover
+            FROM game_log gl
+            JOIN users u ON u.user_id = gl.user_id
+            WHERE date(gl.created_at) >= date('now', '-' || ((strftime('%w','now') + 6) % 7) || ' days')
+              AND gl.user_id != ?
+            GROUP BY gl.user_id
+            ORDER BY turnover DESC
+            LIMIT 5
+        """, (ADMIN_ID,))
+        rows = c.fetchall()
+    except Exception as e:
+        conn.close()
+        await message.answer(f"❌ Ошибка: {e}")
+        return
+    conn.close()
+
+    medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+    lines = ["🎰 <b>Jackpot — недельный топ по обороту гемов</b>\n"]
+
+    if rows:
+        for i, row in enumerate(rows):
+            name = row['first_name'] or f"@{row['username']}" or f"ID{row['user_id']}"
+            lines.append(f"{medals[i]} {name} — {row['turnover']} 💎")
+    else:
+        lines.append("Пока никто не крутил слот на этой неделе")
+
+    lines.append(
+        f"\n🏆 <b>Приз:</b> NFT Pool Float\n"
+        f"🔗 https://t.me/nft/PoolFloat-197571\n\n"
+        f"{_jackpot_time_left()}"
+    )
+
+    await message.answer("\n".join(lines), parse_mode="HTML", disable_web_page_preview=True)
+
+
+# ── JACKPOT OVERTAKE NOTIFICATION ────────────────────────────
+_jackpot_top_cache: list[dict] = []  # [{user_id, name, turnover}, ...]
+
+def _get_jackpot_top() -> list[dict]:
+    conn = db(); c = conn.cursor()
+    try:
+        c.execute("""
+            SELECT gl.user_id, u.username, u.first_name, SUM(gl.bet) as turnover
+            FROM game_log gl
+            JOIN users u ON u.user_id = gl.user_id
+            WHERE date(gl.created_at) >= date('now', '-' || ((strftime('%w','now') + 6) % 7) || ' days')
+              AND gl.user_id != ?
+            GROUP BY gl.user_id
+            ORDER BY turnover DESC
+            LIMIT 5
+        """, (ADMIN_ID,))
+        rows = c.fetchall()
+    except:
+        rows = []
+    conn.close()
+    result = []
+    for i, row in enumerate(rows):
+        name = row['first_name'] or f"@{row['username']}" or f"ID{row['user_id']}"
+        result.append({"pos": i + 1, "user_id": row["user_id"], "name": name, "turnover": row["turnover"]})
+    return result
+
+async def _check_jackpot_overtake():
+    global _jackpot_top_cache
+    new_top = _get_jackpot_top()
+    old_top = _jackpot_top_cache
+    if not old_top:
+        _jackpot_top_cache = new_top
+        return
+    medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+    old_pos = {e["user_id"]: e["pos"] for e in old_top}
+    for entry in new_top:
+        uid = entry["user_id"]
+        new_p = entry["pos"]
+        old_p = old_pos.get(uid, 6)
+        if new_p < old_p and new_p <= 5:
+            # Кого обогнал — кто был на этом месте раньше
+            overtaken = next((e for e in old_top if e["pos"] == new_p), None)
+            if overtaken and overtaken["user_id"] != uid:
+                medal = medals[new_p - 1]
+                try:
+                    await bot.send_message(
+                        CHAT_ID,
+                        f"🎰 <b>{entry['name']}</b> обогнал <b>{overtaken['name']}</b> "
+                        f"и поднялся на {medal} {new_p}-е место в Джекпот топе!",
+                        parse_mode="HTML"
+                    )
+                except: pass
+    _jackpot_top_cache = new_top
+
+
 if __name__ == "__main__":
+    import fcntl, sys
+    _lock_file = open("/tmp/shrimp_bot.lock", "w")
+    try:
+        fcntl.flock(_lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        print("Bot already running, exiting.")
+        sys.exit(0)
     asyncio.run(main())

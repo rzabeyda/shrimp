@@ -34,7 +34,7 @@ def init_db():
     """)
     for col, coldef in [
         ("games_played","INTEGER DEFAULT 0"),("kills","INTEGER DEFAULT 0"),
-        ("wins","INTEGER DEFAULT 0"),("chat_joined","INTEGER DEFAULT 0"),("streak_days","INTEGER DEFAULT 0"),("streak_last","TEXT DEFAULT NULL"),("losses","INTEGER DEFAULT 0"),("clean_wins","INTEGER DEFAULT 0"),("first_joins","INTEGER DEFAULT 0"),("sent_anon","INTEGER DEFAULT 0"),("times_voted_against","INTEGER DEFAULT 0"),("killed_by_killer","INTEGER DEFAULT 0"),("premium_force","INTEGER DEFAULT 0"),("gender","TEXT DEFAULT NULL"),("message_count","INTEGER DEFAULT 0"),("is_banned","INTEGER DEFAULT 0"),("quiz_correct","INTEGER DEFAULT 0"),("gems","INTEGER DEFAULT 0"),("gems_claimed","INTEGER DEFAULT 0"),("gems_purchased","INTEGER DEFAULT 0"),("gems_bought_total","INTEGER DEFAULT 0")
+        ("wins","INTEGER DEFAULT 0"),("chat_joined","INTEGER DEFAULT 0"),("streak_days","INTEGER DEFAULT 0"),("streak_last","TEXT DEFAULT NULL"),("losses","INTEGER DEFAULT 0"),("clean_wins","INTEGER DEFAULT 0"),("first_joins","INTEGER DEFAULT 0"),("sent_anon","INTEGER DEFAULT 0"),("times_voted_against","INTEGER DEFAULT 0"),("killed_by_killer","INTEGER DEFAULT 0"),("premium_force","INTEGER DEFAULT 0"),("gender","TEXT DEFAULT NULL"),("message_count","INTEGER DEFAULT 0"),("is_banned","INTEGER DEFAULT 0"),("quiz_correct","INTEGER DEFAULT 0"),("gems","INTEGER DEFAULT 0"),("gems_claimed","INTEGER DEFAULT 0"),("gems_purchased","INTEGER DEFAULT 0"),("gems_bought_total","INTEGER DEFAULT 0"),("bot_blocked","INTEGER DEFAULT 0")
     ]:
         try: c.execute(f"ALTER TABLE users ADD COLUMN {col} {coldef}")
         except: pass
@@ -287,7 +287,7 @@ def get_user_stats(user_id):
     ref_count = 0
     try:
         c2 = get_conn().cursor()
-        c2.execute("SELECT COUNT(*) as cnt FROM users WHERE ref_by=?", (user_id,))
+        c2.execute("SELECT COUNT(*) as cnt FROM users WHERE ref_by=? AND (SELECT COUNT(*) FROM votes WHERE voter_id=users.user_id) > 0", (user_id,))
         r = c2.fetchone(); ref_count = r["cnt"] if r else 0
     except: pass
     base["ref_count"] = ref_count
@@ -315,7 +315,7 @@ def get_game_players(game_id, alive_only=False):
     q = """SELECT u.user_id, u.username, u.first_name, u.photo_url, u.gender, p.is_alive, p.joined_at,
            CASE WHEN u.premium_force=1
                      OR (SELECT COUNT(DISTINCT item_type) FROM items WHERE user_id=u.user_id AND status IN ('active','used')) >= 5
-                     OR (SELECT COUNT(*) FROM users r WHERE r.ref_by=u.user_id) >= 5
+                     OR (SELECT COUNT(*) FROM users r WHERE r.ref_by=u.user_id AND (SELECT COUNT(*) FROM votes WHERE voter_id=r.user_id) > 0) >= 5
                 THEN 1 ELSE 0 END as is_premium
            FROM players p JOIN users u ON p.user_id=u.user_id WHERE p.game_id=?"""
     if alive_only:
@@ -371,12 +371,18 @@ def get_user_vote(game_id, day_number, voter_id):
     return dict(row) if row else None
 
 
+BOMZH_EVENT_END = datetime(2026, 5, 26, 0, 0, 0)  # UTC, событие закончилось
+
 def has_bomzh_item(user_id, item_id):
     try:
         conn = get_conn(); c = conn.cursor()
-        c.execute("SELECT id FROM bomzh_items WHERE user_id=? AND item_id=? LIMIT 1", (user_id, item_id))
+        c.execute("SELECT id, permanent FROM bomzh_items WHERE user_id=? AND item_id=? LIMIT 1", (user_id, item_id))
         row = c.fetchone(); conn.close()
-        return row is not None
+        if not row:
+            return False
+        if row["permanent"]:
+            return True
+        return datetime.utcnow() <= BOMZH_EVENT_END
     except:
         return False
 
@@ -483,7 +489,7 @@ def eliminate_player(game_id, user_id):
     c.execute("SELECT id FROM items WHERE user_id=? AND item_type='resurrect' AND status='active' LIMIT 1",
               (user_id,))
     rez = c.fetchone()
-    if rez and _alive_for_rez >= 10:
+    if rez and _alive_for_rez > 5:
         # Воскрешаем и тратим предмет
         c.execute("UPDATE players SET is_alive=1 WHERE game_id=? AND user_id=?", (game_id, user_id))
         c.execute("UPDATE items SET status='used' WHERE id=?", (rez["id"],))
@@ -519,6 +525,38 @@ def get_alive_count(game_id):
     row = c.fetchone()
     conn.close()
     return row["cnt"] if row else 0
+
+
+def mark_bot_blocked(user_id):
+    """Помечаем что юзер заблокировал бота"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE users SET bot_blocked=1 WHERE user_id=?", (user_id,))
+    conn.commit()
+    conn.close()
+
+
+def unmark_bot_blocked(user_id):
+    """Снимаем флаг — юзер снова доступен"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("UPDATE users SET bot_blocked=0 WHERE user_id=?", (user_id,))
+    conn.commit()
+    conn.close()
+
+
+def get_blocked_alive_players(game_id):
+    """Возвращает список живых игроков в игре у которых bot_blocked=1"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("""
+        SELECT p.user_id, u.first_name, u.username
+        FROM players p JOIN users u ON p.user_id=u.user_id
+        WHERE p.game_id=? AND p.is_alive=1 AND u.bot_blocked=1
+    """, (game_id,))
+    rows = c.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 def update_streak(user_id):
     """Обновить стрик при ежедневном входе. Возвращает (streak_days, is_new_day, item_reward)
@@ -667,28 +705,35 @@ def get_auction_state():
             id INTEGER PRIMARY KEY DEFAULT 1,
             active INTEGER DEFAULT 0,
             title TEXT DEFAULT '',
-            link TEXT DEFAULT ''
+            link TEXT DEFAULT '',
+            deadline TEXT DEFAULT ''
         )
     """)
+    try: c.execute("ALTER TABLE auction_state ADD COLUMN deadline TEXT DEFAULT ''")
+    except: pass
     conn.commit()
-    c.execute("SELECT active, title, link FROM auction_state WHERE id=1")
+    c.execute("SELECT active, title, link, deadline FROM auction_state WHERE id=1")
     row = c.fetchone(); conn.close()
     if not row:
-        return {"active": False, "title": "", "link": ""}
-    return {"active": bool(row["active"]), "title": row["title"] or "", "link": row["link"] or ""}
+        return {"active": False, "title": "", "link": "", "deadline": ""}
+    return {"active": bool(row["active"]), "title": row["title"] or "", "link": row["link"] or "", "deadline": row["deadline"] or ""}
 
-def set_auction_state(active, title="", link=""):
+def set_auction_state(active, title="", link="", deadline=""):
     conn = get_conn(); c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS auction_state (
             id INTEGER PRIMARY KEY DEFAULT 1,
             active INTEGER DEFAULT 0,
             title TEXT DEFAULT '',
-            link TEXT DEFAULT ''
+            link TEXT DEFAULT '',
+            deadline TEXT DEFAULT ''
         )
     """)
-    c.execute("INSERT OR REPLACE INTO auction_state (id, active, title, link) VALUES (1,?,?,?)",
-              (1 if active else 0, title, link))
+    try: c.execute("ALTER TABLE auction_state ADD COLUMN deadline TEXT DEFAULT ''")
+    except: pass
+    conn.commit()
+    c.execute("INSERT OR REPLACE INTO auction_state (id, active, title, link, deadline) VALUES (1,?,?,?,?)",
+              (1 if active else 0, title, link, deadline))
     conn.commit(); conn.close()
 
 
@@ -799,6 +844,8 @@ def init_duels_table():
             status TEXT DEFAULT 'pending',
             score_challenger INTEGER DEFAULT 0,
             score_opponent INTEGER DEFAULT 0,
+            q_challenger INTEGER DEFAULT 0,
+            q_opponent INTEGER DEFAULT 0,
             current_turn INTEGER,
             current_question TEXT,
             current_answer TEXT,
@@ -808,6 +855,9 @@ def init_duels_table():
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    for col in ("q_challenger", "q_opponent"):
+        try: c.execute(f"ALTER TABLE duels ADD COLUMN {col} INTEGER DEFAULT 0")
+        except: pass
     conn.commit(); conn.close()
 
 def create_duel(challenger_id, challenger_name, opponent_id, opponent_name, bet, chat_id):
