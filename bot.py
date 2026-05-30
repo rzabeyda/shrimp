@@ -152,6 +152,57 @@ def get_all_referrals():
     return [dict(r) for r in rows]
 
 
+# ── ФИЛЬТР ССЫЛОК ────────────────────────────────────────────
+_ALLOWED_LINKS = {
+    "t.me/shrimpgames_chat",
+    "t.me/shrimpgames_channel",
+    "t.me/shrimpgamesbot",
+}
+
+import re as _re
+
+def _has_forbidden_link(message: Message) -> bool:
+    import re
+    text = message.text or message.caption or ""
+    entities = list(message.entities or []) + list(message.caption_entities or [])
+
+    for ent in entities:
+        etype = ent.type
+        # Обычный @username — пропускаем
+        if etype == "mention":
+            val = text[ent.offset : ent.offset + ent.length].lstrip("@").lower()
+            # Блокируем только если это бот (@xxxbot или @xxx_bot)
+            if val.endswith("bot") or "_bot" in val:
+                # Но разрешаем наш бот
+                if val not in {"shrimpgamesbot"}:
+                    return True
+            continue
+        # Ссылки из entities: url, text_link
+        if etype in ("url", "text_link"):
+            url = ent.url if etype == "text_link" else text[ent.offset : ent.offset + ent.length]
+            url_clean = re.sub(r'^https?://', '', url).rstrip('/').lower()
+            if not any(url_clean == a or url_clean.startswith(a + '/') for a in _ALLOWED_LINKS):
+                return True
+
+    # Дополнительно — ищем голые ссылки в тексте на случай если entity не поймал
+    for m in re.finditer(r'(https?://|t\.me/)\S+', text, re.IGNORECASE):
+        url_clean = re.sub(r'^https?://', '', m.group()).rstrip('/').lower()
+        if not any(url_clean == a or url_clean.startswith(a + '/') for a in _ALLOWED_LINKS):
+            return True
+
+    return False
+
+@dp.message(F.chat.username == "shrimpgames_chat")
+async def link_filter(message: Message):
+    if message.from_user and message.from_user.id == ADMIN_ID:
+        return
+    if _has_forbidden_link(message):
+        try:
+            await message.delete()
+        except Exception:
+            pass
+    # Не останавливаем обработку других хендлеров
+
 @dp.message(CommandStart())
 async def start(message: Message):
     args = message.text.split(maxsplit=1)
@@ -196,12 +247,21 @@ async def start(message: Message):
                 ref_label = ref_row["first_name"]
             else:
                 ref_label = f"ID {ref_by}"
-            ref_info = f"\n👥 Реферал от {ref_label}"
+            ref_info = f"\nРеферал от {ref_label}"
         else:
             ref_info = ""
-        notify = f"👤 <b>Новый юзер!</b>\n👤 {uname}{ref_info}"
+        icon = "👥" if ref_info else "👤"
+        notify = f"{icon} Новый юзер {uname}{ref_info}"
         try:
-            await bot.send_message(ADMIN_ID, notify, parse_mode="HTML")
+            sent = await bot.send_message(ADMIN_ID, notify, parse_mode="HTML")
+            # Сохраняем message_id чтобы потом поставить ✅ когда зарегается в игру
+            try:
+                import sqlite3 as _sq
+                _nc = _sq.connect(DB_PATH)
+                _nc.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)",
+                            (f"new_user_notify_{message.from_user.id}", str(sent.message_id)))
+                _nc.commit(); _nc.close()
+            except: pass
         except: pass
         await log_to_group(f"👤 <b>Новый игрок</b>\n{notify}")
 
@@ -444,6 +504,16 @@ async def successful_payment(message: Message):
     payload = message.successful_payment.invoice_payload
     stars = message.successful_payment.total_amount
 
+    # Дисс — diss:{key}
+    if payload.startswith("diss:"):
+        try:
+            diss_key = payload.split(":", 1)[1]
+            phrase = _diss_pending.pop(diss_key, "💀 Дисс отправлен!")
+            await bot.send_message(CHAT_ID, phrase)
+        except Exception as e:
+            await bot.send_message(CHAT_ID, "💀 Дисс отправлен!")
+        return
+
     # Аукцион — auction:{uid}:{amount}
     if payload.startswith("auction:"):
         try:
@@ -492,6 +562,22 @@ async def successful_payment(message: Message):
             name_str = f"@{uname}" if uname else fname
             await message.answer(f"💎 <b>+{amount} Гемов</b> зачислено на баланс!\n\nПиши /bank чтобы проверить баланс.", parse_mode="HTML")
             await bot.send_message(ADMIN_ID, f"💎 Новая покупка Гемов\n👤 {name_str} (ID: {uid})\n💰 {amount} Гемов за {amount} ⭐")
+            # NFT DROP счётчик
+            try:
+                from database import add_nft_stars
+                if add_nft_stars(amount):
+                    drop_name = f"@{uname}" if uname else fname
+                    await bot.send_message(
+                        CHAT_ID,
+                        f"🎁 <b>NFT DROP!</b>\n\n"
+                        f"🔥 {drop_name} поймал NFT DROP\n"
+                        f"🖼 NFT улетает в личку — ожидай!\n\n"
+                        f"https://t.me/nft/PoolFloat-25212",
+                        parse_mode="HTML"
+                    )
+                    await bot.send_message(ADMIN_ID, f"🎁 NFT DROP — отправь NFT игроку {drop_name} (ID: {uid})")
+            except Exception:
+                pass
         except Exception as e:
             await message.answer("✅ Оплата получена!")
         return
@@ -642,6 +728,80 @@ async def successful_payment(message: Message):
         return
 
     # Покупка артефакта в магазине
+    if item_type == "authority":
+        try:
+            authority_type = parts[2]
+            price = int(parts[3])
+        except: return
+        from database import get_authority, set_authority, get_user_authority
+        import random
+        AUTHORITY_NAMES = {
+            'mayor': 'Мэр', 'banker': 'Банкир', 'crime_boss': 'Вор в законе',
+            'cop': 'Мент', 'escort': 'Эскортница', 'dealer': 'Барыч', 'dictator': 'Диктатор', 'krasotka': 'Красотка', 'milf': 'Милфа'
+        }
+        AUTHORITY_EMOJIS = {
+            'mayor': '🏛', 'banker': '🏦', 'crime_boss': '👑',
+            'cop': '👮', 'escort': '💋', 'dealer': '💊', 'dictator': '🎖', 'krasotka': '💋', 'milf': '🍷'
+        }
+        AUTHORITY_NAMES_INS = {
+            'mayor': 'Мэром', 'banker': 'Банкиром', 'crime_boss': 'Вором в законе',
+            'cop': 'Ментом', 'escort': 'Эскортницей', 'dealer': 'Барычем', 'dictator': 'Диктатором', 'krasotka': 'Красоткой', 'milf': 'Милфой'
+        }
+        AUTHORITY_NAMES_GEN = {
+            'mayor': 'Мэра', 'banker': 'Банкира', 'crime_boss': 'Вора в законе',
+            'cop': 'Мента', 'escort': 'Эскортницы', 'dealer': 'Барыча', 'dictator': 'Диктатора', 'krasotka': 'Красотки', 'milf': 'Милфы'
+        }
+        name = AUTHORITY_NAMES.get(authority_type, authority_type)
+        name_ins = AUTHORITY_NAMES_INS.get(authority_type, name)
+        name_gen = AUTHORITY_NAMES_GEN.get(authority_type, name)
+        emoji = AUTHORITY_EMOJIS.get(authority_type, '👑')
+        uname = message.from_user.username
+        fname = message.from_user.first_name or ""
+        name_str = f"@{uname}" if uname else fname
+        old = get_authority(authority_type)
+        set_authority(authority_type, user_id, uname or "", fname, price)
+        old_nick = f"@{old['username']}" if old and old.get('username') else (old.get('first_name', '?') if old else '?')
+        # Сообщение в чат
+        BUY_MSGS = [
+            f"{emoji} {name_str} стал {name_ins} района! 💸 {price} ⭐",
+            f"{emoji} {name_str} занял кресло {name_gen}! 💸 {price} ⭐",
+            f"{emoji} На районе новый {name} — {name_str}! 💸 {price} ⭐",
+            f"{emoji} {name_str} купил статус {name_gen} за {price} ⭐ — авторитет на районе заработан!",
+        ]
+        OUTBID_MSGS = [
+            f"{emoji} {name_str} скинул {old_nick} с кресла {name_gen}! 💸 {price} ⭐ — деньги решают",
+            f"{emoji} {name_str} стал {name_ins}! {old_nick} подвинули за {price} ⭐ — на районе новый хозяин",
+            f"{emoji} {name_str} занял место {name_gen} за {price} ⭐! {old_nick} скомпрометировали и выставили за дверь",
+            f"{emoji} {name_str} — новый {name}! {old_nick} не удержал власть. Цена вопроса — {price} ⭐",
+            f"{emoji} {name_str} купил кресло {name_gen} за {price} ⭐! {old_nick} купили с потрохами и выбросили",
+            f"{emoji} {name_str} стал {name_ins} за {price} ⭐! {old_nick} сдал позиции — район не прощает слабых",
+            f"{emoji} {name_str} — новый {name} района! {old_nick} вынесли с вещами за {price} ⭐ — власть не вечна",
+            f"{emoji} {name_str} занял кресло {name_gen}! {old_nick} слили свои же. {price} ⭐ — такова политика",
+        ]
+        if old and old.get('user_id') and old['user_id'] != user_id:
+            msg = random.choice(OUTBID_MSGS)
+            # Уведомить предыдущего владельца
+            try:
+                old_uid = old['user_id']
+                old_name = f"@{old['username']}" if old.get('username') else old.get('first_name', '')
+                await bot.send_message(old_uid, f"😤 {old_name}, тебя скинули с должности <b>{name}</b>!\nТебя перекупили за {price} ⭐", parse_mode="HTML")
+            except: pass
+        else:
+            msg = random.choice(BUY_MSGS)
+        await bot.send_message(CHAT_ID, msg)
+        # Установить тег в чате
+        try:
+            await bot.session.post(
+                f"https://api.telegram.org/bot{bot._token}/setChatAdministratorCustomTitle",
+                json={"chat_id": CHAT_ID, "user_id": user_id, "custom_title": name}
+            )
+        except: pass
+        await message.answer(f"✅ Ты стал <b>{name_ins}</b> района!\n\nДолжность даёт тебе особые возможности.", parse_mode="HTML")
+        try:
+            await bot.send_message(ADMIN_ID, f"{emoji} <b>Авторитет куплен</b>\n👤 {name_str}\n🏛 {name}\n⭐ {price}", parse_mode="HTML")
+        except: pass
+        return
+
     if item_type.startswith("artifact:"):
         art_id = item_type.replace("artifact:", "")
         uname = f"@{message.from_user.username}" if message.from_user.username else message.from_user.first_name
@@ -1098,6 +1258,122 @@ async def cmd_bid(message: Message):
     )
 
 
+_diss_pending = {}  # {key: phrase}
+_diss_last = {}    # {user_id: last_phrase_index}
+
+DISS_PHRASES = [
+    "🩸 @{from} дал отмашку — @{target} вскрыли как консерву, внутри пусто, даже мозга нет",
+    "💀 @{from} позвонил братве. @{target} нашли в трёх дворах сразу — ноги в одном, остальное ищут",
+    "🪓 По приказу @{from} — @{target} разрубили на куски и скормили голубям. Голуби отказались",
+    "🔫 @{from} нажал курок. @{target} получил в лоб — башка слетела и покатилась до соседнего района",
+    "🧠 @{from} вскрыл голову @{target} — внутри нашли пустую банку Jaguar и один дохлый таракан",
+    "🥩 По команде @{from} — @{target} пустили на шашлык. Мясо жёсткое, вонючее, выбросили",
+    "💣 @{from} заминировал @{target} — взорвался от позора. Радиус поражения — пять подъездов",
+    "🪚 @{from} взял пилу. @{target} теперь в 12 файлах на жёстком диске — папка называется мусор",
+    "⚰️ @{from} заказал похороны @{target} — гроб не закрывается, воняет, всех попросили отойти",
+    "🩻 После звонка @{from} — рентген @{target} показал вместо позвоночника — желе, вместо сердца — труха",
+    "🔪 @{from} пырнул репутацию @{target} — вытекло что-то жёлтое и дурно пахнущее",
+    "🫀 Медики @{from} вскрыли @{target} — сердце не нашли. Зато нашли долги, страхи и старый кроссовок",
+    "🦷 @{from} выбил @{target} зубы. Зубы собрали в пакет, подписали биомусор, сдали на утилизацию",
+    "🪤 @{from} поймал @{target} в капкан — визжал три часа, вырвался, но без достоинства",
+    "🧟 @{from} поднял @{target} из мёртвых только чтобы убить ещё раз — второй раз было приятнее",
+    "🗡 @{from} насадил @{target} на кол у третьего подъезда — для красоты и как предупреждение",
+    "🫁 По распоряжению @{from} — лёгкие @{target} нашли на крыше, печень у метро, сам не объявился",
+    "🩸 @{from} пустил @{target} на удобрение. Цветы не выросли — земля отказала",
+    "💀 @{from} снял скальп с @{target} — под ним обнаружили пустоту и старый мем из 2014",
+    "🔩 @{from} разобрал @{target} до болтиков — болтики выбросил, остальное сдал в металлолом за 40 рублей",
+    "🪦 @{from} поставил крест над @{target} — написали был тут, никто не плакал, собака убежала",
+    "🥀 @{from} похоронил репутацию @{target} — на могиле выросли только сорняки и один гриб",
+    "🔥 @{from} поджёг @{target} — горел плохо, воняло сильно, тушить не стали",
+    "🪖 @{from} объявил войну @{target} — тот сдался через 4 секунды, заплакал и попросил маму",
+    "🎯 @{from} прицелился в башку @{target} — не промахнулся. Башка улетела в закат",
+    "🛻 @{from} вывез @{target} за город в багажнике — выбросил в лесу, волки понюхали и ушли",
+    "🧨 @{from} взорвал самооценку @{target} — громко, ярко, ничего не осталось",
+    "⚡ @{from} пропустил ток через @{target} — задымился, завонял, выключился насовсем",
+    "🪠 @{from} прочистил @{target} как засор в трубе — вышло много лишнего, стало не лучше",
+    "🔨 @{from} расплющил @{target} кувалдой — был человек, стала лепёшка, убрали совком",
+    "🧪 Лаборатория @{from} провела анализ @{target} — в составе: трусость 80%, ложь 15%, моча 5%",
+    "🪳 @{from} нашёл @{target} под плинтусом — раздавил тапком, тапок выбросил",
+    "🏹 @{from} выстрелил стрелой в @{target} — попал в то место где должна быть душа. Там было пусто",
+    "🗑 @{from} выбросил @{target} с 9 этажа — летел долго, кричал громко, упал тихо",
+    "🥊 @{from} бил @{target} по голове пока не отвалилась — оказалось декоративная, внутри поролон",
+    "🌡 Вскрытие @{target} по заказу @{from}: мозг усох до размера изюма, совесть не обнаружена",
+    "💉 @{from} сделал @{target} укол правды — тот задёргался, пустил пену и признался во всём",
+    "🦴 @{from} обглодал репутацию @{target} — выплюнул. Собаки понюхали и отошли",
+    "🫗 @{from} вылил @{target} в канализацию — трубы пожаловались, сантехник отказался лезть",
+    "🪝 @{from} подвесил @{target} на крюк у входа — как предупреждение. Все поняли. Сработало",
+    "🔱 @{from} вынес приговор: @{target} расчленить, упаковать, забыть. Исполнено",
+    "🗡 По решению @{from} — @{target} насквозь проткнули шваброй. Уборщица недовольна",
+    "🩸 @{from} выпустил кровь @{target} — кровь убежала сама, даже она не хотела с ним быть",
+    "💀 @{from} закопал @{target} живым — через час выкопался, но лучше б не выкапывался",
+    "🪓 @{from} отрубил @{target} голову — голова покатилась, попросила пощады, не помогло",
+    "🔥 @{from} спалил дотла всё что было у @{target} — честь, репутацию, два зуба и старые найки",
+    "🧲 @{from} притянул к @{target} всех врагов района — окружили, посмотрели, ушли брезгливо",
+    "💣 @{from} взорвал @{target} изнутри — разлетелся на куски, собирали неделю, не всё нашли",
+    "🪦 @{from} написал некролог @{target}: жил тихо, умер громко, не жалко",
+    "⚰️ @{from} уложил @{target} в гроб — тот ещё дышит но это временно и никого не волнует",
+]
+
+
+@dp.message(Command("diss"))
+async def cmd_diss(message: Message):
+    import random
+    from_user = message.from_user
+    from_name = f"@{from_user.username}" if from_user.username else from_user.first_name
+
+    target_username = None
+    target_name = None
+
+    # Способ 1: реплай на сообщение
+    if message.reply_to_message:
+        t = message.reply_to_message.from_user
+        target_username = t.username
+        target_name = f"@{t.username}" if t.username else t.first_name
+
+    # Способ 2: /diss @username
+    else:
+        args = message.text.split()
+        if len(args) >= 2:
+            raw = args[1].lstrip("@")
+            target_username = raw
+            target_name = f"@{raw}"
+
+    if not target_name:
+        await message.answer("Реплайни на сообщение или напиши /diss @username")
+        return
+
+    if target_username and target_username.lower() == (from_user.username or "").lower():
+        await message.answer("😂 Сам себя заказал? Уважаю, но нет")
+        return
+
+    last_idx = _diss_last.get(from_user.id, -1)
+    available = [i for i in range(len(DISS_PHRASES)) if i != last_idx]
+    idx = random.choice(available)
+    _diss_last[from_user.id] = idx
+    phrase = DISS_PHRASES[idx].format(**{"from": from_name.lstrip("@"), "target": target_name.lstrip("@")})
+
+    # Для админа — бесплатно
+    if from_user.id == ADMIN_ID:
+        await bot.send_message(CHAT_ID, phrase)
+        return
+
+    import time
+    diss_key = f"{from_user.id}_{int(time.time())}"
+    _diss_pending[diss_key] = phrase
+
+    await bot.send_invoice(
+        chat_id=message.chat.id,
+        title="💀 Опустить на районе",
+        description=f"Опустить {target_name} в чате за 1 звезду",
+        payload=f"diss:{diss_key}",
+        currency="XTR",
+        prices=[{"label": "Diss", "amount": 1}],
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(text="💀 Слить за 1 ⭐", pay=True)
+        ]])
+    )
+
+
 @dp.message(Command("game"))
 async def cmd_game(message: Message):
     import random
@@ -1324,7 +1600,7 @@ async def cmd_ref(message: Message):
         name = f"@{row['username']}" if row['username'] else (row['first_name'] or f"ID{row['user_id']}")
         active = row['active_refs']
         total = row['total_refs']
-        lines.append(f"{medals[i]} {name} — {active} в игре (всего рефов: {total})")
+        lines.append(f"{medals[i]} {name} — {active} играли (всего рефов: {total})")
 
     lines.append(f"\n<i>Зови своих → @shrimpgamesbot</i>")
     await message.answer("\n".join(lines), parse_mode="HTML")
@@ -1579,6 +1855,24 @@ async def cmd_unban(message: Message):
         await message.answer(f"✅ Пользователь {username} разблокирован.")
     else:
         await message.answer(f"❌ Пользователь {username} не найден в БД.")
+
+@dp.message(Command("nftstat"))
+async def cmd_nftstat(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    from database import get_nft_counter, NFT_DROP_THRESHOLD
+    data = get_nft_counter()
+    total = data["total_stars"]
+    drops = data["drops_given"]
+    next_drop = NFT_DROP_THRESHOLD * (drops + 1)
+    remaining = next_drop - total
+    await message.answer(
+        f"🎁 <b>NFT DROP — статистика</b>\n\n"
+        f"⭐ Всего вложено: <b>{total}</b> звёзд\n"
+        f"🖼 Дропов выдано: <b>{drops}</b>\n"
+        f"⚡ До следующего дропа: <b>{remaining}</b> ⭐",
+        parse_mode="HTML"
+    )
 
 @dp.message(Command("addgems"))
 async def cmd_addgems(message: Message):
@@ -2288,7 +2582,8 @@ async def commands_broadcast_loop():
         "🗳 /top — Топ 5 игроков\n"
         "🔗 /ref — Топ 5 рефоводов\n"
         "🌍 /game — Викторина\n"
-        "⚔️ /duel @username 100 — Дуэль\n\n"
+        "⚔️ /duel @username 100 — Дуэль\n"
+        "💀 /diss @username — Опустить чела за 1 ⭐\n\n"
         "🎰 <b>Казино:</b>\n"
         "💰 /bank — Баланс Гемов\n"
         "🛒 /buy — Купить Гемы за Stars\n"
@@ -2298,7 +2593,8 @@ async def commands_broadcast_loop():
         "🎲 /dice &lt;ставка&gt; — Кубик vs казино\n"
         "🎲 /dice &lt;ставка&gt; (реплай) — Кубик vs игрок\n"
         "🎡 /roul &lt;ставка&gt; — Рулетка (x35)\n"
-        "🏆 /jackpot — Недельный джекпот\n\n"
+        "🏆 /jackpot — Недельный джекпот\n"
+        "🖼 /nft — Текущие розыгрыши NFT\n\n"
         "<i>Играй и зови друзей → @shrimpgamesbot</i>"
     )
 
@@ -2407,8 +2703,20 @@ async def main():
     asyncio.ensure_future(reminder_loop())
     asyncio.ensure_future(commands_broadcast_loop())
 
+    async def mayor_daily_gems():
+        """Мэр получает 25 гемов каждый день"""
+        from database import get_authority, add_gems
+        mayor = get_authority('mayor')
+        if mayor and mayor.get('user_id'):
+            add_gems(mayor['user_id'], 25)
+            try:
+                mname = f"@{mayor['username']}" if mayor.get('username') else mayor.get('first_name', 'Мэр')
+                await bot.send_message(mayor['user_id'], "🏛 Мэр берёт взятки — <b>+25 Гемов</b> зачислено на баланс!", parse_mode="HTML")
+            except: pass
+
     scheduler = AsyncIOScheduler(timezone="Europe/Tallinn")
     scheduler.add_job(auto_push_unreg, "cron", hour=12, minute=0, day="*/2")
+    scheduler.add_job(mayor_daily_gems, "cron", hour=10, minute=0)
     # Автозакрытие аукциона 27 мая в 19:00 МСК
     from datetime import datetime as _sdt
     _auction_end = _sdt(2026, 5, 27, 19, 0, 0)
@@ -2717,7 +3025,7 @@ import math as _math_crash
 
 _crash_games = {}  # msg_id -> game state
 
-def _crash_generate(rtp=0.93):
+def _crash_generate(rtp=0.90):
     h = _random_crash.random()
     point = rtp / (1.0 - h)
     return max(1.01, min(round(point, 2), 50.0))
@@ -2876,7 +3184,7 @@ async def cmd_bank(message: Message):
     ])
     await message.answer(
         f"💎 <b>Твой баланс:</b> {gems} Гемов\n\n"
-        f"Минимум для вывода: 200 Гемов\n"
+        f"Минимум для вывода: 300 Гемов\n"
         f"Комиссия при выводе: 5%",
         parse_mode="HTML",
         reply_markup=kb
@@ -2979,12 +3287,12 @@ async def gems_wd_menu(call: CallbackQuery):
     gems = get_gems(uid)
     await call.answer()
 
-    if gems < 200:
-        await call.message.answer(f"❌ Минимум для вывода 200 Гемов.\nТвой баланс: {gems} Гемов.")
+    if gems < 300:
+        await call.message.answer(f"❌ Минимум для вывода 300 Гемов.\nТвой баланс: {gems} Гемов.")
         return
 
     # Кнопки: фиксированные суммы + весь баланс (только те что <= баланса)
-    options = [200, 500, 1000]
+    options = [300, 500, 1000]
     buttons = []
     row = []
     for opt in options:
@@ -3023,11 +3331,20 @@ async def gems_wd_confirm(call: CallbackQuery):
         return
 
     spend_gems(uid, amount)
-    stars_out = int(amount * 0.95)
+    # Банкир — 0% комиссии
+    from database import get_user_authority as _gua
+    is_banker = _gua(uid) == 'banker'
+    stars_out = amount if is_banker else int(amount * 0.95)
+    commission_text = "комиссия 0% — ты Банкир 🏦" if is_banker else "после 5% комиссии"
 
     uname = call.from_user.username or ""
     fname = call.from_user.first_name or ""
-    wid = create_withdraw_request(uid, uname, fname, amount)
+    user_msg = await call.message.answer(
+        f"✅ Запрос на вывод {amount} Гемов отправлен.\n"
+        f"Получишь: {stars_out} ⭐ ({commission_text})\n\n"
+        f"Ожидай подтверждения."
+    )
+    wid = create_withdraw_request(uid, uname, fname, amount, user_msg.message_id)
 
     name_str = f"@{uname}" if uname else fname
     kb = InlineKeyboardMarkup(inline_keyboard=[[
@@ -3041,11 +3358,6 @@ async def gems_wd_confirm(call: CallbackQuery):
         f"💎 {amount} Гемов → {stars_out} ⭐",
         parse_mode="HTML",
         reply_markup=kb
-    )
-    await call.message.answer(
-        f"✅ Запрос на вывод {amount} Гемов отправлен.\n"
-        f"Получишь: {stars_out} ⭐ (после 5% комиссии)\n\n"
-        f"Ожидай подтверждения."
     )
     await call.answer()
 
@@ -3074,7 +3386,21 @@ async def withdraw_action(call: CallbackQuery):
             call.message.text + "\n\n✅ <b>Оплачено</b>",
             parse_mode="HTML"
         )
-        await bot.send_message(uid, f"✅ Твой запрос на {req['gems']} Гемов обработан!\nСтарс уже отправлены.")
+        if req.get("user_msg_id"):
+            try:
+                await bot.edit_message_text(
+                    f"✅ Запрос на вывод {req['gems']} Гемов отправлен.\n"
+                    f"Получишь: {req['stars']} ⭐ (после 5% комиссии)\n\n"
+                    f"Ожидай подтверждения.\n\n"
+                    f"✅ <b>Оплачено!</b>",
+                    chat_id=uid,
+                    message_id=req["user_msg_id"],
+                    parse_mode="HTML"
+                )
+            except Exception:
+                await bot.send_message(uid, f"✅ Твой запрос на {req['gems']} Гемов обработан!\nСтарс уже отправлены.")
+        else:
+            await bot.send_message(uid, f"✅ Твой запрос на {req['gems']} Гемов обработан!\nСтарс уже отправлены.")
         await call.answer("Оплачено!")
 
     elif action == "cancel":
@@ -3182,6 +3508,13 @@ async def cmd_addgem(message: Message):
     conn.commit()
     new_gems = c.execute("SELECT gems FROM users WHERE user_id=?", (row["user_id"],)).fetchone()["gems"]
     conn.close()
+    try:
+        await bot.send_message(
+            row["user_id"],
+            f"💎 <b>+{amount} Гемов!</b>\n\nТебе начислили гемы. Баланс: <b>{new_gems} 💎</b>",
+            parse_mode="HTML"
+        )
+    except: pass
     await message.answer(
         f"✅ <b>@{username}</b> ({row['first_name']}) — начислено <b>{amount} 💎</b>\n"
         f"Баланс: {new_gems} 💎",
@@ -3355,12 +3688,12 @@ async def redblack_result(call: CallbackQuery):
         await call.answer("❌ Недостаточно Гемов!", show_alert=True)
         return
 
-    # Рандом из 100: 0-46 = red (47%), 47-93 = black (47%), 94-99 = zero (6%) → RTP 94%
+    # Рандом из 100: 0-44 = red (45%), 45-89 = black (45%), 90-99 = zero (10%) → RTP 90%
     roll = random.randint(0, 99)
-    if roll <= 46:
+    if roll <= 44:
         result = "red"
         result_emoji = "🔴 Red"
-    elif roll <= 93:
+    elif roll <= 89:
         result = "black"
         result_emoji = "⚫ Black"
     else:
@@ -3377,8 +3710,7 @@ async def redblack_result(call: CallbackQuery):
             f"🟢 <b>ZERO!</b> Казино забирает всё!\n\n"
             f"Твой выбор: {choice_emoji}\n"
             f"Результат: {result_emoji}\n"
-            f"Проиграл: -{bet} 💎\n"
-            f"Баланс: {new_gems} 💎"
+            f"Проиграл: -{bet} 💎"
         )
     elif result == choice:
         winnings = bet * 2
@@ -3389,8 +3721,7 @@ async def redblack_result(call: CallbackQuery):
             f"🎉 <b>Победа!</b>\n\n"
             f"Твой выбор: {choice_emoji}\n"
             f"Результат: {result_emoji}\n"
-            f"Выиграл: +{bet} 💎\n"
-            f"Баланс: {new_gems} 💎"
+            f"Выиграл: +{bet} 💎"
         )
     else:
         new_gems = get_gems(uid)
@@ -3399,8 +3730,7 @@ async def redblack_result(call: CallbackQuery):
             f"😔 <b>Проигрыш</b>\n\n"
             f"Твой выбор: {choice_emoji}\n"
             f"Результат: {result_emoji}\n"
-            f"Проиграл: -{bet} 💎\n"
-            f"Баланс: {new_gems} 💎"
+            f"Проиграл: -{bet} 💎"
         )
 
     await call.message.edit_text(text, parse_mode="HTML")
@@ -3429,7 +3759,7 @@ async def _dice_accept_timer(duel_id: str, challenger_id: int, bet: int, msg_id:
 
 
 async def _dice_solo(message, bet: int):
-    """Соло кубик против казино — RTP 95%, комиссия 5%, ничья = переигровка"""
+    """Соло кубик против казино — RTP 90%, комиссия 10%, ничья = переигровка"""
     from database import spend_gems, add_gems, get_gems, get_or_create_user
     get_or_create_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
 
@@ -3438,7 +3768,7 @@ async def _dice_solo(message, bet: int):
         return
 
     uname = message.from_user.first_name or f"@{message.from_user.username}"
-    winnings = int(bet * 2 * 0.95)  # 5% комиссия вшита в выигрыш
+    winnings = int(bet * 2 * 0.90)  # 10% комиссия вшита в выигрыш
 
     round_num = 1
     while True:
@@ -3458,12 +3788,10 @@ async def _dice_solo(message, bet: int):
             add_gems(message.from_user.id, winnings)
             log_game(message.from_user.id, "dice_solo", bet, "win", winnings)
             asyncio.create_task(_check_jackpot_overtake())
-            bal = get_gems(message.from_user.id)
             await message.answer(
                 f"🎲 <b>{uname}</b>: {p}  vs  🏦 Казино: {b}\n\n"
                 f"🏆 <b>Победа!</b>\n"
-                f"💎 +{winnings} Гемов\n"
-                f"Баланс: {bal} 💎",
+                f"💎 +{winnings} Гемов",
                 parse_mode="HTML"
             )
             break
@@ -3471,12 +3799,10 @@ async def _dice_solo(message, bet: int):
             from database import log_game
             log_game(message.from_user.id, "dice_solo", bet, "lose", 0)
             asyncio.create_task(_check_jackpot_overtake())
-            bal = get_gems(message.from_user.id)
             await message.answer(
                 f"🎲 <b>{uname}</b>: {p}  vs  🏦 Казино: {b}\n\n"
                 f"😔 <b>Казино выиграло!</b>\n"
-                f"💎 -{bet} Гемов\n"
-                f"Баланс: {bal} 💎",
+                f"💎 -{bet} Гемов",
                 parse_mode="HTML"
             )
             break
@@ -3591,27 +3917,51 @@ async def _dice_roll_round(chat_id: int, duel_id: str, orig_msg=None):
     if not game:
         return
 
-    # Кидаем кубики
-    msg1 = await bot.send_dice(chat_id)
-    await asyncio.sleep(3)
-    msg2 = await bot.send_dice(chat_id)
-    await asyncio.sleep(3)
-
-    r1 = msg1.dice.value  # результат challenger
-    r2 = msg2.dice.value  # результат opponent
-
     cname = game["challenger_name"]
     oname = game["opponent_name"]
     bet = game["bet"]
 
+    MAX_DRAWS = 5
+    draw_count = game.get("draw_count", 0)
+
+    try:
+        msg1 = await bot.send_dice(chat_id)
+        await asyncio.sleep(3)
+        msg2 = await bot.send_dice(chat_id)
+        await asyncio.sleep(3)
+    except Exception:
+        # Если Telegram не ответил — возвращаем ставки обоим
+        add_gems(game["challenger_id"], bet)
+        add_gems(game["opponent_id"], bet)
+        game["status"] = "finished"
+        _dice_games.pop(duel_id, None)
+        try:
+            await bot.send_message(chat_id, "⚠️ Ошибка при броске кубиков — ставки возвращены.", parse_mode="HTML")
+        except Exception:
+            pass
+        return
+
+    r1 = msg1.dice.value
+    r2 = msg2.dice.value
+
     result_text = f"🎲 <b>{cname}</b>: {r1}  vs  <b>{oname}</b>: {r2}\n\n"
 
     if r1 == r2:
-        # Ничья — играем снова
-        result_text += "🤝 <b>Ничья!</b> Играем ещё раз...\n"
-        await bot.send_message(chat_id, result_text, parse_mode="HTML")
-        await asyncio.sleep(2)
-        await _dice_roll_round(chat_id, duel_id)
+        draw_count += 1
+        game["draw_count"] = draw_count
+        if draw_count >= MAX_DRAWS:
+            # Слишком много ничьих — возвращаем ставки
+            add_gems(game["challenger_id"], bet)
+            add_gems(game["opponent_id"], bet)
+            game["status"] = "finished"
+            _dice_games.pop(duel_id, None)
+            result_text += "🤝 <b>Снова ничья!</b> Слишком много ничьих — ставки возвращены."
+            await bot.send_message(chat_id, result_text, parse_mode="HTML")
+        else:
+            result_text += "🤝 <b>Ничья!</b> Играем ещё раз...\n"
+            await bot.send_message(chat_id, result_text, parse_mode="HTML")
+            await asyncio.sleep(2)
+            await _dice_roll_round(chat_id, duel_id)
     else:
         pot = bet * 2
         commission = max(1, int(pot * 0.05))
@@ -3630,6 +3980,7 @@ async def _dice_roll_round(chat_id: int, duel_id: str, orig_msg=None):
         log_game(loser_id, "dice_pvp", bet, "lose", 0)
         result_text += f"🏆 Победитель: <b>{winner_name}</b>\n💎 +{winnings} Гемов (5% комиссия)"
         await bot.send_message(chat_id, result_text, parse_mode="HTML")
+        _dice_games.pop(duel_id, None)
 
 
 @dp.callback_query(F.data.startswith("dice:decline:"))
@@ -3673,7 +4024,8 @@ async def cmd_help(message: Message):
         "🗳 /top — Топ 5 игроков\n"
         "🔗 /ref — Топ 5 рефоводов\n"
         "🌍 /game — Викторина\n"
-        "⚔️ /duel @username 100 — Дуэль\n\n"
+        "⚔️ /duel @username 100 — Дуэль\n"
+        "💀 /diss @username — Опустить чела за 1 ⭐\n\n"
         "🎰 <b>Казино:</b>\n"
         "💰 /bank — Баланс Гемов\n"
         "🛒 /buy — Купить Гемы за Stars\n"
@@ -3684,7 +4036,8 @@ async def cmd_help(message: Message):
         "🎲 /dice &lt;ставка&gt; (реплай) — Кубик vs игрок\n"
         "🎡 /roul &lt;ставка&gt; — Рулетка (x35)\n"
         "🏆 /jackpot — Недельный джекпот\n\n"
-        f"🎁 <b>Аирдроп раздача:</b> {total_airdrop} 💎\n"
+        "🖼 /nft — Текущие розыгрыши NFT\n\n"
+        f"🎁 <b>Аирдроп гемов:</b> 3800 💎\n"
         f"🗡 <b>Роздано связей:</b> {total_items}\n\n"
         "<i>@shrimpgamesbot</i>",
         parse_mode="HTML"
@@ -4166,7 +4519,7 @@ async def cmd_topdeposit(message: Message):
 _SLOT_SYMS = ["🍒", "🍋", "🍇", "🍉", "💰", "💎"]
 
 # (символ, множитель, доля от всех выигрышей)
-# RTP = WIN_CHANCE × Σ(доля × множитель) = 0.304 × 3.06 ≈ 93%
+# RTP = WIN_CHANCE × Σ(доля × множитель) = 0.285 × 3.16 ≈ 90%
 _SLOT_WINS = [
     ("🍒",  1, 0.30),
     ("🍋",  2, 0.25),
@@ -4175,7 +4528,7 @@ _SLOT_WINS = [
     ("💰",  7, 0.08),
     ("💎", 10, 0.05),
 ]
-_SLOT_WIN_CHANCE = 0.304  # 0.304 × 3.06 ≈ 93%
+_SLOT_WIN_CHANCE = 0.285  # ~90% RTP
 
 def _slot_roll(bet: int) -> tuple[list[str], int]:
     import random
@@ -4542,6 +4895,77 @@ async def cmd_jackpot(message: Message):
     )
 
     await message.answer("\n".join(lines), parse_mode="HTML", disable_web_page_preview=True)
+
+
+# ── NFT РОЗЫГРЫШИ ────────────────────────────────────────────
+@dp.message(Command("nft"))
+async def cmd_nft(message: Message):
+    conn = db(); c = conn.cursor()
+
+    # Лидер реферальной гонки (активные рефы — хотя бы раз голосовали)
+    try:
+        c.execute("""
+            SELECT u.user_id, u.username, u.first_name,
+                   COUNT(ref_u.user_id) as active_refs,
+                   (SELECT COUNT(*) FROM users r WHERE r.ref_by = u.user_id) as total_refs
+            FROM users u
+            JOIN users ref_u ON ref_u.ref_by = u.user_id
+            WHERE u.user_id != ? AND (u.is_banned IS NULL OR u.is_banned = 0)
+              AND (SELECT COUNT(*) FROM votes WHERE voter_id = ref_u.user_id) > 0
+            GROUP BY u.user_id
+            ORDER BY active_refs DESC
+            LIMIT 1
+        """, (ADMIN_ID,))
+        ref_row = c.fetchone()
+        if ref_row and ref_row['active_refs'] > 0:
+            ref_name = f"@{ref_row['username']}" if ref_row['username'] else (ref_row['first_name'] or f"ID{ref_row['user_id']}")
+            ref_leader = f"🥇 {ref_name} — {ref_row['active_refs']} в игре (всего рефов: {ref_row['total_refs']})"
+        else:
+            ref_leader = "пока нет участников"
+    except:
+        ref_leader = "данные недоступны"
+
+    # Лидер по обороту гемов (jackpot — за текущую неделю)
+    try:
+        c.execute("""
+            SELECT gl.user_id, u.username, u.first_name, SUM(gl.bet) as turnover
+            FROM game_log gl
+            JOIN users u ON u.user_id = gl.user_id
+            WHERE date(gl.created_at) >= date('now', '-' || ((strftime('%w','now') + 6) % 7) || ' days')
+              AND gl.user_id != ?
+            GROUP BY gl.user_id
+            ORDER BY turnover DESC
+            LIMIT 1
+        """, (ADMIN_ID,))
+        jackpot_row = c.fetchone()
+        if jackpot_row:
+            j_name = f"@{jackpot_row['username']}" if jackpot_row['username'] else jackpot_row['first_name']
+            jackpot_leader = f"{j_name} — {jackpot_row['turnover']} 💎"
+        else:
+            jackpot_leader = "пока нет участников"
+    except:
+        jackpot_leader = "данные недоступны"
+
+    auction_active = AUCTION_ACTIVE()
+    conn.close()
+
+    # Считаем активные розыгрыши: 5 базовых + аукцион если активен
+    total_nft = 5 + (1 if auction_active else 0)
+
+    lines = [
+        f"🖼 <b>NFT РОЗЫГРЫШИ — итоги 31 мая</b>",
+        f"🏆 Разыгрывается NFT: <b>{total_nft} шт.</b>\n",
+        "🔗 <b>Реферальная гонка: 3 NFT</b> /ref",
+        f"Лидер: {ref_leader}\n",
+        "💎 <b>Самый крупный оборот Гемов: 1 NFT</b> /jackpot",
+        f"Лидер: {jackpot_leader}\n",
+        "💸 <b>Самый крупный разовый бай Гемов: 1 NFT</b>",
+        "Топ Бай: 500 звёзд\n",
+        "🎁 <b>NFT DROP</b> — Падает случайным игрокам, которые играют в чате в казик\n",
+        "🏺 <b>Аукцион</b>",
+        "На данный момент неактивен",
+    ]
+    await message.answer("\n".join(lines), parse_mode="HTML")
 
 
 # ── JACKPOT OVERTAKE NOTIFICATION ────────────────────────────

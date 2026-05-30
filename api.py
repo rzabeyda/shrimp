@@ -702,6 +702,10 @@ async def auth(request: Request):
     _bcc.execute("SELECT COUNT(*) as cnt FROM bomzh_donations WHERE user_id=?", (user_id,))
     bomzh_donations_count = _bcc.fetchone()["cnt"]
     try:
+        _bcc.execute("SELECT COUNT(*) as cnt FROM authorities WHERE user_id=?", (user_id,))
+        authority_bought = _bcc.fetchone()["cnt"]
+    except: authority_bought = 0
+    try:
         _bcc.execute("CREATE TABLE IF NOT EXISTS bomzh_attacks (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, username TEXT, victim TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
         _bcc.execute("SELECT COUNT(*) as cnt FROM bomzh_attacks WHERE user_id=?", (user_id,))
         bomzh_attacks_count = _bcc.fetchone()["cnt"]
@@ -824,6 +828,7 @@ async def auth(request: Request):
             "bomzh_items_count": bomzh_items_count,
             "bomzh_donations_count": bomzh_donations_count,
             "bomzh_attacks_count": bomzh_attacks_count,
+            "authority_bought": authority_bought,
             "streak_days": streak_days,
             "streak_new_day": is_new_day,
             "streak_item": streak_item,
@@ -886,6 +891,16 @@ async def game_players():
             else:
                 p["is_anon"] = False
         except: p["is_anon"] = False
+        try:
+            from database import get_all_authorities
+            _AUTHORITY_LABELS = {
+                'mayor': '👑 Мэр', 'banker': '<img src="/static/icons/gold_bricks.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Банкир', 'crime_boss': '<img src="/static/icons/crown.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Вор в законе',
+                'cop': '<img src="/static/icons/police_badge.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Мент', 'escort': '<img src="/static/icons/pink_handcuffs.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Эскортница', 'dealer': '<img src="/static/icons/heroin.png" style="width:15px;height:15px;vertical-align:middle;margin-right:3px"> Барыч', 'dictator': '<img src="/static/icons/str.png" style="width:15px;height:15px;vertical-align:middle;margin-right:3px"> Диктатор', 'krasotka': '<img src="/static/icons/sexy_lips.png" style="width:15px;height:15px;vertical-align:middle;margin-right:3px"> Красотка', 'milf': '🍷 Милфа'
+            }
+            auths = get_all_authorities()
+            auth_entry = next((v for v in auths.values() if v.get('user_id') == p['user_id'] and v.get('status_enabled')), None)
+            p["authority_status"] = _AUTHORITY_LABELS.get(auth_entry['authority_type']) if auth_entry else None
+        except: p["authority_status"] = None
     conn.close()
     return {
         "ok": True, "game_id": game["id"],
@@ -1025,9 +1040,12 @@ async def game_alive(viewer_id: int = 0, next: int = 0):
             p["is_anon"] = is_anon
             r = c2.execute("SELECT value FROM settings WHERE key=?", (f"premium_icon_{p['user_id']}",)).fetchone()
             real_icon = r["value"] if r else None
+            # Мент всегда видит реальные ники анонимусов
+            from database import get_user_authority as _gua_auth
+            viewer_is_cop = _gua_auth(viewer_id) == 'cop'
             if is_anon and p["user_id"] != viewer_id:
-                if p["user_id"] in _viewer_revealed_ids:
-                    # Зритель раскрыл этого анонимуса — показываем реальные данные
+                if p["user_id"] in _viewer_revealed_ids or viewer_is_cop:
+                    # Зритель раскрыл этого анонимуса или зритель — Мент
                     p["premium_icon"] = real_icon
                     p["is_revealed"] = True
                     # first_name и username остаются реальными (не маскируем)
@@ -1113,6 +1131,24 @@ async def game_alive(viewer_id: int = 0, next: int = 0):
     for p in players:
         p["has_shield"] = has_shield_map.get(p["user_id"], False)
 
+    # Добавляем authority_status (показывается в badge вместо "Зареган"/"В игре")
+    try:
+        from database import get_all_authorities as _gaa
+        _AUTH_LABELS = {
+            'mayor': '<img src="/static/icons/mayor_icon.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> МЭР', 'banker': '<img src="/static/icons/gold_bricks.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Банкир', 'crime_boss': '<img src="/static/icons/crown.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Вор в законе',
+            'cop': '<img src="/static/icons/police_badge.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Мент', 'escort': '<img src="/static/icons/pink_handcuffs.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Эскортница', 'dealer': '<img src="/static/icons/heroin.png" style="width:15px;height:15px;vertical-align:middle;margin-right:4px"> Барыч', 'dictator': '<img src="/static/icons/str.png" style="width:15px;height:15px;vertical-align:middle;margin-right:3px"> Диктатор', 'krasotka': '<img src="/static/icons/sexy_lips.png" style="width:15px;height:15px;vertical-align:middle;margin-right:3px"> Красотка', 'milf': '🍷 Милфа'
+        }
+        _auths = _gaa()
+        _auth_map = {v['user_id']: (v['authority_type'], _AUTH_LABELS.get(v['authority_type'])) for v in _auths.values() if v.get('status_enabled')}
+        for p in players:
+            _entry = _auth_map.get(p["user_id"])
+            p["authority_type"] = _entry[0] if _entry else None
+            p["authority_status"] = _entry[1] if _entry else None
+    except:
+        for p in players:
+            p["authority_type"] = None
+            p["authority_status"] = None
+
     return {"ok": True, "players": players, "game_id": game["id"], "current_day": game["current_day"] or 0,
             "status": game["status"], "game_number": game["number"] or 1, "winner_id": winner_id,
             "voted_ids": voted_ids_list, "shielded_ids": shielded_ids_list}
@@ -1171,6 +1207,39 @@ async def game_register(request: Request):
         if is_first_ever:
             add_gems(user_id, 25)
             welcome_gems = 25
+
+        # Ставим ✅ в уведомление админа если юзер новый и зарегался в игру
+        try:
+            conn_n = get_conn(); c_n = conn_n.cursor()
+            c_n.execute("SELECT value FROM settings WHERE key=?", (f"new_user_notify_{user_id}",))
+            row_n = c_n.fetchone()
+            if row_n:
+                msg_id = int(row_n["value"])
+                # Получаем текст старого уведомления
+                conn_u = get_conn(); c_u = conn_u.cursor()
+                c_u.execute("SELECT username, first_name, ref_by FROM users WHERE user_id=?", (user_id,))
+                u_row = c_u.fetchone(); conn_u.close()
+                uname_n = f"@{u_row['username']}" if u_row and u_row["username"] else (u_row["first_name"] if u_row else str(user_id))
+                ref_info_n = ""
+                if u_row and u_row["ref_by"]:
+                    conn_r2 = get_conn(); c_r2 = conn_r2.cursor()
+                    c_r2.execute("SELECT username, first_name FROM users WHERE user_id=?", (u_row["ref_by"],))
+                    ref_row2 = c_r2.fetchone(); conn_r2.close()
+                    if ref_row2:
+                        ref_label2 = f"@{ref_row2['username']}" if ref_row2["username"] else ref_row2["first_name"]
+                        ref_info_n = f"\nРеферал от {ref_label2}"
+                new_text = f"✅ Новый юзер {uname_n}{ref_info_n}"
+                async with httpx.AsyncClient() as client:
+                    await client.post(
+                        f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageText",
+                        json={"chat_id": 7308147004, "message_id": msg_id, "text": new_text, "parse_mode": "HTML"}
+                    )
+                # Удаляем запись чтобы не редактировать повторно
+                c_n.execute("DELETE FROM settings WHERE key=?", (f"new_user_notify_{user_id}",))
+                conn_n.commit()
+            conn_n.close()
+        except: pass
+
     return {"ok": ok, "message": msg, "count": count, "welcome_gems": welcome_gems}
 
 
@@ -1212,6 +1281,12 @@ async def game_vote(request: Request):
     voter_row = c_chk.fetchone(); conn_chk.close()
     if not voter_row or voter_row["is_alive"] == 0:
         return {"ok": False, "error": "Ты выбыл из игры"}
+    # Милфа — проверяем пропуск раунда
+    conn_sk = get_conn(); c_sk = conn_sk.cursor()
+    c_sk.execute("SELECT value FROM settings WHERE key=?", (f"skip_vote_{game['id']}_{game['current_day']}_{voter_id}",))
+    skip_row = c_sk.fetchone(); conn_sk.close()
+    if skip_row:
+        return {"ok": False, "error": "Ты отвлёкся — в этом раунде голосовать нельзя 🍷"}
     # Проверяем активирована ли крышанулса на эту цель в этом раунде
     from database import get_alive_count as _gac_sh
     conn_sh2 = get_conn(); c_sh2 = conn_sh2.cursor()
@@ -1224,7 +1299,45 @@ async def game_vote(request: Request):
     day = game["current_day"] or 1
     if has_bomzh_item(target_id, 'car_key') and get_alive_count(game["id"]) > 15:
         return {"ok": False, "error": "У этого игрока иммунитет — уехал на тачке 🚗"}
+    # Иммунитет авторитетов — первые 5 раундов голосовать против нельзя
+    if day <= 5:
+        from database import get_user_authority as _gua
+        if _gua(target_id):
+            return {"ok": False, "error": "У этого игрока авторитет — первые 5 раундов неприкосновенен"}
     weight = cast_vote(game["id"], day, voter_id, target_id)
+    # Милфа — голосующий против неё пропускает следующий раунд
+    from database import get_user_authority as _gua_m
+    if _gua_m(target_id) == 'milf':
+        try:
+            _mconn = get_conn(); _mc = _mconn.cursor()
+            _skip_key = f"skip_vote_{game['id']}_{day + 1}_{voter_id}"
+            _mc.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?,?)", (_skip_key, "1"))
+            _mconn.commit(); _mconn.close()
+        except: pass
+
+    # Красотка — 33% шанс перенаправить голос обратно на голосующего
+    import random as _rnd_k
+    from database import get_user_authority as _gua_k
+    _charm_triggered = False
+    if _gua_k(target_id) == 'krasotka' and _rnd_k.random() < 0.33:
+        try:
+            _kconn = get_conn(); _kc = _kconn.cursor()
+            _kc.execute("UPDATE votes SET target_id=? WHERE game_id=? AND day_number=? AND voter_id=?",
+                        (voter_id, game["id"], day, voter_id))
+            _kconn.commit(); _kconn.close()
+            _charm_triggered = True
+        except: pass
+
+    # Диктатор — его голос считается как 2
+    from database import get_user_authority as _gua_v
+    _is_dictator = _gua_v(voter_id) == 'dictator'
+    if _is_dictator:
+        try:
+            _dconn = get_conn(); _dc = _dconn.cursor()
+            _dc.execute("UPDATE votes SET weight=2 WHERE game_id=? AND day_number=? AND voter_id=?", (game["id"], day, voter_id))
+            _dconn.commit(); _dconn.close()
+            weight = 2
+        except: pass
 
     # Лог в приватную группу
     def _n(uid):
@@ -1234,7 +1347,15 @@ async def game_vote(request: Request):
         if any(i["item_type"] == "anon_player" for i in anon_items):
             return "Анонимус"
         return f"@{u['username']}" if u["username"] else u["first_name"]
-    double = " (x2 — Двустволка жахнула дуплетом)" if weight == 2 else ""
+    double = " (x2 — Указ Диктатора)" if _is_dictator else (" (x2 — Двустволка жахнула дуплетом)" if weight == 2 else "")
+    if _charm_triggered:
+        try:
+            async with httpx.AsyncClient(timeout=5) as _clch:
+                await _clch.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                    json={"chat_id": "@shrimpgames_chat",
+                          "text": f"💋 Красотка сработала — {_n(voter_id)} проголосовал против себя сам. Чары не подводят.",
+                          "parse_mode": "HTML"})
+        except: pass
     # Логируем и обновляем счётчики — всё в try чтобы не ронять ответ
     try:
         async with httpx.AsyncClient(timeout=3.0) as _cl:
@@ -1723,6 +1844,112 @@ async def shop_buy_artifact(request: Request):
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
+
+@app.get("/api/authorities")
+async def get_authorities():
+    from database import get_all_authorities
+    return get_all_authorities()
+
+@app.get("/api/authorities/user/{user_id}")
+async def get_user_authority_api(user_id: int):
+    from database import get_user_authority, get_authority
+    auth_type = get_user_authority(user_id)
+    if not auth_type:
+        return {"authority": None}
+    auth = get_authority(auth_type)
+    return {"authority": auth_type, "data": auth}
+
+@app.post("/api/authority/toggle_status")
+async def authority_toggle_status(request: Request):
+    from database import toggle_authority_status
+    body = await request.json()
+    user_id = body.get("user_id")
+    if not user_id:
+        return JSONResponse({"ok": False, "error": "no user_id"}, status_code=400)
+    new_val = toggle_authority_status(int(user_id))
+    return {"ok": True, "status_enabled": new_val}
+
+@app.post("/api/authority/buy")
+async def buy_authority(request: Request):
+    from database import get_authority, get_user_authority, set_authority
+    body = await request.json()
+    user_id = body.get("user_id")
+    authority_type = body.get("authority_type")
+    price = int(body.get("price", 1))
+
+    AUTHORITY_NAMES = {
+        'mayor': 'Мэр', 'banker': 'Банкир', 'crime_boss': 'Вор в законе',
+        'cop': 'Мент', 'escort': 'Эскортница', 'dealer': 'Барыч', 'dictator': 'Диктатор', 'krasotka': 'Красотка', 'milf': 'Милфа'
+    }
+    if authority_type not in AUTHORITY_NAMES:
+        return JSONResponse({"ok": False, "error": "Неизвестная должность"}, status_code=400)
+
+    current = get_authority(authority_type)
+    # Цена сохраняется даже если должность свободна (user_id=NULL) — нельзя купить дешевле чем платил предыдущий
+    # Если должность занята — следующий платит больше. Если вакантна — можно купить по текущей цене (после сброса = 1)
+    min_price = 1 if not current else (current['price'] + 1 if current.get('user_id') else current['price'])
+    if price < min_price:
+        return JSONResponse({"ok": False, "error": f"Минимальная цена {min_price} ⭐"}, status_code=400)
+
+    name = AUTHORITY_NAMES[authority_type]
+
+    # Админу бесплатно — цена в базе = то что ввёл (но не меньше минимума)
+    if user_id == ADMIN_ID:
+        uname = body.get("username", "")
+        fname = body.get("first_name", "")
+        actual_price = max(price, min_price)
+        old = get_authority(authority_type)
+        set_authority(authority_type, user_id, uname, fname, actual_price)
+        # Сообщение в чат + тег
+        try:
+            import random as _rnd
+            AUTHORITY_EMOJIS = {'mayor':'🏛','banker':'🏦','crime_boss':'👑','cop':'👮','escort':'💋','dealer':'💊','dictator':'🎖','krasotka':'💋','milf':'🍷'}
+            _emoji = AUTHORITY_EMOJIS.get(authority_type, '👑')
+            _name_str = f"@{uname}" if uname else fname
+            CHAT_ID = "@shrimpgames_chat"
+            _old_nick = f"@{old['username']}" if old and old.get('username') else (old.get('first_name','?') if old else '?')
+            BUY_MSGS = [
+                f"{_emoji} {_name_str} стал {name}ом района! 💸 {actual_price} ⭐",
+                f"{_emoji} {_name_str} занял кресло {name}а! 💸 {actual_price} ⭐",
+                f"{_emoji} На районе новый {name} — {_name_str}! 💸 {actual_price} ⭐",
+            ]
+            OUTBID_MSGS = [
+                f"{_emoji} {_name_str} скинул {_old_nick} с кресла {name}а! 💸 {actual_price} ⭐ — деньги решают",
+                f"{_emoji} {_name_str} занял место {name}а за {actual_price} ⭐! {_old_nick} подвинули с кресла",
+                f"{_emoji} {_name_str} — новый {name}! {_old_nick} не удержал власть. Цена вопроса — {actual_price} ⭐",
+            ]
+            if old and old.get('user_id') and old['user_id'] != user_id:
+                _msg = _rnd.choice(OUTBID_MSGS)
+            else:
+                _msg = _rnd.choice(BUY_MSGS)
+            async with httpx.AsyncClient() as _cl:
+                await _cl.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                    json={"chat_id": CHAT_ID, "text": _msg})
+                # Установить тег в чате (только если юзер — админ чата)
+                await _cl.post(f"https://api.telegram.org/bot{BOT_TOKEN}/setChatAdministratorCustomTitle",
+                    json={"chat_id": CHAT_ID, "user_id": user_id, "custom_title": name})
+        except Exception as _e:
+            print(f"[AUTH FREE] notify error: {_e}")
+        return {"ok": True, "free": True}
+
+    try:
+        async with httpx.AsyncClient() as cl:
+            r = await cl.post(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink",
+                json={
+                    "title": f"👑 {name}",
+                    "description": f"Купить должность {name} в Разборках на районе",
+                    "payload": f"{user_id}:authority:{authority_type}:{price}",
+                    "currency": "XTR",
+                    "prices": [{"label": name, "amount": price}],
+                }
+            )
+            d = r.json()
+            if d.get("ok"):
+                return {"ok": True, "invoice_url": d["result"]}
+            return {"ok": False, "error": d.get("description", "Ошибка")}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 @app.post("/api/shop/buy_combo")
 async def shop_buy_combo(request: Request):

@@ -700,13 +700,13 @@
       <button onclick="switchTopTab('purchases')" id="topTabPurchases" class="top-tab"><img src="/static/icons/gift.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px">Покупки</button>
       <button onclick="switchTopTab('kills')" id="topTabKills" class="top-tab"><img src="/static/icons/games.png" style="width:13px;height:13px;vertical-align:middle;margin-right:3px">Разборки</button>
     </div>
-    <div id="refRaceBanner" style="display:none;background:linear-gradient(135deg,rgba(232,51,109,.12),rgba(139,92,246,.08));border:1.5px solid rgba(232,51,109,.4);border-radius:14px;padding:10px 14px;margin-bottom:10px;cursor:pointer;align-items:center;gap:10px" onclick="window.open('https://t.me/shrimpgames_channel/35','_blank')">
-      <img src="/static/icons/ref_race.png" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0">
-      <div style="flex:1;min-width:0">
-        <div style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:var(--pink);margin-bottom:2px">🏁 Реферальная гонка</div>
-        <div style="font-size:10px;color:var(--muted2)">Призы — NFT Duck, Bull Run, Bear Market и Stars</div>
+    <div id="refRaceBanner" style="display:none;background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.08));border:1.5px solid rgba(99,102,241,.4);border-radius:14px;padding:10px 14px;margin-bottom:10px;align-items:center;gap:10px">
+      <img src="/static/icons/avtoritet.jpg" onclick="window.open('https://t.me/shrimpgames_channel/41','_blank')" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer">
+      <div onclick="document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>switchShopTab('authority'),100)" style="flex:1;min-width:0;cursor:pointer">
+        <div style="font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;color:#a5b4fc;margin-bottom:2px">Купить авторитет</div>
+        <div style="font-size:10px;color:var(--muted2)">Должность на районе — власть в игре</div>
       </div>
-      <div style="font-size:14px;opacity:.4">›</div>
+      <div onclick="document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>switchShopTab('authority'),100)" style="font-size:14px;opacity:.4;cursor:pointer">›</div>
     </div>
     <div id="topList" style="display:flex;flex-direction:column;gap:5px">
       <div style="text-align:center;color:var(--muted2);font-size:12px;padding:20px">Загрузка...</div>
@@ -1199,15 +1199,15 @@
           <div onclick="window.open('https://t.me/nft/ChillFlame-244385','_blank')" style="font-size:18px;opacity:0.4;cursor:pointer">›</div>
         </div>
 
-        <!-- Реф гонка слайд -->
-        <div id="bannerSlide2" class="banner-slide" onclick="window.open('https://t.me/shrimpgames_channel','_blank')" style="display:none;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(232,51,109,.15) 0%,rgba(139,92,246,.12) 50%,rgba(15,23,42,.85) 100%);border:2px solid rgba(232,51,109,.45);border-radius:16px;padding:10px 14px;box-shadow:0 0 24px rgba(232,51,109,.15),inset 0 1px 0 rgba(255,255,255,.08);cursor:pointer">
-          <img src="/static/icons/ref_race.png" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:9px;color:var(--pink);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">до 31 мая</div>
-            <div style="font-size:14px;font-weight:900;color:var(--text);font-family:'Unbounded',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Реферальная гонка</div>
-            <div style="font-size:10px;color:var(--muted2);margin-top:2px">Призы: NFT Duck · NFT Bull · NFT Bear</div>
+        <!-- Купить авторитет слайд -->
+        <div id="bannerSlide2" class="banner-slide" style="display:none;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(99,102,241,.15) 0%,rgba(139,92,246,.12) 50%,rgba(15,23,42,.85) 100%);border:2px solid rgba(99,102,241,.45);border-radius:16px;padding:10px 14px;box-shadow:0 0 24px rgba(99,102,241,.15),inset 0 1px 0 rgba(255,255,255,.08)">
+          <img src="/static/icons/avtoritet.jpg" onclick="window.open('https://t.me/shrimpgames_channel/41','_blank')" style="width:60px;height:60px;border-radius:10px;object-fit:cover;flex-shrink:0;cursor:pointer">
+          <div onclick="document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>switchShopTab('authority'),100)" style="flex:1;min-width:0;cursor:pointer">
+            <div style="font-size:9px;color:#a5b4fc;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Шопик</div>
+            <div style="font-size:14px;font-weight:900;color:var(--text);font-family:'Unbounded',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Купить авторитет</div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:2px">Должность на районе — власть в игре</div>
           </div>
-          <div style="font-size:18px;opacity:0.4">›</div>
+          <div onclick="document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>switchShopTab('authority'),100)" style="font-size:18px;opacity:0.4;cursor:pointer">›</div>
         </div>
 
         <!-- Точки-индикаторы -->
@@ -1274,13 +1274,14 @@
     <div class="shop-wrap">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:10px"><img src="/static/icons/game_store.png" style="width:24px;height:24px;object-fit:contain"><div class="shop-title" style="margin-bottom:0">Магазин</div></div>
-        <button onclick="openShopPremiumInfo()" style="display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(245,197,24,.15),rgba(139,92,246,.1));border:1px solid rgba(245,197,24,.5);border-radius:10px;padding:6px 12px;font-family:'Unbounded',sans-serif;font-size:9px;font-weight:800;color:#f5c518;cursor:pointer"><img src="/static/icons/premium_dark.png" style="width:14px;height:14px;object-fit:contain">Premium</button>
+        <button onclick="openShopPremiumInfo()" style="display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(245,197,24,.15),rgba(139,92,246,.1));border:1px solid rgba(245,197,24,.5);border-radius:10px;padding:6px 12px;font-family:'Unbounded',sans-serif;font-size:9px;font-weight:800;color:#f5c518;cursor:pointer"><img src="/static/icons/vip.png" style="width:14px;height:14px;object-fit:contain">Premium</button>
       </div>
 
       <!-- Переключатель вкладок шопика -->
-      <div id="shopTabBar" style="display:flex;gap:8px;margin-bottom:16px">
+      <div id="shopTabBar" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
         <button id="shopTabLinks" onclick="switchShopTab('links')" style="flex:1;padding:10px;border-radius:12px;border:none;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,rgba(232,51,109,.25),rgba(139,92,246,.15));border:1.5px solid rgba(232,51,109,.6);color:#fff"><img src="/static/icons/mafia.png" style="width:16px;height:16px;object-fit:contain"> Связи</button>
         <button id="shopTabArtifacts" onclick="switchShopTab('artifacts')" style="flex:1;padding:10px;border-radius:12px;border:none;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,rgba(245,197,24,.25),rgba(245,158,11,.15));border:1.5px solid rgba(245,197,24,.6);color:#fff"><img src="/static/icons/premium_dark.png" style="width:16px;height:16px;object-fit:contain"> Артефакты</button>
+        <button id="shopTabAuthority" onclick="switchShopTab('authority')" style="flex:1;padding:10px;border-radius:12px;border:none;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--bg3);border:1.5px solid var(--border);color:var(--muted2);display:none"><img src="/static/icons/crown.png" style="width:16px;height:16px;object-fit:contain"> Авторитет</button>
       </div>
 
       <!-- Вкладка: Связи -->
@@ -1458,6 +1459,12 @@
 
         </div>
       </div><!-- /shopContentArtifacts -->
+
+      <!-- Вкладка: Авторитет (скрыта) -->
+      <div id="shopContentAuthority" style="display:none">
+        <div class="shop-sub" style="margin-top:-8px">Купи должность на районе. Чем дороже заплатишь — тем сложнее тебя скинуть. Одновременно можно иметь только 1 должность.</div>
+        <div class="shop-grid" id="authorityGrid"></div>
+      </div>
 
     </div>
   </div>
@@ -1711,7 +1718,16 @@
         <div id="bomzhItemsWrap" class="inventory-row" style="border:1.5px solid rgba(255,150,50,0.6);border-radius:18px;padding:12px;box-shadow:0 0 12px rgba(255,150,50,0.12)"></div>
       </div>
 
-      <div class="section-title">Задания</div>
+      <!-- Блок Авторитет в профиле -->
+      <div id="authorityProfileBlock" style="margin-top:12px;margin-bottom:12px">
+        <div class="section-title" style="display:flex;align-items:center;gap:8px">
+          <img src="/static/icons/crown.png" style="width:18px;height:18px;object-fit:contain">
+          <span>Авторитет</span>
+        </div>
+        <div id="authorityProfileContent"></div>
+      </div>
+
+      <div class="section-title" style="margin-top:4px">Задания</div>
 
       <!-- STREAK BLOCK -->
       <div class="streak-card" id="streakCard" onclick="openStreakModal()">
@@ -2405,6 +2421,7 @@ const ACHIEVEMENTS = [
   { id:'bomzh_donor',      name:'Благодетель',      desc:'Задонатил Чушпану',                     icon:'heart.png',        cond: u => (u.bomzh_donations_count||0)>=1 },
   { id:'gem_buyer',       name:'Инвестор',         desc:'Купил Гемы за Stars',                   icon:'diamond.png',      cond: u => (u.gems_purchased||0)>=1 },
   { id:'bomzh_hitman',     name:'Заказчик',         desc:'Натравил Чушпана на игрока',            icon:'bomz_icon.png',     cond: u => (u.bomzh_attacks_count||0)>=1 },
+  { id:'authority_buyer',  name:'Авторитет',        desc:'Купил должность на районе',             icon:'str.png',           cond: u => (u.authority_bought||0)>=1 },
 ];
 
 // Видео fallback
@@ -2435,6 +2452,7 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     } else if(tab === 'profile'){
       document.getElementById('bottomBar').style.opacity='0'; document.getElementById('bottomBar').style.pointerEvents='none';
       if(currentUser) await renderProfile(currentUser);
+      loadAuthorities();
       updateShopClanBlock();
     } else {
       document.getElementById('bottomBar').style.opacity='0'; document.getElementById('bottomBar').style.pointerEvents='none';
@@ -2582,14 +2600,17 @@ async function auth(){
       if(currentUser.user_id === 7308147004){
         const tb = document.getElementById('btnTestLaunch');
         if(tb) tb.style.display = 'block';
-
       }
+      // Вкладка Авторитет — для всех
+      const authTab = document.getElementById('shopTabAuthority');
+      if(authTab) authTab.style.display = 'flex';
       // Обновляем таймер из voting_ends_ms
       if(currentGame.status==='active' && currentGame.voting_ends_ms){
         _voteEndCache = currentGame.voting_ends_ms;
         
       }
       await renderProfile(data.user);
+      loadAuthorities();
       updateNavPulse();
       updatePlayerCount(currentGame.player_count);
       updateShopButtons();
@@ -2805,7 +2826,6 @@ async function renderProfile(user){
   const PARTNERS = [
     { name: "Life | Кирилл", url: "https://t.me/life_kiriqwx1" },
     { name: "Luntik Gifts", url: "https://t.me/luntik_gifts" },
-    { name: "Без Скандала", url: "https://t.me/bezscandala" },
   ];
   const pb = document.getElementById('partnersBlock');
   const pl = document.getElementById('modalPartnersList');
@@ -4029,23 +4049,38 @@ async function loadPlayersLive(){
         badgeClass = 'badge-voted';
         icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : _defIcon);
       } else if(currentGame.status === 'waiting'){
-        badge = '✅ Зареган';
+        badge = p.authority_status || '✅ Зареган';
         badgeClass = 'badge-voted';
         icon = p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : (hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : _defIcon);
       } else {
-        badge = '⚔️ В игре';
+        badge = p.authority_status || '⚔️ В игре';
         badgeClass = 'badge-voted';
         icon = hasAnon ? '<img src="/static/pics/anonymous.png" style="width:18px;height:18px">' : (p.premium_icon ? `<img src="/static/icons/${p.premium_icon}.png" style="width:18px;height:18px;object-fit:contain;vertical-align:middle">` : _defIcon);
       }
+      const _AUTH_COLORS = {
+        'mayor':      '#fbbf24',
+        'banker':     '#10b981',
+        'crime_boss': '#a78bfa',
+        'cop':        '#60a5fa',
+        'escort':     '#f472b6',
+        'dealer':     '#fb923c',
+        'milf':       '#c084fc',
+        'krasotka':   '#ec4899',
+        'dictator':   '#ef4444',
+      };
+      const _authColor = p.authority_type ? (_AUTH_COLORS[p.authority_type] || null) : null;
       const numColor = isMe ? 'rgba(255,255,255,.5)' : isDead && !isFinished ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.2)';
       const rowStyle = isMe
         ? 'border:1.5px solid rgba(255,255,255,.7);box-shadow:0 0 10px rgba(255,255,255,.08);background:linear-gradient(135deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.02) 100%)'
         : (isDead && !isFinished ? 'opacity:.35' : '');
       const nameContent = `${hasAnon || isMe ? meIcon : icon}<span>${name}</span>${meTag}`;
+      const badgeEl = _authColor
+        ? `<div class="player-live-badge" style="background:rgba(10,10,18,0.55);border:none;padding:4px 8px;border-radius:8px;font-family:'Unbounded',sans-serif;font-size:11px;font-weight:900;text-transform:uppercase;color:${_authColor}">${badge}</div>`
+        : `<div class="player-live-badge ${badgeClass}">${badge}</div>`;
       return `<div class="player-live-row" style="${rowStyle}" ${_clickable}>
         <div class="player-live-num" style="color:${numColor}">${idx+1}</div>
         <div class="player-live-name">${nameContent}</div>
-        <div class="player-live-badge ${badgeClass}">${badge}</div>
+        ${badgeEl}
       </div>`;
     }).join('');
     if(list.innerHTML !== newListHTML) list.innerHTML = newListHTML;
@@ -4694,21 +4729,207 @@ function declFriend(n){
 
 // SHOP TABS
 function switchShopTab(tab){
-  const isLinks = tab === 'links';
-  document.getElementById('shopContentLinks').style.display = isLinks ? 'block' : 'none';
-  document.getElementById('shopContentArtifacts').style.display = isLinks ? 'none' : 'block';
+  document.getElementById('shopContentLinks').style.display = tab==='links' ? 'block' : 'none';
+  document.getElementById('shopContentArtifacts').style.display = tab==='artifacts' ? 'block' : 'none';
+  document.getElementById('shopContentAuthority').style.display = tab==='authority' ? 'block' : 'none';
   const btnLinks = document.getElementById('shopTabLinks');
   const btnArt = document.getElementById('shopTabArtifacts');
+  const btnAuth = document.getElementById('shopTabAuthority');
   if(btnLinks){
-    btnLinks.style.background = isLinks ? 'linear-gradient(135deg,rgba(232,51,109,.25),rgba(139,92,246,.15))' : 'var(--bg3)';
-    btnLinks.style.borderColor = isLinks ? 'rgba(232,51,109,.6)' : 'var(--border)';
-    btnLinks.style.color = isLinks ? '#fff' : 'var(--muted2)';
+    btnLinks.style.background = tab==='links' ? 'linear-gradient(135deg,rgba(232,51,109,.25),rgba(139,92,246,.15))' : 'var(--bg3)';
+    btnLinks.style.borderColor = tab==='links' ? 'rgba(232,51,109,.6)' : 'var(--border)';
+    btnLinks.style.color = tab==='links' ? '#fff' : 'var(--muted2)';
   }
   if(btnArt){
-    btnArt.style.background = !isLinks ? 'linear-gradient(135deg,rgba(255,150,50,.25),rgba(139,92,246,.15))' : 'var(--bg3)';
-    btnArt.style.borderColor = !isLinks ? 'rgba(255,150,50,.6)' : 'var(--border)';
-    btnArt.style.color = !isLinks ? '#fff' : 'var(--muted2)';
+    btnArt.style.background = tab==='artifacts' ? 'linear-gradient(135deg,rgba(255,150,50,.25),rgba(139,92,246,.15))' : 'var(--bg3)';
+    btnArt.style.borderColor = tab==='artifacts' ? 'rgba(255,150,50,.6)' : 'var(--border)';
+    btnArt.style.color = tab==='artifacts' ? '#fff' : 'var(--muted2)';
   }
+  if(btnAuth){
+    btnAuth.style.background = tab==='authority' ? 'linear-gradient(135deg,rgba(99,102,241,.25),rgba(139,92,246,.15))' : 'var(--bg3)';
+    btnAuth.style.borderColor = tab==='authority' ? 'rgba(99,102,241,.6)' : 'var(--border)';
+    btnAuth.style.color = tab==='authority' ? '#fff' : 'var(--muted2)';
+  }
+}
+
+// ── АВТОРИТЕТЫ ──────────────────────────────────────────────
+const AUTHORITY_DATA = {
+  mayor:      { name:'Мэр',          icon:'<img src="/static/icons/mayor_icon.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">',  img:'/static/pics/mayor.png',
+    short: '+25 Гемов каждый день в 10:00',
+    desc:'Каждое утро в 10:00 тебе автоматически начисляется +25 Гемов на баланс. Пока держишь должность — Гемы капают каждый день. Это пассивный доход которого нет ни у кого другого.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  banker:     { name:'Банкир',       icon:'<img src="/static/icons/gold_bricks.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/banker.png',
+    short: '0% комиссия при выводе Гемов',
+    desc:'Когда выводишь Гемы на Звёзды — обычно берётся комиссия 5%. Банкир платит 0%. То есть если выводишь 1000 Гемов — обычный игрок получит 950, а Банкир получит все 1000. Чем больше вывод — тем больше выгода.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  crime_boss: { name:'Вор в законе', icon:'<img src="/static/icons/crown.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/crime_boss.png',
+    short: 'Видишь кто голосовал против тебя',
+    desc:'После каждого голосования тебе в личку приходит список всех кто проголосовал против тебя в этом раунде — с именами и количеством голосов каждого. Ты знаешь врагов в лицо.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  cop:        { name:'Мент',         icon:'<img src="/static/icons/police_badge.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/cop.png',
+    short: 'Видишь реальные имена всех Анонимусов',
+    desc:'В игре есть Анонимусы — они скрывают своё настоящее имя. Мент всегда видит реальные имена и ники всех Анонимусов в любом месте игры. Информация которой нет больше ни у кого.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  escort:     { name:'Эскортница',   icon:'<img src="/static/icons/pink_handcuffs.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/escort.png',
+    short: '33% авто-крыша каждый раунд',
+    desc:'В каждом раунде есть 33% шанс что тебя автоматически берут под крышу. Если сработало — за тебя в этом раунде просто нельзя проголосовать. Защита срабатывает сама.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  dealer:     { name:'Барыч',        icon:'<img src="/static/icons/heroin.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/dealer.png',
+    short: '33% шанс отравить при голосовании',
+    desc:'Когда ты голосуешь против кого-то — есть 33% шанс что этот игрок отравится и умрёт в этом раунде вне зависимости от голосования. Один голос может убить.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  milf:       { name:'Милфа',        icon:'<img src="/static/icons/wine1.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/milf.jpeg',
+    short: 'Голосующий против тебя пропускает следующий раунд',
+    desc:'Когда кто-то голосует против тебя — он выпадает из следующего раунда и не может проголосовать. Отвлёкся на неё — упустил игру.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  krasotka:   { name:'Красотка',      icon:'<img src="/static/icons/sexy_lips.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/krasotka.jpeg',
+    short: '33% шанс что голос врага упадёт на него самого',
+    desc:'Когда кто-то голосует против тебя — есть 33% шанс что его голос автоматически засчитается против него самого. Он сам себя закопал. Чары не подводят.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+  dictator:   { name:'Диктатор',     icon:'<img src="/static/icons/str.png" style="width:16px;height:16px;vertical-align:middle;margin-right:4px">', img:'/static/pics/dictator.jpg',
+    short: 'Твой голос считается как 2',
+    desc:'Когда ты голосуешь против кого-то — твой голос засчитывается как два. Двойной удар от Диктатора меняет расклад в любом раунде. Власть не обсуждается — она применяется.\n\n🛡 Авторитет: первые 5 раундов против тебя нельзя голосовать.' },
+};
+
+let _authData = {};
+
+async function loadAuthorities(){
+  try {
+    const r = await fetch('/api/authorities');
+    _authData = await r.json();
+    renderAuthorityShop();
+    renderAuthorityProfile();
+  } catch(e){}
+}
+
+const _AUTH_COLORS = ['s1','s2','s3','s4','s5','s1','s2','s3','s4'];
+
+function renderAuthorityShop(){
+  const grid = document.getElementById('authorityGrid');
+  if(!grid) return;
+  const entries = Object.entries(AUTHORITY_DATA);
+  grid.innerHTML = entries.map(([type, a], i) => {
+    const current = _authData[type];
+    const hasOwner = current && current.user_id;
+    const price = current ? (hasOwner ? current.price + 1 : current.price) : 1;
+    const ownerName = hasOwner ? (current.username ? '@'+current.username : current.first_name) : null;
+    const ownerDesc = ownerName ? `Юзает: ${ownerName}` : 'Свободно';
+    return `<div class="shop-item ${_AUTH_COLORS[i]}">
+      <div class="shop-item-icon" onclick="openAuthorityModal('${type}')" style="cursor:pointer"><img src="${a.img}" alt="" style="border-radius:8px;object-fit:cover"></div>
+      <div class="shop-item-info" onclick="openAuthorityModal('${type}')" style="cursor:pointer">
+        <div class="shop-item-name">${a.icon}${a.name}</div>
+        <div class="shop-item-desc">${ownerDesc}</div>
+      </div>
+      <button class="btn-buy" onclick="openAuthorityModal('${type}')"><img src="/static/icons/star.png" alt=""><span>${price}</span></button>
+    </div>`;
+  }).join('');
+}
+
+function renderAuthorityProfile(){
+  const wrap = document.getElementById('authorityProfileContent');
+  if(!wrap || !currentUser) return;
+  const myType = Object.keys(_authData).find(t => _authData[t] && _authData[t].user_id == currentUser.user_id);
+  if(myType){
+    const a = AUTHORITY_DATA[myType];
+    const statusOn = _authData[myType] && _authData[myType].status_enabled;
+    const btnLabel = statusOn ? '✅ Статус включён' : '⚪ Включить статус';
+    const btnStyle = statusOn
+      ? 'background:rgba(99,102,241,.25);border:1.5px solid rgba(99,102,241,.6);color:#a5b4fc'
+      : 'background:var(--bg3);border:1.5px solid var(--border);color:var(--muted2)';
+    wrap.innerHTML = `<div style="background:var(--bg2);border:1.5px solid rgba(99,102,241,.6);border-radius:18px;padding:12px;box-shadow:0 0 12px rgba(99,102,241,.12)">
+      <div onclick="openAuthorityModal('${myType}')" style="display:flex;align-items:center;gap:12px;cursor:pointer">
+        <img src="${a.img}" style="width:48px;height:48px;object-fit:cover;border-radius:10px;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Unbounded',sans-serif;font-size:12px;font-weight:800;color:#fff">${a.icon}${a.name}</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px;line-height:1.4">${a.short}</div>
+        </div>
+      </div>
+      <button onclick="toggleAuthorityStatus('${myType}')" style="margin-top:10px;width:100%;padding:9px;border-radius:10px;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:800;cursor:pointer;${btnStyle}">${btnLabel}</button>
+    </div>`;
+  } else {
+    wrap.innerHTML = `<div onclick="document.querySelector('.nav-item[data-tab=shop]').click();setTimeout(()=>switchShopTab('authority'),100)" style="display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1.5px dashed rgba(99,102,241,.4);border-radius:18px;padding:20px;cursor:pointer;color:rgba(99,102,241,.7);font-size:28px">+</div>`;
+  }
+}
+
+async function toggleAuthorityStatus(type){
+  try {
+    const r = await fetch('/api/authority/toggle_status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id})});
+    const d = await r.json();
+    if(d.ok){
+      if(_authData[type]) _authData[type].status_enabled = d.status_enabled ? 1 : 0;
+      renderAuthorityProfile();
+    }
+  } catch(e){}
+}
+
+function openAuthorityModal(type){
+  const a = AUTHORITY_DATA[type];
+  const current = _authData[type];
+  const hasOwner = current && current.user_id;
+  const minPrice = current ? current.price + 1 : 1;
+  const ownerName = hasOwner ? (current.username ? '@'+current.username : current.first_name) : null;
+  const isMine = hasOwner && current.user_id == currentUser.user_id;
+
+  let priceSelector = '';
+  if(!isMine){
+    priceSelector = `<div style="margin-bottom:12px">
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:6px">Цена (мин. ${minPrice} ⭐):</div>
+      <input id="authPriceInput" type="number" min="${minPrice}" value="${minPrice}" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1.5px solid rgba(99,102,241,.4);background:var(--bg3);color:#fff;font-size:14px">
+    </div>`;
+  }
+
+  const ownerBlock = ownerName ? `<div style="font-size:11px;color:var(--muted2);margin-bottom:12px">Сейчас: <b style="color:#fff">${ownerName}</b> (${current.price} ⭐)</div>` : `<div style="font-size:11px;color:#22c55e;margin-bottom:12px">Должность свободна</div>`;
+
+  const btnHtml = isMine
+    ? `<div style="text-align:center;color:#22c55e;font-family:'Unbounded',sans-serif;font-size:11px">✅ Это твоя должность</div>`
+    : `<button onclick="buyAuthority('${type}')" style="width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,rgba(99,102,241,.8),rgba(139,92,246,.8));color:#fff;font-family:'Unbounded',sans-serif;font-size:12px;font-weight:800;cursor:pointer">${ownerName ? 'Перекупить' : 'Купить'}</button>`;
+
+  document.getElementById('authorityModalImg').src = a.img;
+  document.getElementById('authorityModalName').innerHTML = a.icon + a.name;
+  document.getElementById('authorityModalDesc').textContent = a.desc;
+  document.getElementById('authorityModalOwner').innerHTML = ownerBlock;
+  document.getElementById('authorityModalPrice').innerHTML = priceSelector;
+  document.getElementById('authorityModalOutbid').innerHTML = isMine
+    ? `<div style="font-size:11px;color:var(--muted2);background:var(--bg3);border-radius:10px;padding:10px 12px;margin-bottom:12px">⚠️ Твою должность могут перекупить в любой момент если заплатят больше. Чем выше цена которую ты поставил — тем сложнее конкурентам тебя скинуть.</div>`
+    : `<div style="font-size:11px;color:var(--muted2);background:var(--bg3);border-radius:10px;padding:10px 12px;margin-bottom:12px">⚠️ Должность могут перекупить в любой момент если заплатят больше. Чем выше цена — тем сложнее тебя скинуть.</div>`;
+  document.getElementById('authorityModalBtn').innerHTML = btnHtml;
+  document.getElementById('authorityModalType').value = type;
+  openModal('modalAuthority');
+}
+
+async function buyAuthority(type){
+  const minPrice = (_authData[type] ? _authData[type].price + 1 : 1);
+  const inp = document.getElementById('authPriceInput');
+  const price = inp ? parseInt(inp.value)||minPrice : minPrice;
+  if(price < minPrice){ if(tg) tg.showAlert(`Минимальная цена ${minPrice} ⭐`); return; }
+  // Подтверждение если перекупаем у кого-то
+  const current = _authData[type];
+  const hasOwner = current && current.user_id && current.user_id != currentUser.user_id;
+  if(hasOwner){
+    const ownerName = current.username ? '@'+current.username : current.first_name;
+    const roleName = AUTHORITY_DATA[type]?.name || type;
+    const confirmed = await new Promise(resolve => {
+      if(tg) tg.showConfirm(`Скинуть ${ownerName} с должности ${roleName}?`, resolve);
+      else resolve(window.confirm(`Скинуть ${ownerName} с должности ${roleName}?`));
+    });
+    if(!confirmed) return;
+  }
+  // Предупреждение если уже есть другая должность
+  const myCurrentType = Object.keys(_authData).find(t => _authData[t] && _authData[t].user_id == currentUser.user_id);
+  if(myCurrentType && myCurrentType !== type){
+    const myName = AUTHORITY_DATA[myCurrentType]?.name || myCurrentType;
+    const newName = AUTHORITY_DATA[type]?.name || type;
+    const confirmed2 = await new Promise(resolve => {
+      if(tg) tg.showConfirm(`Ты уже ${myName}. Если купишь ${newName} — потеряешь прошлую должность. Продолжить?`, resolve);
+      else resolve(window.confirm(`Ты уже ${myName}. Если купишь ${newName} — потеряешь прошлую должность. Продолжить?`));
+    });
+    if(!confirmed2) return;
+  }
+  try {
+    const r = await fetch('/api/authority/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.user_id,authority_type:type,price,username:currentUser.username||'',first_name:currentUser.first_name||''})});
+    const d = await r.json();
+    if(!d.ok){ if(tg) tg.showAlert(d.error||'Ошибка'); return; }
+    if(d.free){ if(tg) tg.showAlert('✅ Должность куплена!'); closeModal('modalAuthority'); await loadAuthorities(); return; }
+    if(d.invoice_url){
+      if(tg) tg.openInvoice(d.invoice_url, async function(status){
+        closeModal('modalAuthority');
+        if(status==='paid'){ await loadAuthorities(); if(tg) tg.showAlert('✅ Должность куплена!'); }
+      });
+      else window.open(d.invoice_url, '_blank');
+    }
+  } catch(e){ if(tg) tg.showAlert('Ошибка соединения'); }
 }
 
 const ARTIFACT_DATA = {
@@ -6109,6 +6330,26 @@ async function doBomzhAttackSend() {
 </div>
 
 <!-- МОДАЛКИ АРТЕФАКТОВ -->
+<div id="modalAuthority" class="modal-overlay hidden">
+  <div class="modal-sheet" style="padding-bottom:30px">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modalAuthority')">✕</button>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <img id="authorityModalImg" src="" style="width:72px;height:72px;object-fit:cover;border-radius:14px;flex-shrink:0;border:1.5px solid rgba(99,102,241,.4)">
+      <div>
+        <div style="font-size:10px;color:rgba(99,102,241,.8);font-family:'Unbounded',sans-serif;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">👑 Авторитет</div>
+        <div id="authorityModalName" style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:#fff"></div>
+      </div>
+    </div>
+    <div id="authorityModalOwner"></div>
+    <div id="authorityModalDesc" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px"></div>
+    <div id="authorityModalOutbid"></div>
+    <div id="authorityModalPrice"></div>
+    <input type="hidden" id="authorityModalType">
+    <div id="authorityModalBtn"></div>
+  </div>
+</div>
+
 <div id="modalArtifact" class="modal-overlay hidden">
   <div class="modal-sheet" style="padding-bottom:30px">
     <div class="modal-handle"></div>

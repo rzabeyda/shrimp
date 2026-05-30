@@ -761,7 +761,7 @@ def spend_gems(user_id: int, amount: int) -> bool:
     conn.commit(); conn.close()
     return True
 
-def create_withdraw_request(user_id: int, username: str, first_name: str, gems: int) -> int:
+def create_withdraw_request(user_id: int, username: str, first_name: str, gems: int, user_msg_id: int = None) -> int:
     """Создаёт запрос на вывод. Возвращает id запроса."""
     conn = get_conn(); c = conn.cursor()
     c.execute("""
@@ -773,13 +773,19 @@ def create_withdraw_request(user_id: int, username: str, first_name: str, gems: 
             gems INTEGER,
             stars INTEGER,
             status TEXT DEFAULT 'pending',
+            user_msg_id INTEGER,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    try:
+        c.execute("ALTER TABLE gem_withdrawals ADD COLUMN user_msg_id INTEGER")
+        conn.commit()
+    except Exception:
+        pass
     stars = int(gems * 0.95)
     c.execute(
-        "INSERT INTO gem_withdrawals (user_id, username, first_name, gems, stars) VALUES (?,?,?,?,?)",
-        (user_id, username, first_name, gems, stars)
+        "INSERT INTO gem_withdrawals (user_id, username, first_name, gems, stars, user_msg_id) VALUES (?,?,?,?,?,?)",
+        (user_id, username, first_name, gems, stars, user_msg_id)
     )
     wid = c.lastrowid
     conn.commit(); conn.close()
@@ -794,6 +800,127 @@ def get_withdraw_request(wid: int):
 def set_withdraw_status(wid: int, status: str):
     conn = get_conn(); c = conn.cursor()
     c.execute("UPDATE gem_withdrawals SET status=? WHERE id=?", (status, wid))
+    conn.commit(); conn.close()
+
+NFT_DROP_THRESHOLD = 2500
+
+def init_nft_counter():
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS nft_drop_counter (
+            id INTEGER PRIMARY KEY CHECK (id=1),
+            total_stars INTEGER DEFAULT 0,
+            drops_given INTEGER DEFAULT 0
+        )
+    """)
+    c.execute("INSERT OR IGNORE INTO nft_drop_counter (id, total_stars, drops_given) VALUES (1, 0, 0)")
+    conn.commit(); conn.close()
+
+def get_nft_counter():
+    init_nft_counter()
+    conn = get_conn(); c = conn.cursor()
+    row = c.execute("SELECT total_stars, drops_given FROM nft_drop_counter WHERE id=1").fetchone()
+    conn.close()
+    return dict(row) if row else {"total_stars": 0, "drops_given": 0}
+
+def add_nft_stars(stars: int) -> bool:
+    """Добавляет звёзды в счётчик. Возвращает True если случился дроп."""
+    init_nft_counter()
+    conn = get_conn(); c = conn.cursor()
+    c.execute("UPDATE nft_drop_counter SET total_stars=total_stars+? WHERE id=1", (stars,))
+    conn.commit()
+    row = c.execute("SELECT total_stars, drops_given FROM nft_drop_counter WHERE id=1").fetchone()
+    total, drops = row["total_stars"], row["drops_given"]
+    new_drops = total // NFT_DROP_THRESHOLD
+    if new_drops > drops:
+        c.execute("UPDATE nft_drop_counter SET drops_given=? WHERE id=1", (new_drops,))
+        conn.commit()
+        conn.close()
+        return True
+    conn.close()
+    return False
+
+# ── АВТОРИТЕТЫ ─────────────────────────────────────────────
+
+AUTHORITY_TYPES = ['mayor', 'banker', 'crime_boss', 'cop', 'escort', 'dealer', 'dictator', 'krasotka', 'milf']
+
+def init_authorities():
+    conn = get_conn(); c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS authorities (
+            authority_type TEXT PRIMARY KEY,
+            user_id INTEGER,
+            username TEXT,
+            first_name TEXT,
+            price INTEGER DEFAULT 1,
+            bought_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            status_enabled INTEGER DEFAULT 0
+        )
+    """)
+    try:
+        c.execute("ALTER TABLE authorities ADD COLUMN status_enabled INTEGER DEFAULT 0")
+    except: pass
+    conn.commit(); conn.close()
+
+def toggle_authority_status(user_id: int) -> bool:
+    """Включить/выключить отображение статуса. Возвращает новое значение (True=вкл)."""
+    init_authorities()
+    conn = get_conn(); c = conn.cursor()
+    row = c.execute("SELECT status_enabled FROM authorities WHERE user_id=?", (user_id,)).fetchone()
+    if not row:
+        conn.close(); return False
+    new_val = 0 if row['status_enabled'] else 1
+    c.execute("UPDATE authorities SET status_enabled=? WHERE user_id=?", (new_val, user_id))
+    conn.commit(); conn.close()
+    return bool(new_val)
+
+def get_all_authorities() -> dict:
+    init_authorities()
+    conn = get_conn(); c = conn.cursor()
+    rows = c.execute("SELECT * FROM authorities").fetchall()
+    conn.close()
+    result = {}
+    for row in rows:
+        result[row['authority_type']] = dict(row)
+    return result
+
+def get_authority(authority_type: str) -> dict:
+    init_authorities()
+    conn = get_conn(); c = conn.cursor()
+    row = c.execute("SELECT * FROM authorities WHERE authority_type=?", (authority_type,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def get_user_authority(user_id: int) -> str:
+    """Возвращает тип должности юзера или None"""
+    init_authorities()
+    conn = get_conn(); c = conn.cursor()
+    row = c.execute("SELECT authority_type FROM authorities WHERE user_id=?", (user_id,)).fetchone()
+    conn.close()
+    return row['authority_type'] if row else None
+
+def set_authority(authority_type: str, user_id: int, username: str, first_name: str, price: int):
+    init_authorities()
+    conn = get_conn(); c = conn.cursor()
+    # Снимаем предыдущую должность этого юзера — обнуляем владельца но цену сохраняем
+    c.execute("UPDATE authorities SET user_id=NULL, username=NULL, first_name=NULL, status_enabled=0 WHERE user_id=? AND authority_type!=?", (user_id, authority_type))
+    c.execute("""
+        INSERT INTO authorities (authority_type, user_id, username, first_name, price, bought_at, status_enabled)
+        VALUES (?,?,?,?,?, CURRENT_TIMESTAMP, 1)
+        ON CONFLICT(authority_type) DO UPDATE SET
+            user_id=excluded.user_id,
+            username=excluded.username,
+            first_name=excluded.first_name,
+            price=excluded.price,
+            bought_at=CURRENT_TIMESTAMP,
+            status_enabled=1
+    """, (authority_type, user_id, username, first_name, price))
+    conn.commit(); conn.close()
+
+def remove_authority(authority_type: str):
+    init_authorities()
+    conn = get_conn(); c = conn.cursor()
+    c.execute("DELETE FROM authorities WHERE authority_type=?", (authority_type,))
     conn.commit(); conn.close()
 
 
